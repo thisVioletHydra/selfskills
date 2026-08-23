@@ -2,20 +2,48 @@
 
 Personal profile as a small app: who I am, what I ship, how to reach me.
 
-Stack: TypeScript, Node.js, NestJS, Prisma, GraphQL, Docker.
+Stack: TypeScript, Node.js, NestJS, Prisma, GraphQL, Docker, React (FSD).
 
 ## Status
 
-Bootstrap only. API and UI land next.
+Folder preview only. Code tomorrow.
 
 ## Layout
 
 ```
-apps/api   NestJS + GraphQL + Prisma
-apps/web   UI
-infra      Docker Compose (api, web, postgres)
+apps/web   React + FSD (pnpm, not Docker)
+apps/api   NestJS + GraphQL + Prisma (Docker)
+infra      Docker Compose (api + postgres)
 ```
+
+### Web (FSD)
+
+```
+apps/web/src/
+  app/
+  pages/profile/
+  widgets/{hero,skills-block,projects-grid,contacts-bar}/
+  features/copy-contact/
+  entities/{profile,skill,project}/
+  shared/{ui,api,lib,config}/
+```
+
+See [apps/web/README.md](apps/web/README.md).
+
+### API (Nest modules)
+
+```
+apps/api/src/
+  profile/
+  skill/
+  project/
+  prisma/
+```
+
+See [apps/api/README.md](apps/api/README.md).
 
 ## Run
 
-Compose will bring up Postgres, the API, and the UI. Details after the first services land.
+Dev: API and UI locally, poke until it works. Postgres can sit in Docker early.
+
+Prod-ish: `docker compose up` for Postgres + Nest. Frontend: `pnpm --filter web build` + start (no container).
