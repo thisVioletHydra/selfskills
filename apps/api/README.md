@@ -1,32 +1,24 @@
 # apps/api
 
-NestJS + GraphQL + Prisma.
+Бэкенд: NestJS + GraphQL + Prisma.
 
-## Modules
+## Модули
 
-One Nest module per domain slice:
-
-| Module | Owns |
+| Модуль | За что |
 |---|---|
-| `profile` | Who I am — GraphQL type + resolver |
-| `skill` | Skills list |
-| `project` | Projects / work samples |
-| `prisma` | Prisma client, DB access for the rest |
+| `profile` | Кто я — тип GraphQL + резолвер |
+| `skill` | Навыки |
+| `project` | Проекты |
+| `prisma` | Клиент Prisma, доступ к БД |
 
-Pattern: module = GraphQL resolver + service that talks to Prisma for that entity. No FSD here.
+Паттерн: модуль = резолвер + сервис → Prisma. FSD на бэке нет.
 
-## Data flow
+## Поток
 
 ```
-GraphQL request → resolver → service → Prisma → Postgres
+GraphQL-запрос → резолвер → сервис → Prisma → Postgres
 ```
 
 ## Docker
 
-Compose (in `infra/`) runs **api + postgres** only.  
-Frontend stays on the host via pnpm.
-
-## Run (later)
-
-Dev: Nest watch locally, Postgres in Docker (or local).  
-Prod-ish: `docker compose up` for api + db.
+В compose (`infra/`) только **api + postgres**. Фронт снаружи на pnpm.
