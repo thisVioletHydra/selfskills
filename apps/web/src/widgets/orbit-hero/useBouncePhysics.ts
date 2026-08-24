@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
-import { ORBIT_TECH } from '#app/entities/skill/tech-stack';
+import type { RefObject } from "react";
+
+import { ORBIT_TECH } from "#app/entities/skill/tech-stack";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 export type BounceBody = {
   id: string;
@@ -14,7 +16,7 @@ export type BounceBody = {
 };
 
 const MAX_SPEED = 52;
-const MAX_THROW_SPEED = 280;
+const MAX_THROW_SPEED = 320;
 const WALL_PADDING = 16;
 const WALL_DAMPING = 0.9;
 const RESTITUTION = 0.78;
@@ -44,11 +46,27 @@ function clampSpeed(vx: number, vy: number, maxSpeed = MAX_SPEED) {
   }
 
   const scale = maxSpeed / speed;
+
   return { vx: vx * scale, vy: vy * scale };
 }
 
 export function clampThrowSpeed(vx: number, vy: number) {
   return clampSpeed(vx, vy, MAX_THROW_SPEED);
+}
+
+export function satelliteTransform(x: number, y: number) {
+  return `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+}
+
+export function paintSatellites(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
+  for (const body of bodies) {
+    const el = elements.get(body.id);
+    if (!el) {
+      continue;
+    }
+
+    el.style.transform = satelliteTransform(body.x, body.y);
+  }
 }
 
 function ensureMinSpeed(body: BounceBody, minSpeed: number) {
@@ -61,6 +79,7 @@ function ensureMinSpeed(body: BounceBody, minSpeed: number) {
     const scale = minSpeed / speed;
     body.vx *= scale;
     body.vy *= scale;
+
     return;
   }
 
@@ -76,7 +95,7 @@ function createBodies(width: number, height: number, sunRadius: number): BounceB
   return ORBIT_TECH.map((tech, index) => {
     const radius = ballRadius(tech.size);
     const angle = (index / ORBIT_TECH.length) * Math.PI * 2 + 0.4;
-    const dist = sunRadius + radius + 55 + (index % 3) * 42;
+    const dist = sunRadius + radius + 48 + (index % 5) * 38 + Math.floor(index / 5) * 28;
 
     let vx = (Math.random() - 0.5) * 65;
     let vy = (Math.random() - 0.5) * 65;
@@ -139,6 +158,7 @@ function updateStuckState(
     body.stuckSeconds = 0;
     body.stuckAnchorX = body.x;
     body.stuckAnchorY = body.y;
+
     return;
   }
 
@@ -212,12 +232,14 @@ function separateCircles(
   if (aStatic) {
     b.x = a.x + nx * (a.radius + b.radius);
     b.y = a.y + ny * (a.radius + b.radius);
+
     return;
   }
 
   if (bStatic) {
     a.x = b.x - nx * (a.radius + b.radius);
     a.y = b.y - ny * (a.radius + b.radius);
+
     return;
   }
 
@@ -246,6 +268,7 @@ function applyImpulse(
       b.vy -= (1 + RESTITUTION) * dot * ny;
       ensureMinSpeed(b as BounceBody, MIN_BOUNCE_SPEED);
     }
+
     return;
   }
 
@@ -256,6 +279,7 @@ function applyImpulse(
       a.vy -= (1 + RESTITUTION) * dot * ny;
       ensureMinSpeed(a as BounceBody, MIN_BOUNCE_SPEED);
     }
+
     return;
   }
 
@@ -275,12 +299,7 @@ function applyImpulse(
   ensureMinSpeed(b as BounceBody, MIN_BOUNCE_SPEED * 0.85);
 }
 
-function resolveCircles(
-  a: CircleBody,
-  b: CircleBody,
-  aStatic: boolean,
-  bStatic: boolean,
-) {
+function resolveCircles(a: CircleBody, b: CircleBody, aStatic: boolean, bStatic: boolean) {
   let dx = b.x - a.x;
   let dy = b.y - a.y;
   let dist = Math.hypot(dx, dy);
@@ -382,70 +401,179 @@ function step(
 
 export function useBouncePhysics(
   stageRef: RefObject<HTMLElement | null>,
+  satelliteElsRef: RefObject<Map<string, HTMLElement | null>>,
   nucleusSize: number,
   interactionId: string | null,
+  motionMode: "auto" | "paused" = "auto",
 ) {
-  const [bodies, setBodies] = useState<BounceBody[]>([]);
   const bodiesRef = useRef<BounceBody[]>([]);
   const interactionRef = useRef(interactionId);
-
-  interactionRef.current = interactionId;
+  const motionModeRef = useRef(motionMode);
+  const sizeRef = useRef({ width: 0, height: 0 });
+  const syncRunningRef = useRef<() => void>(() => {});
 
   useEffect(() => {
+    interactionRef.current = interactionId;
+  }, [interactionId]);
+
+  useEffect(() => {
+    motionModeRef.current = motionMode;
+    syncRunningRef.current();
+  }, [motionMode]);
+
+  useLayoutEffect(() => {
     const stage = stageRef.current;
     if (!stage) {
       return;
     }
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const root = stage.closest(".orbit-hero") ?? stage;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const sunRadius = sunCollisionRadius(nucleusSize);
+    const PAUSE_DELAY_MS = 1000;
+
+    const measure = () => {
+      const { width, height } = stage.getBoundingClientRect();
+      sizeRef.current = { width, height };
+
+      return sizeRef.current;
+    };
 
     const init = () => {
-      const { width, height } = stage.getBoundingClientRect();
+      const { width, height } = measure();
       if (width === 0 || height === 0) {
         return;
       }
 
       const initial = createBodies(width, height, sunRadius);
       bodiesRef.current = initial;
-      setBodies(initial.map((b) => ({ ...b })));
+      paintSatellites(initial, satelliteElsRef.current);
     };
 
     init();
 
     if (reducedMotion) {
+      root.classList.add("paused");
+
       return;
     }
 
     let raf = 0;
+    let pauseTimer = 0;
     let last = performance.now();
+    let inView = true;
+    let pageVisible = document.visibilityState === "visible";
+
+    const shouldRun = () =>
+      motionModeRef.current === "auto" && inView && pageVisible;
+
+    const setPausedClass = (paused: boolean) => {
+      root.classList.toggle("paused", paused);
+    };
+
+    const stopLoop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+      setPausedClass(true);
+    };
 
     const tick = (now: number) => {
+      raf = 0;
+      if (!shouldRun()) {
+        setPausedClass(true);
+
+        return;
+      }
+
       const dt = Math.min((now - last) / 1000, 0.032);
       last = now;
 
-      const { width, height } = stage.getBoundingClientRect();
+      const { width, height } = sizeRef.current;
       if (width > 0 && height > 0 && bodiesRef.current.length > 0) {
         step(bodiesRef.current, width, height, sunRadius, interactionRef.current, dt);
-        setBodies(bodiesRef.current.map((b) => ({ ...b })));
+        paintSatellites(bodiesRef.current, satelliteElsRef.current);
       }
 
       raf = requestAnimationFrame(tick);
     };
 
-    raf = requestAnimationFrame(tick);
+    const startLoop = () => {
+      if (raf || !shouldRun()) {
+        return;
+      }
+
+      setPausedClass(false);
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+
+    const syncRunning = () => {
+      if (shouldRun()) {
+        if (pauseTimer) {
+          window.clearTimeout(pauseTimer);
+          pauseTimer = 0;
+        }
+        startLoop();
+
+        return;
+      }
+
+      if (pauseTimer) {
+        window.clearTimeout(pauseTimer);
+        pauseTimer = 0;
+      }
+
+      // User pause: freeze now. Off-screen / hidden tab: delay before freeze.
+      if (motionModeRef.current === "paused" || !raf) {
+        stopLoop();
+
+        return;
+      }
+
+      pauseTimer = window.setTimeout(() => {
+        pauseTimer = 0;
+        stopLoop();
+      }, PAUSE_DELAY_MS);
+    };
+
+    syncRunningRef.current = syncRunning;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting && entry.intersectionRatio > 0;
+        syncRunning();
+      },
+      { threshold: [0, 0.05], rootMargin: "0px" },
+    );
+    io.observe(root);
+
+    const onVisibility = () => {
+      pageVisible = document.visibilityState === "visible";
+      syncRunning();
+    };
 
     const onResize = () => {
       init();
     };
 
-    window.addEventListener('resize', onResize);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("resize", onResize);
+    syncRunning();
 
     return () => {
+      syncRunningRef.current = () => {};
+      if (pauseTimer) {
+        window.clearTimeout(pauseTimer);
+      }
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', onResize);
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("resize", onResize);
+      root.classList.remove("paused");
     };
-  }, [stageRef, nucleusSize]);
+  }, [stageRef, satelliteElsRef, nucleusSize]);
 
-  return { bodies, bodiesRef };
+  return { bodiesRef };
 }

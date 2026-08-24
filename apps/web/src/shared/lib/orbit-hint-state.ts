@@ -4,9 +4,9 @@ export type OrbitHintState = {
   teaseDone: boolean;
 };
 
-export const ORBIT_HINT_RESET_EVENT = 'orbit-hints-reset';
+export const ORBIT_HINT_RESET_EVENT = "orbit-hints-reset";
 
-const STORAGE_KEY = 'orbit-hint-state';
+const STORAGE_KEY = "orbit-hint-state";
 
 const DEFAULT_STATE: OrbitHintState = {
   tapDismissed: false,
@@ -15,7 +15,7 @@ const DEFAULT_STATE: OrbitHintState = {
 };
 
 export function readOrbitHintState(): OrbitHintState {
-  if (typeof localStorage === 'undefined') {
+  if (typeof localStorage === "undefined") {
     return { ...DEFAULT_STATE };
   }
 
@@ -26,6 +26,7 @@ export function readOrbitHintState(): OrbitHintState {
     }
 
     const parsed = JSON.parse(raw) as Partial<OrbitHintState>;
+
     return { ...DEFAULT_STATE, ...parsed };
   } catch {
     return { ...DEFAULT_STATE };
@@ -33,7 +34,7 @@ export function readOrbitHintState(): OrbitHintState {
 }
 
 export function writeOrbitHintState(patch: Partial<OrbitHintState>) {
-  if (typeof localStorage === 'undefined') {
+  if (typeof localStorage === "undefined") {
     return;
   }
 
@@ -42,7 +43,7 @@ export function writeOrbitHintState(patch: Partial<OrbitHintState>) {
 }
 
 export function resetOrbitHintState() {
-  if (typeof localStorage !== 'undefined') {
+  if (typeof localStorage !== "undefined") {
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -51,5 +52,6 @@ export function resetOrbitHintState() {
 
 export function subscribeOrbitHintReset(listener: () => void) {
   window.addEventListener(ORBIT_HINT_RESET_EVENT, listener);
+
   return () => window.removeEventListener(ORBIT_HINT_RESET_EVENT, listener);
 }

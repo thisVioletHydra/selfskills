@@ -1,16 +1,28 @@
-import { useRef, useState } from 'react';
-import { CORE_TECH, ORBIT_TECH, type TechStackItem } from '#app/entities/skill/tech-stack';
-import { TechModal } from '#app/features/tech-modal/TechModal';
-import { useBouncePhysics } from '#app/widgets/orbit-hero/useBouncePhysics';
-import { useIconThrow } from '#app/widgets/orbit-hero/useIconThrow';
-import { useOrbitHints } from '#app/widgets/orbit-hero/useOrbitHints';
-import '#app/widgets/orbit-hero/orbit-hero.css';
+import type { TechStackItem } from "#app/entities/skill/tech-stack";
+
+import { CORE_TECH, ORBIT_TECH } from "#app/entities/skill/tech-stack";
+import { TechModal } from "#app/features/tech-modal/TechModal";
+import {
+  readOrbitMotionMode,
+  writeOrbitMotionMode,
+  type OrbitMotionMode,
+} from "#app/shared/lib/orbit-motion-state";
+import { OrbitComets } from "#app/widgets/orbit-hero/OrbitComet";
+import { OrbitHaze } from "#app/widgets/orbit-hero/OrbitHaze";
+import { OrbitPulseStars } from "#app/widgets/orbit-hero/OrbitPulseStars";
+import { useBouncePhysics } from "#app/widgets/orbit-hero/useBouncePhysics";
+import { useIconThrow } from "#app/widgets/orbit-hero/useIconThrow";
+import { useOrbitHints } from "#app/widgets/orbit-hero/useOrbitHints";
+import { useRef, useState } from "react";
+import "#app/widgets/orbit-hero/orbit-hero.css";
 
 export function OrbitHero() {
   const stageRef = useRef<HTMLDivElement>(null);
+  const satelliteElsRef = useRef(new Map<string, HTMLElement | null>());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activeTech, setActiveTech] = useState<TechStackItem | null>(null);
+  const [motionMode, setMotionMode] = useState<OrbitMotionMode>(() => readOrbitMotionMode());
 
   const {
     showTapHint,
@@ -26,7 +38,19 @@ export function OrbitHero() {
   } = useOrbitHints();
 
   const interactionId = draggingId ?? hoveredId;
-  const { bodies, bodiesRef } = useBouncePhysics(stageRef, CORE_TECH.size, interactionId);
+  const { bodiesRef } = useBouncePhysics(
+    stageRef,
+    satelliteElsRef,
+    CORE_TECH.size,
+    interactionId,
+    motionMode,
+  );
+
+  const toggleMotion = () => {
+    const next: OrbitMotionMode = motionMode === "auto" ? "paused" : "auto";
+    writeOrbitMotionMode(next);
+    setMotionMode(next);
+  };
 
   const markInteracted = () => {
     markTeaseDone();
@@ -41,6 +65,7 @@ export function OrbitHero() {
   const throwHandlers = useIconThrow({
     stageRef,
     bodiesRef,
+    satelliteElsRef,
     draggingId,
     setDraggingId,
     setHoveredId,
@@ -51,68 +76,99 @@ export function OrbitHero() {
     },
   });
 
-  const stageClassName = teaseActive
-    ? 'orbit-hero__stage orbit-hero__stage--hinting'
-    : 'orbit-hero__stage';
-
+  const stageClassName = teaseActive ? "stage hinting" : "stage";
   const hintsVisible = showTapHint || showThrowHint || tapHiding || throwHiding;
+  const isPaused = motionMode === "paused";
 
   return (
     <section className="orbit-hero" id="hero">
       <div className={stageClassName} ref={stageRef}>
-        <div className="orbit-hero__glow" aria-hidden="true" />
+        <div className="stars" aria-hidden="true">
+          <div className="stars-far" />
+          <OrbitHaze />
+          <div className="stars-mid" />
+          <div className="stars-near" />
+          <OrbitPulseStars />
+          <OrbitComets />
+        </div>
+        <div className="glow" aria-hidden="true" />
+
+        <button
+          type="button"
+          className="motion-chip"
+          onClick={toggleMotion}
+          aria-pressed={isPaused}
+          aria-label={isPaused ? "Запустить орбиту" : "Поставить орбиту на паузу"}
+          title={isPaused ? "Play" : "Pause"}
+        >
+          {isPaused ? (
+            <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4.2 2.4v11.2L13.2 8 4.2 2.4Z" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="3.2" y="2.8" width="3.2" height="10.4" rx="0.6" fill="currentColor" />
+              <rect x="9.6" y="2.8" width="3.2" height="10.4" rx="0.6" fill="currentColor" />
+            </svg>
+          )}
+          <span className="label">{isPaused ? "Play" : "Pause"}</span>
+        </button>
 
         {hintsVisible && (
-          <div className="orbit-hero__hints" aria-label="Подсказки">
+          <div className="hints" aria-label="Подсказки">
             {showTapHint && (
               <p
-                className={`orbit-hint${tapHiding ? ' orbit-hint--out' : ''}`}
+                className={`hint${tapHiding ? " out" : ""}`}
                 onAnimationEnd={(event) => {
-                  if (event.animationName === 'hint-fade-out' && tapHiding) {
+                  if (event.animationName === "hint-fade-out" && tapHiding) {
                     finishTapHintHide();
                   }
                 }}
               >
-                <span className="orbit-hint__mark" aria-hidden="true">◎</span>
+                <span className="mark" aria-hidden="true">
+                  ◎
+                </span>
                 Тап — карточка
               </p>
             )}
             {showThrowHint && (
               <p
-                className={`orbit-hint${throwHiding ? ' orbit-hint--out' : ''}`}
+                className={`hint${throwHiding ? " out" : ""}`}
                 onAnimationEnd={(event) => {
-                  if (event.animationName === 'hint-fade-out' && throwHiding) {
+                  if (event.animationName === "hint-fade-out" && throwHiding) {
                     finishThrowHintHide();
                   }
                 }}
               >
-                <span className="orbit-hint__mark orbit-hint__mark--throw" aria-hidden="true">↗</span>
+                <span className="mark throw" aria-hidden="true">
+                  ↗
+                </span>
                 Зажми и швырни
               </p>
             )}
           </div>
         )}
 
-        <div className="orbit-sun" aria-hidden="true">
-          <div className="orbit-sun__corona orbit-sun__corona--outer" />
-          <div className="orbit-sun__corona orbit-sun__corona--mid" />
-          <div className="orbit-sun__corona orbit-sun__corona--core" />
+        <div className="sun" aria-hidden="true">
+          <div className="corona outer" />
+          <div className="corona mid" />
+          <div className="corona core" />
         </div>
 
         {ORBIT_TECH.map((tech, index) => {
-          const body = bodies.find((item) => item.id === tech.id);
           const isActive = interactionId === tech.id;
           const isDragging = draggingId === tech.id;
-          const teaseAlt = index % 2 === 1 ? ' orbit-satellite--tease-alt' : '';
+          const teaseAlt = index % 2 === 1 ? " tease-alt" : "";
 
           return (
             <button
               key={tech.id}
               type="button"
-              className={`orbit-satellite${teaseAlt}${isActive ? ' orbit-satellite--paused' : ''}${isDragging ? ' orbit-satellite--dragging' : ''}`}
+              ref={(node) => {
+                satelliteElsRef.current.set(tech.id, node);
+              }}
+              className={`satellite${teaseAlt}${isActive ? " paused" : ""}${isDragging ? " dragging" : ""}`}
               style={{
-                left: body ? `${body.x}px` : '50%',
-                top: body ? `${body.y}px` : '42%',
                 width: `${tech.size}px`,
                 height: `${tech.size}px`,
               }}
@@ -135,7 +191,7 @@ export function OrbitHero() {
 
         <button
           type="button"
-          className="orbit-nucleus"
+          className="nucleus"
           onClick={() => openTech(CORE_TECH)}
           aria-label={`${CORE_TECH.name}. Тап — открыть карточку.`}
           title="Тап — карточка JavaScript"
@@ -143,15 +199,16 @@ export function OrbitHero() {
           <img src={CORE_TECH.icon} alt="" draggable={false} />
         </button>
 
-        <div className="orbit-hero__copy">
-          <p className="orbit-hero__tag">fullstack</p>
-          <h1 className="orbit-hero__title">
+        <div className="copy">
+          <p className="tag">стек с орбиты</p>
+          <h1 className="title">
             JS в центре.
             <br />
             Остальное — орбиты.
           </h1>
-          <p className="orbit-hero__sub">
-            Иконки живые: тап без движения — карточка, зажми и отпусти — полёт. Наведи — пауза.
+          <p className="sub">
+            Не витрина «всего интернета» — только то, с чем реально работал. Тап — карточка, зажми и
+            швырни — полёт.
           </p>
         </div>
       </div>

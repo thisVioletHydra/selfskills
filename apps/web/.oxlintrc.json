@@ -7,10 +7,19 @@
     "react/self-closing-comp": "warn",
     "react/only-export-components": ["warn", { "allowConstantExport": true }],
     "import/newline-after-import": "warn",
+    "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "fixStyle": "separate-type-imports"
+      }
+    ],
     "@stylistic/padding-line-between-statements": [
       "warn",
       { "blankLine": "always", "prev": "*", "next": "return" }
     ],
+
     "typescript/strict-boolean-expressions": [
       "error",
       {

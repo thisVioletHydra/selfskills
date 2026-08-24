@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
 import type { TechStackItem } from '#app/entities/skill/tech-stack';
+
+import { useEffect } from 'react';
 import '#app/features/tech-modal/tech-modal.css';
 
 type TechModalProps = {
@@ -33,29 +34,36 @@ export function TechModal({ tech, onClose }: TechModalProps) {
   }
 
   return (
-    <div className="tech-modal__backdrop" onClick={onClose} role="presentation">
-      <dialog className="tech-modal" open aria-labelledby="tech-modal-title" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="tech-modal__close" onClick={onClose} aria-label="Закрыть">
+    <div className="tech-modal" onClick={onClose} role="presentation">
+      <dialog
+        className="panel"
+        open
+        aria-labelledby="tech-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className="close" onClick={onClose} aria-label="Закрыть">
           ×
         </button>
 
-        <div className="tech-modal__head">
-          <img className="tech-modal__icon" src={tech.icon} alt="" />
-          <h2 id="tech-modal-title" className="tech-modal__title">
+        <div className="head">
+          <img className="icon" src={tech.icon} alt="" />
+          <h2 id="tech-modal-title" className="title">
             {tech.name}
           </h2>
         </div>
 
-        <dl className="tech-modal__fields">
-          <div className="tech-modal__field">
+        <dl className="fields">
+          <div className="field">
             <dt>Название</dt>
-            <dd>{tech.name} / {tech.reading}</dd>
+            <dd>
+              {tech.name} / {tech.reading}
+            </dd>
           </div>
-          <div className="tech-modal__field">
+          <div className="field">
             <dt>Что это такое</dt>
             <dd>{tech.summary}</dd>
           </div>
-          <div className="tech-modal__field">
+          <div className="field">
             <dt>Опыт работы</dt>
             <dd>{tech.experience}</dd>
           </div>

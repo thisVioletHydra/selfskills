@@ -1,7 +1,10 @@
-import { AccentBar } from '#app/shared/ui/AccentBar';
+import { PROFILE } from '#app/entities/profile/profile';
 import { SiteFooter } from '#app/shared/ui/SiteFooter';
 import { SiteHeader } from '#app/shared/ui/SiteHeader';
+import { ContactsBar } from '#app/widgets/contacts-bar/ContactsBar';
 import { OrbitHero } from '#app/widgets/orbit-hero/OrbitHero';
+import { ProjectsGrid } from '#app/widgets/projects-grid/ProjectsGrid';
+import { SkillsBlock } from '#app/widgets/skills-block/SkillsBlock';
 import '#app/pages/profile/profile-page.css';
 
 export function ProfilePage() {
@@ -10,24 +13,62 @@ export function ProfilePage() {
       <SiteHeader />
       <main>
         <OrbitHero />
-        <AccentBar />
-        <section className="content-block" id="about">
-          <div className="content-block__inner">
-            <h2>Лорем на чёрном</h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-            <p>
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-              Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </p>
-            <p>
-              TypeScript, Node, React, Vue, Angular, Svelte — общий фундамент. Дальше сюда подтянем данные
-              с GraphQL и Nest, когда заведём бэкенд.
-            </p>
+
+        <section className="cosmos-section about" id="about">
+          <div className="stars" aria-hidden="true" />
+          <div className="persona">
+            <div className="shot">
+              <img
+                className="portrait"
+                src={PROFILE.portrait}
+                alt={`Портрет: ${PROFILE.name}`}
+                width={640}
+                height={960}
+              />
+            </div>
+
+            <div className="sheet">
+              <p className="tag">{PROFILE.tag}</p>
+              <h2 className="name">{PROFILE.name}</h2>
+              <p className="role">{PROFILE.role}</p>
+              <p className="blurb">{PROFILE.blurb}</p>
+
+              <div className="cols">
+                <div className="col">
+                  <h3 className="heading">Факты</h3>
+                  <dl className="facts">
+                    {PROFILE.facts.map((fact) => (
+                      <div key={fact.label} className="fact">
+                        <dt>{fact.label}</dt>
+                        <dd>{fact.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <h3 className="heading">Куда целился</h3>
+                  <ul className="goals">
+                    {PROFILE.goals.map((goal) => (
+                      <li key={goal.slice(0, 32)}>{goal}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="col">
+                  <h3 className="heading">О себе</h3>
+                  {PROFILE.about.map((paragraph) => (
+                    <p key={paragraph.slice(0, 40)} className="copy">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
+
+        <SkillsBlock />
+        <ProjectsGrid />
+        <ContactsBar />
       </main>
       <SiteFooter />
     </>

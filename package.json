@@ -1,13 +1,16 @@
 {
   "name": "selfskills",
   "private": true,
-  "packageManager": "pnpm@11.22.0",
   "scripts": {
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "lint": "pnpm --filter web lint",
-    "format": "pnpm --filter web format",
-    "format:check": "pnpm --filter web format:check",
+    "format": "pnpm --filter web format && pnpm --filter web exec oxfmt \"$PWD/package.json\" \"$PWD/.oxfmtrc.json\" \"$PWD/.vscode/settings.json\"",
+    "format:check": "pnpm --filter web format:check && pnpm --filter web exec oxfmt --check \"$PWD/package.json\" \"$PWD/.oxfmtrc.json\" \"$PWD/.vscode/settings.json\"",
     "preview": "pnpm --filter web preview"
-  }
+  },
+  "engines": {
+    "node": "24"
+  },
+  "packageManager": "pnpm@11.22.0"
 }

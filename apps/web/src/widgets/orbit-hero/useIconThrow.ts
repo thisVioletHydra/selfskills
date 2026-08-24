@@ -1,7 +1,9 @@
-import { useRef, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
-import type { TechStackItem } from '#app/entities/skill/tech-stack';
-import type { BounceBody } from '#app/widgets/orbit-hero/useBouncePhysics';
-import { clampThrowSpeed } from '#app/widgets/orbit-hero/useBouncePhysics';
+import type { TechStackItem } from "#app/entities/skill/tech-stack";
+import type { BounceBody } from "#app/widgets/orbit-hero/useBouncePhysics";
+import type { Dispatch, PointerEvent as ReactPointerEvent, RefObject, SetStateAction } from "react";
+
+import { clampThrowSpeed, satelliteTransform } from "#app/widgets/orbit-hero/useBouncePhysics";
+import { useRef } from "react";
 
 type PointSample = {
   x: number;
@@ -12,26 +14,28 @@ type PointSample = {
 type UseIconThrowOptions = {
   stageRef: RefObject<HTMLElement | null>;
   bodiesRef: RefObject<BounceBody[]>;
+  satelliteElsRef: RefObject<Map<string, HTMLElement | null>>;
   draggingId: string | null;
-  setDraggingId: (id: string | null) => void;
-  setHoveredId: (id: string | null) => void;
+  setDraggingId: Dispatch<SetStateAction<string | null>>;
+  setHoveredId: Dispatch<SetStateAction<string | null>>;
   onOpen: (tech: TechStackItem) => void;
   onThrow?: () => void;
 };
 
-const FLICK_LOOKBACK_MS = 90;
-const RELEASE_TAIL_MS = 55;
+const FLICK_LOOKBACK_MS = 70;
+const RELEASE_TAIL_MS = 50;
 const TAP_THRESHOLD_PX = 10;
-const TAIL_STILLNESS_PX = 10;
-const GENTLE_RELEASE_RAW_SPEED = 52;
-const FLICK_MULTIPLIER = 2.45;
-const FLICK_SPEED_BONUS = 0.32;
-const DRAG_DISTANCE_BONUS = 0.28;
-const MIN_FLICK_DT_SEC = 0.008;
-const MAX_THROW_SPEED = 280;
+const TAIL_STILLNESS_PX = 9;
+const GENTLE_RELEASE_RAW_SPEED = 38;
+const THROW_CURVE = 1.2;
+const RAW_SPEED_SOFT = 40;
+const RAW_SPEED_HARD = 740;
+const MIN_THROW_SPEED = 30;
+const MAX_THROW_SPEED = 320;
 
 function stagePoint(stage: HTMLElement, clientX: number, clientY: number) {
   const rect = stage.getBoundingClientRect();
+
   return {
     x: clientX - rect.left,
     y: clientY - rect.top,
@@ -40,22 +44,49 @@ function stagePoint(stage: HTMLElement, clientX: number, clientY: number) {
 
 function computeFlickVelocity(samples: PointSample[]) {
   if (samples.length < 2) {
-    return { vx: 0, vy: 0, speed: 0, rawSpeed: 0 };
+    return { vx: 0, vy: 0, rawSpeed: 0 };
   }
 
   const end = samples[samples.length - 1];
   const windowStart = end.t - FLICK_LOOKBACK_MS;
-  const start = samples.find((sample) => sample.t >= windowStart) ?? samples[0];
-  const dt = Math.max((end.t - start.t) / 1000, MIN_FLICK_DT_SEC);
+  let bestVx = 0;
+  let bestVy = 0;
+  let bestSpeed = 0;
 
-  const rawVx = (end.x - start.x) / dt;
-  const rawVy = (end.y - start.y) / dt;
-  const rawSpeed = Math.hypot(rawVx, rawVy);
-  const vx = rawVx * FLICK_MULTIPLIER;
-  const vy = rawVy * FLICK_MULTIPLIER;
-  const speed = Math.hypot(vx, vy);
+  for (let i = 1; i < samples.length; i++) {
+    const prev = samples[i - 1];
+    const next = samples[i];
 
-  return { vx, vy, speed, rawSpeed };
+    if (next.t < windowStart) {
+      continue;
+    }
+
+    const dt = (next.t - prev.t) / 1000;
+    if (dt < 0.001) {
+      continue;
+    }
+
+    const vx = (next.x - prev.x) / dt;
+    const vy = (next.y - prev.y) / dt;
+    const speed = Math.hypot(vx, vy);
+
+    if (speed > bestSpeed) {
+      bestSpeed = speed;
+      bestVx = vx;
+      bestVy = vy;
+    }
+  }
+
+  return { vx: bestVx, vy: bestVy, rawSpeed: bestSpeed };
+}
+
+function mapThrowSpeed(rawSpeed: number) {
+  const t = Math.min(
+    1,
+    Math.max(0, (rawSpeed - RAW_SPEED_SOFT) / (RAW_SPEED_HARD - RAW_SPEED_SOFT)),
+  );
+
+  return MIN_THROW_SPEED + Math.pow(t, THROW_CURVE) * (MAX_THROW_SPEED - MIN_THROW_SPEED);
 }
 
 function computeReleaseVelocity(samples: PointSample[], dragStart: { x: number; y: number }) {
@@ -72,37 +103,46 @@ function computeReleaseVelocity(samples: PointSample[], dragStart: { x: number; 
   const tailStart = end.t - RELEASE_TAIL_MS;
   const tailAnchor = samples.find((sample) => sample.t >= tailStart) ?? samples[0];
   const tailDist = Math.hypot(end.x - tailAnchor.x, end.y - tailAnchor.y);
-  const isGentleRelease =
-    tailDist < TAIL_STILLNESS_PX || flick.rawSpeed < GENTLE_RELEASE_RAW_SPEED;
+  const isGentleRelease = tailDist < TAIL_STILLNESS_PX || flick.rawSpeed < GENTLE_RELEASE_RAW_SPEED;
 
-  if (isGentleRelease) {
+  if (isGentleRelease || flick.rawSpeed <= 0) {
     return { vx: 0, vy: 0 };
   }
 
-  if (flick.speed <= 0) {
+  const releaseSpeed = Math.min(MAX_THROW_SPEED, mapThrowSpeed(flick.rawSpeed));
+  const dirLen = Math.hypot(flick.vx, flick.vy);
+
+  if (dirLen <= 0.001) {
     return { vx: 0, vy: 0 };
   }
 
-  const distanceBonus = Math.min(dragDist * DRAG_DISTANCE_BONUS, flick.speed * 0.3);
-  const releaseSpeed = Math.min(
-    MAX_THROW_SPEED,
-    flick.speed * (1 + FLICK_SPEED_BONUS) + distanceBonus,
-  );
-
-  const dirX = flick.vx / flick.speed;
-  const dirY = flick.vy / flick.speed;
-
-  return clampThrowSpeed(dirX * releaseSpeed, dirY * releaseSpeed);
+  return clampThrowSpeed((flick.vx / dirLen) * releaseSpeed, (flick.vy / dirLen) * releaseSpeed);
 }
 
 export function useIconThrow(options: UseIconThrowOptions) {
-  const { stageRef, bodiesRef, draggingId, setDraggingId, setHoveredId, onOpen, onThrow } = options;
+  const {
+    stageRef,
+    bodiesRef,
+    satelliteElsRef,
+    draggingId,
+    setDraggingId,
+    setHoveredId,
+    onOpen,
+    onThrow,
+  } = options;
 
   const samplesRef = useRef<PointSample[]>([]);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const didDragRef = useRef(false);
 
   const getBody = (id: string) => bodiesRef.current.find((body) => body.id === id);
+
+  const paintBody = (id: string, x: number, y: number) => {
+    const el = satelliteElsRef.current.get(id);
+    if (el) {
+      el.style.transform = satelliteTransform(x, y);
+    }
+  };
 
   const onPointerDown = (tech: TechStackItem, event: ReactPointerEvent<HTMLButtonElement>) => {
     const stage = stageRef.current;
@@ -130,6 +170,7 @@ export function useIconThrow(options: UseIconThrowOptions) {
     body.stuckSeconds = 0;
     body.stuckAnchorX = point.x;
     body.stuckAnchorY = point.y;
+    paintBody(tech.id, point.x, point.y);
 
     setDraggingId(tech.id);
     setHoveredId(null);
@@ -151,9 +192,10 @@ export function useIconThrow(options: UseIconThrowOptions) {
     body.y = point.y;
     body.vx = 0;
     body.vy = 0;
+    paintBody(tech.id, point.x, point.y);
 
     samplesRef.current.push({ x: point.x, y: point.y, t: performance.now() });
-    if (samplesRef.current.length > 12) {
+    if (samplesRef.current.length > 24) {
       samplesRef.current.shift();
     }
 

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import type { OrbitHintState } from "#app/shared/lib/orbit-hint-state";
+
 import {
   readOrbitHintState,
   subscribeOrbitHintReset,
   writeOrbitHintState,
-  type OrbitHintState,
-} from '#app/shared/lib/orbit-hint-state';
+} from "#app/shared/lib/orbit-hint-state";
+import { useCallback, useEffect, useState } from "react";
 
 export function useOrbitHints() {
   const [hintState, setHintState] = useState<OrbitHintState>(readOrbitHintState);

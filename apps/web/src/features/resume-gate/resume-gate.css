@@ -1,0 +1,179 @@
+@scope (.resume-gate) {
+  :scope {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+    place-items: center;
+    padding: var(--space-6);
+    background: var(--color-overlay);
+    backdrop-filter: blur(4px);
+  }
+
+  .panel {
+    position: relative;
+    inline-size: min(100%, 28rem);
+    margin: 0;
+    padding: var(--space-7) var(--space-6);
+    border: 1px solid var(--color-panel-border);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklch, var(--color-bg-panel) 92%, transparent);
+    color: var(--color-text);
+    box-shadow: 0 24px 80px color-mix(in oklch, oklch(0 0 0) 60%, transparent);
+    font-family: var(--font-sans);
+  }
+
+  .tag {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-tag);
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+
+  .title {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-title);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    text-wrap: balance;
+  }
+
+  .sub {
+    margin: 0 0 var(--space-6);
+    color: var(--color-muted);
+    font-size: var(--text-md);
+    text-wrap: pretty;
+  }
+
+  .label {
+    display: block;
+    margin-block-end: var(--space-2);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+
+  .input {
+    display: block;
+    inline-size: 100%;
+    margin-block-end: var(--space-6);
+    padding-block: 0.85rem;
+    padding-inline: var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background: color-mix(in oklch, var(--color-bg-deep) 70%, transparent);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-base);
+    outline: none;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .input::placeholder {
+    color: var(--color-faint);
+  }
+
+  .input:focus-visible {
+    border-color: var(--color-accent-soft);
+    box-shadow: 0 0 0 3px var(--color-accent-glow);
+  }
+
+  .input:disabled {
+    opacity: 0.6;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  .primary,
+  .ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: 0.7rem;
+    padding-inline: var(--space-5);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .primary:disabled,
+  .ghost:disabled {
+    cursor: wait;
+    opacity: 0.55;
+  }
+
+  .primary {
+    border: 1px solid var(--color-accent-soft);
+    background: color-mix(in oklch, var(--color-accent) 16%, transparent);
+    color: var(--color-text);
+  }
+
+  .primary:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--color-accent) 28%, transparent);
+  }
+
+  .ghost {
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-muted);
+  }
+
+  .ghost:hover:not(:disabled) {
+    color: var(--color-text);
+    border-color: var(--color-line);
+  }
+
+  .hotkey {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.5rem;
+    padding-inline: 0.35rem;
+    border: 1px solid var(--color-glass-border);
+    border-radius: 0.35rem;
+    background: color-mix(in oklch, var(--color-bg-lift) 80%, transparent);
+    color: var(--color-faint);
+    font: inherit;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .hint {
+    margin: var(--space-5) 0 0;
+    font-size: var(--text-xs);
+    color: var(--color-faint);
+  }
+
+  .error {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+  }
+}
+
+@supports (backdrop-filter: blur(4px)) {
+  @scope (.resume-gate) {
+    :scope {
+      background: color-mix(in oklch, oklch(0 0 0) 55%, transparent);
+    }
+
+    .panel {
+      backdrop-filter: blur(12px);
+    }
+  }
+}

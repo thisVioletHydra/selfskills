@@ -2,13 +2,30 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "semi": true,
   "sortImports": {
+    "newlinesBetween": false,
+    "internalPattern": ["^#app/"],
     "groups": [
-      "type-import",
-      ["value-builtin", "value-external"],
-      "type-internal",
-      "value-internal",
-      ["type-parent", "type-sibling", "type-index"],
-      ["value-parent", "value-sibling", "value-index"],
+      [
+        "type-import",
+        "type-builtin",
+        "type-external",
+        "type-internal",
+        "type-subpath",
+        "type-parent",
+        "type-sibling",
+        "type-index"
+      ],
+      { "newlinesBetween": true },
+      [
+        "value-builtin",
+        "value-external",
+        "value-internal",
+        "value-subpath",
+        "value-parent",
+        "value-sibling",
+        "value-index"
+      ],
+      "style",
       "unknown"
     ]
   }
