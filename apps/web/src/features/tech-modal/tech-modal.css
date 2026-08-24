@@ -1,0 +1,86 @@
+.tech-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.tech-modal {
+  position: relative;
+  width: min(100%, 480px);
+  margin: 0;
+  padding: 1.5rem;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  background: #111;
+  color: #f2f2f2;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+.tech-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #888;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tech-modal__close:hover {
+  color: #fff;
+  background: #222;
+}
+
+.tech-modal__head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.tech-modal__icon {
+  width: 48px;
+  height: 48px;
+}
+
+.tech-modal__title {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.tech-modal__fields {
+  margin: 0;
+}
+
+.tech-modal__field {
+  margin-bottom: 1rem;
+}
+
+.tech-modal__field:last-child {
+  margin-bottom: 0;
+}
+
+.tech-modal__field dt {
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.tech-modal__field dd {
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.88;
+}

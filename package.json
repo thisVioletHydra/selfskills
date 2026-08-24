@@ -1,0 +1,13 @@
+{
+  "name": "selfskills",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "format": "pnpm --filter web format",
+    "format:check": "pnpm --filter web format:check",
+    "preview": "pnpm --filter web preview"
+  }
+}

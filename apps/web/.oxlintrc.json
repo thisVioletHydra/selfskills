@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc", "import"],
+  "jsPlugins": ["@stylistic/eslint-plugin"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/self-closing-comp": "warn",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "import/newline-after-import": "warn",
+    "@stylistic/padding-line-between-statements": [
+      "warn",
+      { "blankLine": "always", "prev": "*", "next": "return" }
+    ],
+    "typescript/strict-boolean-expressions": [
+      "error",
+      {
+        "allowNullableObject": false,
+        "allowString": false,
+        "allowNumber": false
+      }
+    ]
+  }
+}
