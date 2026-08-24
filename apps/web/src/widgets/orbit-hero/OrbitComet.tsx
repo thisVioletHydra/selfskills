@@ -1,12 +1,19 @@
 import type { CometFlight } from "#app/shared/lib/orbit-comet";
+import type { OrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
 import type { CSSProperties } from "react";
 
-import { createCometWave, subscribeOrbitCometTrigger } from "#app/shared/lib/orbit-comet";
-import { useEffect, useRef, useState } from "react";
+import {
+  cometFlightLifetimeMs,
+  createCometWave,
+  subscribeOrbitCometTrigger,
+} from "#app/shared/lib/orbit-comet";
+import { useOrbitAmbientActive } from "#app/widgets/orbit-hero/useOrbitAmbientActive";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const SPARK_COUNT = 14;
 const AMBIENT_MIN_MS = 48_000;
 const AMBIENT_MAX_MS = 78_000;
+const MAX_FLIGHTS = 6;
 
 const SPARK_TONES = [
   "rgba(255, 255, 255, 0.95)",
@@ -26,6 +33,25 @@ type OrbitCometProps = {
 };
 
 function OrbitComet({ flight, onDone }: OrbitCometProps) {
+  const doneRef = useRef(false);
+
+  const finish = useCallback(() => {
+    if (doneRef.current) {
+      return;
+    }
+
+    doneRef.current = true;
+    onDone(flight.id);
+  }, [flight.id, onDone]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(finish, cometFlightLifetimeMs(flight));
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [flight, finish]);
+
   const style = {
     "--comet-top": `${flight.top}%`,
     "--comet-left": `${flight.left}%`,
@@ -40,8 +66,12 @@ function OrbitComet({ flight, onDone }: OrbitCometProps) {
       className="comet"
       style={style}
       onAnimationEnd={(event) => {
+        if (event.target !== event.currentTarget) {
+          return;
+        }
+
         if (event.animationName === "comet-fly") {
-          onDone(flight.id);
+          finish();
         }
       }}
     >
@@ -70,35 +100,55 @@ function OrbitComet({ flight, onDone }: OrbitCometProps) {
   );
 }
 
-export function OrbitComets() {
+type OrbitCometsProps = {
+  motionMode: OrbitMotionMode;
+};
+
+export function OrbitComets({ motionMode }: OrbitCometsProps) {
+  const ambientActive = useOrbitAmbientActive(motionMode);
   const [flights, setFlights] = useState<CometFlight[]>([]);
   const ambientTimerRef = useRef(0);
+  const ambientActiveRef = useRef(ambientActive);
 
-  const spawnWave = () => {
-    const wave = createCometWave();
-    setFlights((current) => [...current, ...wave]);
-  };
-
-  const removeFlight = (id: number) => {
+  const removeFlight = useCallback((id: number) => {
     setFlights((current) => current.filter((flight) => flight.id !== id));
-  };
+  }, []);
 
-  useEffect(() => {
-    return subscribeOrbitCometTrigger(() => {
-      const wave = createCometWave();
-      setFlights((current) => [...current, ...wave]);
+  const appendWave = useCallback((wave: CometFlight[]) => {
+    if (!ambientActiveRef.current || wave.length === 0) {
+      return;
+    }
+
+    setFlights((current) => {
+      const next = [...current, ...wave];
+
+      return next.length > MAX_FLIGHTS ? next.slice(-MAX_FLIGHTS) : next;
     });
   }, []);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    ambientActiveRef.current = ambientActive;
+
+    if (!ambientActive) {
+      setFlights([]);
+    }
+  }, [ambientActive]);
+
+  useEffect(() => {
+    return subscribeOrbitCometTrigger(() => {
+      appendWave(createCometWave());
+    });
+  }, [appendWave]);
+
+  useEffect(() => {
+    if (!ambientActive || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
 
     const scheduleNext = () => {
       ambientTimerRef.current = window.setTimeout(
         () => {
-          spawnWave();
+          appendWave(createCometWave());
           scheduleNext();
         },
         rand(AMBIENT_MIN_MS, AMBIENT_MAX_MS),
@@ -110,7 +160,7 @@ export function OrbitComets() {
     return () => {
       window.clearTimeout(ambientTimerRef.current);
     };
-  }, []);
+  }, [ambientActive, appendWave]);
 
   return (
     <>

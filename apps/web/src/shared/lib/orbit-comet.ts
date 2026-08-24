@@ -83,6 +83,10 @@ export function createCometWave(forcedCount?: 1 | 2): CometFlight[] {
   );
 }
 
+export function cometFlightLifetimeMs(flight: CometFlight) {
+  return (flight.delay + flight.duration) * 1000 + 200;
+}
+
 export function triggerOrbitComet() {
   window.dispatchEvent(new CustomEvent(ORBIT_COMET_TRIGGER_EVENT));
 }

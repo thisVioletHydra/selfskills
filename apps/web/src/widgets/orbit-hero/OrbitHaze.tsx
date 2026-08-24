@@ -1,8 +1,10 @@
 import type { HazeCount } from "#app/shared/lib/orbit-haze";
+import type { OrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
 import type { CSSProperties } from "react";
 
 import { rollHazeCount, subscribeOrbitHazeForce } from "#app/shared/lib/orbit-haze";
-import { useEffect, useRef, useState } from "react";
+import { useOrbitAmbientActive } from "#app/widgets/orbit-hero/useOrbitAmbientActive";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type HazeTone = "cold" | "warm" | "white";
 
@@ -38,6 +40,7 @@ type HazeGeneration = {
 };
 
 const ROLL_INTERVAL_MS = 14_000;
+const MAX_GENERATIONS = 2;
 const TONE_POOL: HazeTone[] = ["cold", "warm", "white"];
 const SUN_X = 50;
 const SUN_Y = 42;
@@ -60,7 +63,6 @@ function pickTone(): HazeTone {
   return TONE_POOL[Math.floor(Math.random() * TONE_POOL.length)];
 }
 
-/** Center near JS is ~3x less likely; edges / offscreen ok */
 function pickHazePoint() {
   for (let attempt = 0; attempt < 14; attempt++) {
     const left = rand(-20, 118);
@@ -150,13 +152,38 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function OrbitHaze() {
+type OrbitHazeProps = {
+  motionMode: OrbitMotionMode;
+};
+
+export function OrbitHaze({ motionMode }: OrbitHazeProps) {
+  const ambientActive = useOrbitAmbientActive(motionMode);
+  const ambientActiveRef = useRef(ambientActive);
   const [seed] = useState(() => createGeneration(prefersReducedMotion() ? 1 : rollHazeCount()));
   const [generations, setGenerations] = useState<HazeGeneration[]>(() => [seed]);
   const removeTimersRef = useRef<Map<number, number>>(new Map());
 
-  const pushGeneration = (generation: HazeGeneration) => {
-    setGenerations((current) => [...current, generation]);
+  useEffect(() => {
+    ambientActiveRef.current = ambientActive;
+  }, [ambientActive]);
+
+  const clearTimers = useCallback(() => {
+    for (const timer of removeTimersRef.current.values()) {
+      window.clearTimeout(timer);
+    }
+    removeTimersRef.current.clear();
+  }, []);
+
+  const pushGeneration = useCallback((generation: HazeGeneration) => {
+    if (!ambientActiveRef.current) {
+      return;
+    }
+
+    setGenerations((current) => {
+      const next = [...current, generation];
+
+      return next.length > MAX_GENERATIONS ? next.slice(-MAX_GENERATIONS) : next;
+    });
 
     const timer = window.setTimeout(() => {
       setGenerations((current) => current.filter((item) => item.id !== generation.id));
@@ -164,49 +191,53 @@ export function OrbitHaze() {
     }, generation.lifeMs);
 
     removeTimersRef.current.set(generation.id, timer);
-  };
+  }, []);
 
-  const clearGenerations = () => {
-    for (const timer of removeTimersRef.current.values()) {
-      window.clearTimeout(timer);
-    }
-    removeTimersRef.current.clear();
+  const clearGenerations = useCallback(() => {
+    clearTimers();
     setGenerations([]);
-  };
+  }, [clearTimers]);
+
+  useEffect(() => {
+    if (!ambientActive) {
+      clearGenerations();
+
+      return;
+    }
+
+    setGenerations((current) => (current.length > 0 ? current : [seed]));
+  }, [ambientActive, clearGenerations, seed]);
 
   useEffect(() => {
     return subscribeOrbitHazeForce((count) => {
       clearGenerations();
       pushGeneration(createGeneration(count, true));
     });
-  }, []);
+  }, [clearGenerations, pushGeneration]);
 
   useEffect(() => {
+    if (!ambientActive || prefersReducedMotion()) {
+      return;
+    }
+
     const timers = removeTimersRef.current;
 
-    const timer = window.setTimeout(() => {
+    const seedTimer = window.setTimeout(() => {
       setGenerations((current) => current.filter((item) => item.id !== seed.id));
       timers.delete(seed.id);
     }, seed.lifeMs);
+    timers.set(seed.id, seedTimer);
 
-    timers.set(seed.id, timer);
-
-    const interval = prefersReducedMotion()
-      ? 0
-      : window.setInterval(() => {
-          pushGeneration(createGeneration(rollHazeCount()));
-        }, ROLL_INTERVAL_MS);
+    const interval = window.setInterval(() => {
+      pushGeneration(createGeneration(rollHazeCount()));
+    }, ROLL_INTERVAL_MS);
 
     return () => {
       window.clearInterval(interval);
-
-      for (const t of timers.values()) {
-        window.clearTimeout(t);
-      }
-
-      timers.clear();
+      window.clearTimeout(seedTimer);
+      timers.delete(seed.id);
     };
-  }, [seed]);
+  }, [ambientActive, pushGeneration, seed]);
 
   return (
     <div className="haze-layer" aria-hidden="true">

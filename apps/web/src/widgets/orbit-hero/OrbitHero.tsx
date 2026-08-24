@@ -85,11 +85,11 @@ export function OrbitHero() {
       <div className={stageClassName} ref={stageRef}>
         <div className="stars" aria-hidden="true">
           <div className="stars-far" />
-          <OrbitHaze />
+          <OrbitHaze motionMode={motionMode} />
           <div className="stars-mid" />
           <div className="stars-near" />
           <OrbitPulseStars />
-          <OrbitComets />
+          <OrbitComets motionMode={motionMode} />
         </div>
         <div className="glow" aria-hidden="true" />
 

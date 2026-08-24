@@ -459,6 +459,7 @@ export function useBouncePhysics(
     }
 
     let raf = 0;
+    let loopActive = false;
     let pauseTimer = 0;
     let last = performance.now();
     let inView = true;
@@ -472,6 +473,7 @@ export function useBouncePhysics(
     };
 
     const stopLoop = () => {
+      loopActive = false;
       if (raf) {
         cancelAnimationFrame(raf);
         raf = 0;
@@ -480,9 +482,8 @@ export function useBouncePhysics(
     };
 
     const tick = (now: number) => {
-      raf = 0;
       if (!shouldRun()) {
-        setPausedClass(true);
+        stopLoop();
 
         return;
       }
@@ -500,10 +501,11 @@ export function useBouncePhysics(
     };
 
     const startLoop = () => {
-      if (raf || !shouldRun()) {
+      if (loopActive || !shouldRun()) {
         return;
       }
 
+      loopActive = true;
       setPausedClass(false);
       last = performance.now();
       raf = requestAnimationFrame(tick);
@@ -526,7 +528,7 @@ export function useBouncePhysics(
       }
 
       // User pause: freeze now. Off-screen / hidden tab: delay before freeze.
-      if (motionModeRef.current === "paused" || !raf) {
+      if (motionModeRef.current === "paused" || !loopActive) {
         stopLoop();
 
         return;
@@ -567,6 +569,7 @@ export function useBouncePhysics(
       if (pauseTimer) {
         window.clearTimeout(pauseTimer);
       }
+      loopActive = false;
       cancelAnimationFrame(raf);
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
