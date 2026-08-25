@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { appendCapped } from "#app/shared/lib/orbit-list";
 import { rollHazeCount, subscribeOrbitHazeForce } from "#app/shared/lib/orbit-haze";
 import { prefersReducedMotion, rand } from "#app/shared/lib/orbit-rand";
-import { useOrbitAmbientActive } from "#app/widgets/orbit-hero/useOrbitAmbientActive";
+import { useOrbitPresence } from "#app/widgets/orbit-hero/useOrbitPresence";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type HazeTone = "cold" | "warm" | "white";
@@ -41,7 +41,7 @@ type HazeGeneration = {
   lifeMs: number;
 };
 
-const ROLL_INTERVAL_MS = 14_000;
+const ROLL_INTERVAL_MS = 12_000;
 const MAX_GENERATIONS = 2;
 const TONE_POOL: HazeTone[] = ["cold", "warm", "white"];
 const SUN_X = 50;
@@ -64,7 +64,7 @@ function pickTone(): HazeTone {
 function pickHazePoint() {
   for (let attempt = 0; attempt < 14; attempt++) {
     const left = rand(-20, 118);
-    const top = rand(-18, 116);
+    const top = rand(-8, 92);
     const dx = left - SUN_X;
     const dy = top - SUN_Y;
     const inCenter = dx * dx + dy * dy < CENTER_RADIUS * CENTER_RADIUS;
@@ -76,7 +76,7 @@ function pickHazePoint() {
 
   return {
     left: Math.random() > 0.5 ? rand(-20, 8) : rand(92, 118),
-    top: Math.random() > 0.5 ? rand(-18, 12) : rand(88, 116),
+    top: Math.random() > 0.5 ? rand(-8, 18) : rand(72, 92),
   };
 }
 
@@ -137,7 +137,7 @@ function createBlob(duration: number, debug = false): HazeBlob {
 
 function createGeneration(count: HazeCount, debug = false): HazeGeneration {
   generationSeq += 1;
-  const duration = debug ? 10 : rand(24, 28);
+  const duration = debug ? 10 : rand(18, 22);
 
   return {
     id: generationSeq,
@@ -150,12 +150,18 @@ type OrbitHazeProps = {
   motionMode: OrbitMotionMode;
 };
 
-function OrbitHazeAmbient() {
-  const [generations, setGenerations] = useState<HazeGeneration[]>([]);
-  const removeTimersRef = useRef<Map<number, number>>(new Map());
-  const seedRef = useRef(
+function OrbitHazeAmbient({ motionMode }: OrbitHazeProps) {
+  const { inView, pageVisible } = useOrbitPresence("hero");
+  const [generations, setGenerations] = useState<HazeGeneration[]>(() => [
     createGeneration(prefersReducedMotion() ? 1 : rollHazeCount()),
-  );
+  ]);
+  const generationsRef = useRef(generations);
+  const removeTimersRef = useRef<Map<number, number>>(new Map());
+  const reduced = prefersReducedMotion();
+  const frozen = motionMode === "paused" || reduced;
+  const canSpawn = !frozen && inView && pageVisible;
+
+  generationsRef.current = generations;
 
   const clearTimers = useCallback(() => {
     for (const timer of removeTimersRef.current.values()) {
@@ -164,7 +170,21 @@ function OrbitHazeAmbient() {
     removeTimersRef.current.clear();
   }, []);
 
-  const pushGeneration = useCallback((generation: HazeGeneration) => {
+  const armRemoveTimer = useCallback((generation: HazeGeneration) => {
+    const existing = removeTimersRef.current.get(generation.id);
+    if (existing) {
+      window.clearTimeout(existing);
+    }
+
+    const timer = window.setTimeout(() => {
+      setGenerations((current) => current.filter((item) => item.id !== generation.id));
+      removeTimersRef.current.delete(generation.id);
+    }, generation.lifeMs);
+
+    removeTimersRef.current.set(generation.id, timer);
+  }, []);
+
+  const pushGeneration = useCallback((generation: HazeGeneration, armTimer: boolean) => {
     setGenerations((current) => {
       const next = appendCapped(current, [generation], MAX_GENERATIONS);
       const kept = new Set(next.map((item) => item.id));
@@ -179,45 +199,58 @@ function OrbitHazeAmbient() {
       return next;
     });
 
-    const existing = removeTimersRef.current.get(generation.id);
-    if (existing) {
-      window.clearTimeout(existing);
+    if (armTimer) {
+      armRemoveTimer(generation);
     }
-
-    const timer = window.setTimeout(() => {
-      setGenerations((current) => current.filter((item) => item.id !== generation.id));
-      removeTimersRef.current.delete(generation.id);
-    }, generation.lifeMs);
-
-    removeTimersRef.current.set(generation.id, timer);
-  }, []);
-
-  const clearGenerations = useCallback(() => {
-    clearTimers();
-    setGenerations([]);
-  }, [clearTimers]);
+  }, [armRemoveTimer]);
 
   useEffect(() => {
     return subscribeOrbitHazeForce((count) => {
-      clearGenerations();
-      pushGeneration(createGeneration(count, true));
+      clearTimers();
+      const generation = createGeneration(count, true);
+      setGenerations([generation]);
+      if (!frozen) {
+        armRemoveTimer(generation);
+      }
     });
-  }, [clearGenerations, pushGeneration]);
+  }, [armRemoveTimer, clearTimers, frozen]);
 
   useEffect(() => {
-    pushGeneration(seedRef.current);
+    if (frozen) {
+      clearTimers();
+      return;
+    }
 
-    const interval = prefersReducedMotion()
-      ? 0
-      : window.setInterval(() => {
-          pushGeneration(createGeneration(rollHazeCount()));
-        }, ROLL_INTERVAL_MS);
+    for (const generation of generationsRef.current) {
+      if (!removeTimersRef.current.has(generation.id)) {
+        armRemoveTimer(generation);
+      }
+    }
+
+    return () => {
+      clearTimers();
+    };
+  }, [armRemoveTimer, clearTimers, frozen]);
+
+  useEffect(() => {
+    if (!canSpawn) {
+      return;
+    }
+
+    if (generationsRef.current.length === 0) {
+      pushGeneration(createGeneration(rollHazeCount()), true);
+    }
+
+    const interval = window.setInterval(() => {
+      pushGeneration(createGeneration(rollHazeCount()), true);
+    }, ROLL_INTERVAL_MS);
 
     return () => {
       window.clearInterval(interval);
-      clearGenerations();
     };
-  }, [clearGenerations, pushGeneration]);
+  }, [canSpawn, pushGeneration]);
+
+  useEffect(() => () => clearTimers(), [clearTimers]);
 
   return (
     <div className="haze-layer" aria-hidden="true">
@@ -259,11 +292,5 @@ function OrbitHazeAmbient() {
 }
 
 export function OrbitHaze({ motionMode }: OrbitHazeProps) {
-  const ambientActive = useOrbitAmbientActive(motionMode);
-
-  if (!ambientActive) {
-    return null;
-  }
-
-  return <OrbitHazeAmbient />;
+  return <OrbitHazeAmbient motionMode={motionMode} />;
 }

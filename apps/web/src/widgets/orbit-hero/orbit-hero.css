@@ -5,13 +5,14 @@
     min-block-size: var(--hero-min-h);
     block-size: calc(100dvh - var(--space-peek));
     overflow: clip;
-    background:
+    background-color: var(--color-bg-deep);
+    background-image:
       radial-gradient(ellipse 55% 45% at 50% 42%, var(--color-accent-core) 0%, transparent 58%),
       radial-gradient(
-        ellipse 100% 80% at 50% 50%,
+        ellipse 110% 75% at 50% 38%,
         var(--color-bg-lift) 0%,
-        var(--color-bg) 72%,
-        var(--color-bg-deep) 100%
+        var(--color-bg) 55%,
+        transparent 78%
       );
   }
 
@@ -20,6 +21,7 @@
     width: 100%;
     height: 100%;
     isolation: isolate;
+    overflow: clip;
   }
 
   .stars {
@@ -108,9 +110,24 @@
   .haze-layer {
     position: absolute;
     inset: 0;
+    z-index: 0;
     pointer-events: none;
     overflow: hidden;
     transform: translateZ(0);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 62%,
+      rgb(0 0 0 / 0.35) 82%,
+      transparent 96%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 62%,
+      rgb(0 0 0 / 0.35) 82%,
+      transparent 96%
+    );
   }
 
   .haze {
@@ -121,7 +138,7 @@
     height: min(var(--haze-h, 40vw), 480px);
     transform: translate(-50%, -50%) rotate(var(--haze-rot, 0deg));
     opacity: 0;
-    animation: haze-breathe var(--haze-duration, 32s) ease-in-out both;
+    animation: haze-breathe var(--haze-duration, 20s) ease-in-out both;
     animation-delay: var(--haze-delay, 0s);
     will-change: opacity, transform;
     filter: blur(34px);
@@ -168,7 +185,6 @@
     pointer-events: none;
     background:
       radial-gradient(ellipse 75% 60% at 50% 42%, transparent 40%, rgba(1, 1, 4, 0.35) 100%),
-      radial-gradient(ellipse 120% 100% at 50% 100%, rgba(0, 0, 0, 0.45) 0%, transparent 55%),
       radial-gradient(ellipse 90% 70% at 0% 0%, rgba(8, 12, 28, 0.35) 0%, transparent 50%),
       radial-gradient(ellipse 90% 70% at 100% 10%, rgba(6, 10, 22, 0.3) 0%, transparent 48%);
   }
@@ -297,6 +313,44 @@
       color var(--duration-fast) var(--ease-out),
       border-color var(--duration-fast) var(--ease-out),
       background var(--duration-fast) var(--ease-out);
+  }
+
+  .hints-reset {
+    position: absolute;
+    top: 1.1rem;
+    right: max(1rem, var(--space-section-x));
+    z-index: 8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0.42rem;
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-glass);
+    color: var(--color-muted);
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      background var(--duration-fast) var(--ease-out);
+  }
+
+  .hints-reset:hover {
+    color: var(--color-text);
+    border-color: var(--color-line);
+  }
+
+  .hints-reset:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  .hints-reset .glyph {
+    display: block;
+    width: 0.95rem;
+    height: 0.95rem;
   }
 
   .motion-chip:focus-visible {
@@ -544,15 +598,15 @@
 @keyframes haze-breathe {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--haze-rot, 0deg)) scale(0.9);
+    transform: translate(-50%, -50%) rotate(var(--haze-rot, 0deg)) scale(0.92);
   }
 
-  18% {
+  6% {
     opacity: var(--haze-opacity, 0.3);
     transform: translate(-50%, -50%) rotate(var(--haze-rot, 0deg)) scale(1);
   }
 
-  62% {
+  58% {
     opacity: calc(var(--haze-opacity, 0.3) * 1.08);
     transform: translate(-48%, -52%) rotate(var(--haze-rot, 0deg)) scale(1.04);
   }
@@ -755,6 +809,8 @@
 
     .hints {
       inset-block-start: 1.1rem;
+      max-width: calc(100% - 4.5rem);
+      margin-inline-end: 2.5rem;
     }
   }
 }

@@ -20,7 +20,7 @@ export const PROFILE: ProfileInfo = {
   tag: "about",
   blurb:
     "JavaScript — ядро. Вокруг него то, с чем реально пахал: Vue и React, Node и Nest, Prisma, GraphQL, Docker, CI. Легаси вроде jQuery/PHP — по делу, когда надо довести, не как витрина навыков.",
-  portrait: "/portrait.png",
+  portrait: "/portrait.webp",
   facts: [
     { label: "Возраст", value: "29" },
     { label: "Город", value: "Москва" },

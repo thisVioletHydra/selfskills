@@ -2,35 +2,39 @@ import { useEffect, useRef, useState } from 'react';
 import '#app/shared/ui/site-chrome.css';
 
 export function SiteHeader() {
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node) return;
+    const header = headerRef.current;
+    if (!header) return;
 
-    const observer = new IntersectionObserver(([entry]) => {
-      setStuck(!entry.isIntersecting);
-    }, { threshold: 0 });
+    const update = () => {
+      // sticky pinned only when the bar is flush with the viewport top
+      setStuck(header.getBoundingClientRect().top <= 0.5);
+    };
 
-    observer.observe(node);
-    return () => observer.disconnect();
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
   }, []);
 
   return (
-    <>
-      <div ref={sentinelRef} className="site-header-sentinel" aria-hidden="true" />
-      <header className={stuck ? 'site-header is-stuck' : 'site-header'}>
-        <a className="logo" href="#hero">
-          selfskills
-        </a>
-        <nav className="nav">
-          <a href="#about">about</a>
-          <a href="#skills">skills</a>
-          <a href="#projects">projects</a>
-          <a href="#contact">contact</a>
-        </nav>
-      </header>
-    </>
+    <header ref={headerRef} className={stuck ? 'site-header is-stuck' : 'site-header'}>
+      <a className="logo" href="#hero">
+        selfskills
+      </a>
+      <nav className="nav">
+        <a href="#about">about</a>
+        <a href="#skills">skills</a>
+        <a href="#projects">projects</a>
+        <a href="#contact">contact</a>
+      </nav>
+    </header>
   );
 }

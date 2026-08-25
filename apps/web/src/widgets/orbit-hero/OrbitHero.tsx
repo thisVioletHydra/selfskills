@@ -4,6 +4,7 @@ import type { OrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
 import { CORE_TECH, ORBIT_TECH } from "#app/entities/skill/tech-stack";
 import { TechModal } from "#app/features/tech-modal/TechModal";
 import { readOrbitMotionMode, writeOrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
+import { resetOrbitHintState } from "#app/shared/lib/orbit-hint-state";
 import { OrbitComets } from "#app/widgets/orbit-hero/OrbitComet";
 import { OrbitHaze } from "#app/widgets/orbit-hero/OrbitHaze";
 import { OrbitPulseStars } from "#app/widgets/orbit-hero/OrbitPulseStars";
@@ -78,13 +79,39 @@ export function OrbitHero() {
       <div className={stageClassName} ref={stageRef}>
         <div className="stars" aria-hidden="true">
           <div className="stars-far" />
-          <OrbitHaze motionMode={motionMode} />
           <div className="stars-mid" />
           <div className="stars-near" />
           <OrbitPulseStars />
           <OrbitComets motionMode={motionMode} />
         </div>
+        <OrbitHaze motionMode={motionMode} />
         <div className="glow" aria-hidden="true" />
+
+        <button
+          type="button"
+          className="hints-reset"
+          onClick={() => resetOrbitHintState()}
+          aria-label="Сбросить подсказки"
+          title="Сбросить подсказки"
+        >
+          <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M3.2 3.2a5.6 5.6 0 0 1 9.1 1.3M12.8 12.8a5.6 5.6 0 0 1-9.1-1.3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M12.8 2.4v3.2h-3.2M3.2 13.6v-3.2h3.2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
 
         <button
           type="button"
