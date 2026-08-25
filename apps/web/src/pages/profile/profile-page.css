@@ -16,6 +16,7 @@
     margin-block-start: 0;
     padding-block: 0;
     padding-inline: 0;
+    overflow: visible;
     background: var(--color-bg-deep);
   }
 
@@ -93,54 +94,93 @@
     z-index: 1;
     display: grid;
     gap: var(--space-5);
+    justify-items: center;
     inline-size: min(100%, var(--width-about));
     max-inline-size: var(--width-about);
     margin-inline: auto;
-    padding-block: 0 var(--space-section-y);
+    padding-block: var(--space-5) var(--space-section-y);
     padding-inline: var(--space-section-x);
   }
 
   .persona-photo {
     position: relative;
-    inline-size: min(100%, 22rem);
-    block-size: 24rem;
+    inline-size: min(100%, 18rem);
+    block-size: auto;
+    aspect-ratio: 1;
     margin-inline: auto;
+    overflow: visible;
+  }
+
+  /* Soft wash strictly under the circle */
+  .persona-photo::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset-inline: 8%;
+    inset-block-end: -12%;
+    inset-block-start: auto;
+    block-size: 42%;
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse 80% 70% at 50% 40%,
+      oklch(from var(--color-cold-base) 0.55 c h / 0.45) 0%,
+      oklch(from var(--color-cold-base) 0.48 c h / 0.18) 45%,
+      transparent 75%
+    );
+    filter: blur(22px);
   }
 
   .shot {
     position: absolute;
     inset: 0;
-    overflow: clip;
+    z-index: 1;
+    overflow: visible;
+    border-radius: 50%;
     background-color: transparent;
+    --portrait-solid: 90%;
+    --portrait-mid: 93%;
+    --portrait-edge: 100%;
+    -webkit-mask-image: radial-gradient(
+      circle closest-side at 50% 50%,
+      #000 0%,
+      #000 var(--portrait-solid),
+      rgb(0 0 0 / 0.45) var(--portrait-mid),
+      transparent var(--portrait-edge)
+    );
+    mask-image: radial-gradient(
+      circle closest-side at 50% 50%,
+      #000 0%,
+      #000 var(--portrait-solid),
+      rgb(0 0 0 / 0.45) var(--portrait-mid),
+      transparent var(--portrait-edge)
+    );
   }
 
   .shot::before {
     content: "";
     position: absolute;
     inset: 0;
+    border-radius: 50%;
     background-image: var(--portrait-url);
     background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center 100%;
+    background-size: cover;
+    background-position: center 20%;
   }
 
   .lead {
     display: grid;
     gap: var(--space-3);
-    inline-size: min(100%, 22rem);
+    inline-size: min(100%, 36rem);
     margin-inline: auto;
   }
 
   .lead-head {
-    position: relative;
-    block-size: 24rem;
-    pointer-events: none;
+    display: grid;
+    gap: var(--space-2);
   }
 
   .tag {
-    position: absolute;
-    inset-inline: 0;
-    inset-block-start: 71%;
     margin: 0;
     text-align: center;
     color: var(--color-accent);
@@ -150,16 +190,12 @@
   }
 
   .name {
-    position: absolute;
-    inset-inline: 0;
-    inset-block-end: 2.75rem;
     margin: 0;
     font-size: clamp(1.75rem, 1.2rem + 2.2vi, 2.35rem);
     line-height: var(--leading-tight);
     font-weight: var(--weight-bold);
     text-align: center;
     text-wrap: balance;
-    text-shadow: 0 0.1em 0.4em color-mix(in oklch, var(--color-bg-deep) 80%, transparent);
   }
 
   .name .mark {
@@ -167,14 +203,10 @@
   }
 
   .role {
-    position: absolute;
-    inset-inline: 0;
-    inset-block-end: 0.5rem;
     margin: 0;
     color: var(--color-muted);
     font-size: var(--text-sm);
     text-align: center;
-    text-shadow: 0 0.08em 0.35em color-mix(in oklch, var(--color-bg-deep) 75%, transparent);
   }
 
   .blurb {
@@ -189,37 +221,13 @@
 
 @media (width < 900px) {
   @scope (.cosmos-section.about) {
-    :scope {
-      margin-block-start: calc(var(--space-peek) * -1 + 2rem);
-    }
-
     .persona-stage {
       grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: 24rem auto;
-      gap: 0;
+      justify-items: center;
     }
 
     .persona-photo {
-      grid-area: 1 / 1;
-      z-index: 0;
-    }
-
-    .lead {
-      display: contents;
-    }
-
-    .lead-head {
-      grid-area: 1 / 1;
-      z-index: 1;
-      inline-size: min(100%, 22rem);
-      margin-inline: auto;
-    }
-
-    .blurb {
-      grid-area: 2 / 1;
-      max-inline-size: 36rem;
-      margin-block-start: var(--space-5);
-      margin-inline: auto;
+      inline-size: min(72vw, 18rem);
     }
   }
 }
@@ -227,48 +235,54 @@
 @media (width >= 900px) {
   @scope (.cosmos-section.about) {
     .persona-stage {
-      grid-template-columns: minmax(0, 1fr) minmax(14rem, 22rem);
+      grid-template-columns: minmax(0, 1fr) 17rem;
       grid-template-rows: auto;
-      gap: clamp(2rem, 3vw, 4rem);
+      gap: 2rem;
       align-items: center;
-      padding-block: 2rem var(--space-section-y);
+      justify-items: stretch;
+      padding-block: var(--space-4) var(--space-section-y);
+      padding-inline: 0;
     }
 
     .lead {
       grid-column: 1;
-      inline-size: 100%;
-      max-inline-size: 32rem;
-      align-self: center;
-      translate: 0 -6%;
-      pointer-events: auto;
-    }
-
-    .lead-head {
-      display: grid;
-      gap: var(--space-2);
-      block-size: auto;
-      pointer-events: auto;
+      inline-size: auto;
+      max-inline-size: none;
+      min-inline-size: 0;
+      margin-inline: 0;
     }
 
     .persona-photo {
       grid-column: 2;
       grid-row: 1;
-      block-size: min(58dvh, 32rem);
-      inline-size: 100%;
+      inline-size: 17rem;
+      max-inline-size: 17rem;
       margin-inline: 0;
+      justify-self: end;
+    }
+
+    .persona-photo::before {
+      inset-inline: 6%;
+      inset-block-end: -14%;
+      block-size: 48%;
+      filter: blur(26px);
+      background: radial-gradient(
+        ellipse 85% 75% at 50% 35%,
+        oklch(from var(--color-cold-base) 0.55 c h / 0.5) 0%,
+        oklch(from var(--color-cold-base) 0.48 c h / 0.2) 48%,
+        transparent 78%
+      );
+    }
+
+    .shot::before {
+      background-position: center 18%;
     }
 
     .tag,
     .name,
-    .role {
-      position: static;
-      inset: unset;
+    .role,
+    .blurb {
       text-align: start;
-      text-shadow: none;
-    }
-
-    .tag {
-      color: var(--color-accent);
     }
 
     .name {
@@ -282,7 +296,6 @@
     .blurb {
       font-size: var(--text-md);
       line-height: var(--leading-normal);
-      text-align: start;
     }
   }
 }

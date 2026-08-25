@@ -60,7 +60,7 @@
     --space-10: calc(var(--space-unit) * 18);
     --space-section-y: clamp(3.25rem, 2.4rem + 3.5vi, 4.5rem);
     --space-section-x: clamp(1rem, 0.55rem + 2vi, 1.5rem);
-    --space-peek: clamp(5.75rem, 4.2rem + 5dvh, 7.5rem);
+    --space-peek: clamp(9rem, 7rem + 6dvh, 12rem);
 
     /* Type — fluid via vi */
     --font-sans: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
@@ -84,11 +84,11 @@
 
     /* Layout */
     --width-content: 45rem;
-    --width-about: 68rem;
+    --width-about: 45rem; /* 720px */
     --width-copy: 32.5rem;
     --width-measure: 38rem;
     --width-modal: 30rem;
-    --size-orbit-icon: clamp(5.25rem, 3.4rem + 5.5vi, 6.75rem);
+    --size-orbit-planet: clamp(5.25rem, 3.4rem + 5.5vi, 6.75rem);
     --radius-sm: 0.375rem;
     --radius-md: 0.75rem;
     --radius-pill: 1e3px;

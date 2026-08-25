@@ -1,3 +1,5 @@
+import { subscribeWindowEvent } from "#app/shared/lib/subscribe-window-event";
+
 export type OrbitHintState = {
   tapDismissed: boolean;
   throwDismissed: boolean;
@@ -51,7 +53,5 @@ export function resetOrbitHintState() {
 }
 
 export function subscribeOrbitHintReset(listener: () => void) {
-  window.addEventListener(ORBIT_HINT_RESET_EVENT, listener);
-
-  return () => window.removeEventListener(ORBIT_HINT_RESET_EVENT, listener);
+  return subscribeWindowEvent(ORBIT_HINT_RESET_EVENT, listener);
 }

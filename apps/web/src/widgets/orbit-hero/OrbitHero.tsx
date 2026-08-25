@@ -1,46 +1,39 @@
 import type { TechStackItem } from "#app/entities/skill/tech-stack";
+import type { OrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
 
 import { CORE_TECH, ORBIT_TECH } from "#app/entities/skill/tech-stack";
 import { TechModal } from "#app/features/tech-modal/TechModal";
-import {
-  readOrbitMotionMode,
-  writeOrbitMotionMode,
-  type OrbitMotionMode,
-} from "#app/shared/lib/orbit-motion-state";
+import { readOrbitMotionMode, writeOrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
 import { OrbitComets } from "#app/widgets/orbit-hero/OrbitComet";
 import { OrbitHaze } from "#app/widgets/orbit-hero/OrbitHaze";
 import { OrbitPulseStars } from "#app/widgets/orbit-hero/OrbitPulseStars";
 import { useBouncePhysics } from "#app/widgets/orbit-hero/useBouncePhysics";
-import { useIconThrow } from "#app/widgets/orbit-hero/useIconThrow";
+import { usePlanetThrow } from "#app/widgets/orbit-hero/usePlanetThrow";
 import { useOrbitHints } from "#app/widgets/orbit-hero/useOrbitHints";
 import { useRef, useState } from "react";
 import "#app/widgets/orbit-hero/orbit-hero.css";
 
 export function OrbitHero() {
   const stageRef = useRef<HTMLDivElement>(null);
-  const satelliteElsRef = useRef(new Map<string, HTMLElement | null>());
+  const planetElsRef = useRef(new Map<string, HTMLElement | null>());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activeTech, setActiveTech] = useState<TechStackItem | null>(null);
   const [motionMode, setMotionMode] = useState<OrbitMotionMode>(() => readOrbitMotionMode());
 
   const {
-    showTapHint,
-    showThrowHint,
+    hints,
     teaseActive,
-    tapHiding,
-    throwHiding,
     dismissTapHint,
     dismissThrowHint,
-    finishTapHintHide,
-    finishThrowHintHide,
+    finishHide,
     markTeaseDone,
   } = useOrbitHints();
 
   const interactionId = draggingId ?? hoveredId;
   const { bodiesRef } = useBouncePhysics(
     stageRef,
-    satelliteElsRef,
+    planetElsRef,
     CORE_TECH.size,
     interactionId,
     motionMode,
@@ -62,10 +55,10 @@ export function OrbitHero() {
     setActiveTech(tech);
   };
 
-  const throwHandlers = useIconThrow({
+  const throwHandlers = usePlanetThrow({
     stageRef,
     bodiesRef,
-    satelliteElsRef,
+    planetElsRef,
     draggingId,
     setDraggingId,
     setHoveredId,
@@ -77,7 +70,7 @@ export function OrbitHero() {
   });
 
   const stageClassName = teaseActive ? "stage hinting" : "stage";
-  const hintsVisible = showTapHint || showThrowHint || tapHiding || throwHiding;
+  const hintsVisible = hints.some((hint) => hint.visible || hint.hiding);
   const isPaused = motionMode === "paused";
 
   return (
@@ -116,40 +109,28 @@ export function OrbitHero() {
 
         {hintsVisible && (
           <div className="hints" aria-label="Подсказки">
-            {showTapHint && (
-              <p
-                className={`hint${tapHiding ? " out" : ""}`}
-                onAnimationEnd={(event) => {
-                  if (event.animationName === "hint-fade-out" && tapHiding) {
-                    finishTapHintHide();
-                  }
-                }}
-              >
-                <span className="mark" aria-hidden="true">
-                  ◎
-                </span>
-                Тап — карточка
-              </p>
-            )}
-            {showThrowHint && (
-              <p
-                className={`hint${throwHiding ? " out" : ""}`}
-                onAnimationEnd={(event) => {
-                  if (event.animationName === "hint-fade-out" && throwHiding) {
-                    finishThrowHintHide();
-                  }
-                }}
-              >
-                <span className="mark throw" aria-hidden="true">
-                  ↗
-                </span>
-                Зажми и швырни
-              </p>
+            {hints.map((hint) =>
+              hint.visible ? (
+                <p
+                  key={hint.key}
+                  className={`hint${hint.hiding ? " out" : ""}`}
+                  onAnimationEnd={(event) => {
+                    if (event.animationName === "hint-fade-out" && hint.hiding) {
+                      finishHide(hint.key);
+                    }
+                  }}
+                >
+                  <span className={hint.markClass} aria-hidden="true">
+                    {hint.mark}
+                  </span>
+                  {hint.text}
+                </p>
+              ) : null,
             )}
           </div>
         )}
 
-        <div className="sun" aria-hidden="true">
+        <div className="star" aria-hidden="true">
           <div className="corona outer" />
           <div className="corona mid" />
           <div className="corona core" />
@@ -165,9 +146,9 @@ export function OrbitHero() {
               key={tech.id}
               type="button"
               ref={(node) => {
-                satelliteElsRef.current.set(tech.id, node);
+                planetElsRef.current.set(tech.id, node);
               }}
-              className={`satellite${teaseAlt}${isActive ? " paused" : ""}${isDragging ? " dragging" : ""}`}
+              className={`planet${teaseAlt}${isActive ? " paused" : ""}${isDragging ? " dragging" : ""}`}
               style={{
                 width: `${tech.size}px`,
                 height: `${tech.size}px`,
@@ -191,7 +172,7 @@ export function OrbitHero() {
 
         <button
           type="button"
-          className="nucleus"
+          className="supernova"
           onClick={() => openTech(CORE_TECH)}
           aria-label={`${CORE_TECH.name}. Тап — открыть карточку.`}
           title="Тап — карточка JavaScript"

@@ -2,7 +2,7 @@ import type { TechStackItem } from "#app/entities/skill/tech-stack";
 import type { BounceBody } from "#app/widgets/orbit-hero/useBouncePhysics";
 import type { Dispatch, PointerEvent as ReactPointerEvent, RefObject, SetStateAction } from "react";
 
-import { clampThrowSpeed, satelliteTransform } from "#app/widgets/orbit-hero/useBouncePhysics";
+import { clampThrowSpeed, planetTransform } from "#app/widgets/orbit-hero/useBouncePhysics";
 import { useRef } from "react";
 
 type PointSample = {
@@ -11,10 +11,10 @@ type PointSample = {
   t: number;
 };
 
-type UseIconThrowOptions = {
+type UsePlanetThrowOptions = {
   stageRef: RefObject<HTMLElement | null>;
   bodiesRef: RefObject<BounceBody[]>;
-  satelliteElsRef: RefObject<Map<string, HTMLElement | null>>;
+  planetElsRef: RefObject<Map<string, HTMLElement | null>>;
   draggingId: string | null;
   setDraggingId: Dispatch<SetStateAction<string | null>>;
   setHoveredId: Dispatch<SetStateAction<string | null>>;
@@ -119,11 +119,11 @@ function computeReleaseVelocity(samples: PointSample[], dragStart: { x: number; 
   return clampThrowSpeed((flick.vx / dirLen) * releaseSpeed, (flick.vy / dirLen) * releaseSpeed);
 }
 
-export function useIconThrow(options: UseIconThrowOptions) {
+export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const {
     stageRef,
     bodiesRef,
-    satelliteElsRef,
+    planetElsRef,
     draggingId,
     setDraggingId,
     setHoveredId,
@@ -138,9 +138,9 @@ export function useIconThrow(options: UseIconThrowOptions) {
   const getBody = (id: string) => bodiesRef.current.find((body) => body.id === id);
 
   const paintBody = (id: string, x: number, y: number) => {
-    const el = satelliteElsRef.current.get(id);
+    const el = planetElsRef.current.get(id);
     if (el) {
-      el.style.transform = satelliteTransform(x, y);
+      el.style.transform = planetTransform(x, y);
     }
   };
 

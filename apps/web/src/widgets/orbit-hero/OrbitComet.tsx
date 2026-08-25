@@ -7,6 +7,8 @@ import {
   createCometWave,
   subscribeOrbitCometTrigger,
 } from "#app/shared/lib/orbit-comet";
+import { appendCapped } from "#app/shared/lib/orbit-list";
+import { prefersReducedMotion, rand } from "#app/shared/lib/orbit-rand";
 import { useOrbitAmbientActive } from "#app/widgets/orbit-hero/useOrbitAmbientActive";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -22,10 +24,6 @@ const SPARK_TONES = [
   "rgba(190, 215, 255, 0.75)",
   "rgba(255, 255, 255, 0.7)",
 ];
-
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min);
-}
 
 type OrbitCometProps = {
   flight: CometFlight;
@@ -104,35 +102,17 @@ type OrbitCometsProps = {
   motionMode: OrbitMotionMode;
 };
 
-export function OrbitComets({ motionMode }: OrbitCometsProps) {
-  const ambientActive = useOrbitAmbientActive(motionMode);
+function OrbitCometsAmbient() {
   const [flights, setFlights] = useState<CometFlight[]>([]);
   const ambientTimerRef = useRef(0);
-  const ambientActiveRef = useRef(ambientActive);
 
   const removeFlight = useCallback((id: number) => {
     setFlights((current) => current.filter((flight) => flight.id !== id));
   }, []);
 
   const appendWave = useCallback((wave: CometFlight[]) => {
-    if (!ambientActiveRef.current || wave.length === 0) {
-      return;
-    }
-
-    setFlights((current) => {
-      const next = [...current, ...wave];
-
-      return next.length > MAX_FLIGHTS ? next.slice(-MAX_FLIGHTS) : next;
-    });
+    setFlights((current) => appendCapped(current, wave, MAX_FLIGHTS));
   }, []);
-
-  useEffect(() => {
-    ambientActiveRef.current = ambientActive;
-
-    if (!ambientActive) {
-      setFlights([]);
-    }
-  }, [ambientActive]);
 
   useEffect(() => {
     return subscribeOrbitCometTrigger(() => {
@@ -141,7 +121,7 @@ export function OrbitComets({ motionMode }: OrbitCometsProps) {
   }, [appendWave]);
 
   useEffect(() => {
-    if (!ambientActive || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (prefersReducedMotion()) {
       return;
     }
 
@@ -160,7 +140,7 @@ export function OrbitComets({ motionMode }: OrbitCometsProps) {
     return () => {
       window.clearTimeout(ambientTimerRef.current);
     };
-  }, [ambientActive, appendWave]);
+  }, [appendWave]);
 
   return (
     <>
@@ -169,4 +149,14 @@ export function OrbitComets({ motionMode }: OrbitCometsProps) {
       ))}
     </>
   );
+}
+
+export function OrbitComets({ motionMode }: OrbitCometsProps) {
+  const ambientActive = useOrbitAmbientActive(motionMode);
+
+  if (!ambientActive) {
+    return null;
+  }
+
+  return <OrbitCometsAmbient />;
 }

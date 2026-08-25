@@ -344,30 +344,30 @@
     animation: hint-throw-nudge 2.4s ease-in-out infinite;
   }
 
-  .stage.hinting .satellite img {
-    animation: satellite-tease 3.2s ease-in-out infinite;
+  .stage.hinting .planet img {
+    animation: planet-tease 3.2s ease-in-out infinite;
   }
 
-  .stage.hinting .satellite.tease-alt img {
+  .stage.hinting .planet.tease-alt img {
     animation-delay: 0.35s;
   }
 
-  .stage.hinting .nucleus::after {
+  .stage.hinting .supernova::after {
     content: "";
     position: absolute;
     inset: -10px;
     border: 1px dashed var(--color-accent-ring);
     border-radius: 50%;
-    animation: nucleus-tap-ring 2.6s ease-in-out infinite;
+    animation: supernova-tap-ring 2.6s ease-in-out infinite;
     pointer-events: none;
   }
 
-  .sun {
+  .star {
     position: absolute;
     top: 42%;
     left: 50%;
-    width: var(--size-orbit-icon);
-    height: var(--size-orbit-icon);
+    width: var(--size-orbit-planet);
+    height: var(--size-orbit-planet);
     transform: translate(-50%, -50%);
     z-index: 3;
     pointer-events: none;
@@ -391,7 +391,7 @@
       var(--color-accent-glow) 42%,
       transparent 68%
     );
-    animation: sun-pulse 5s ease-in-out infinite;
+    animation: star-pulse 5s ease-in-out infinite;
   }
 
   .corona.mid {
@@ -403,7 +403,7 @@
       rgba(255, 180, 40, 0.05) 38%,
       transparent 65%
     );
-    animation: sun-pulse 7s ease-in-out infinite reverse;
+    animation: star-pulse 7s ease-in-out infinite reverse;
   }
 
   .corona.outer {
@@ -415,10 +415,10 @@
       rgba(255, 140, 0, 0.03) 30%,
       transparent 58%
     );
-    animation: sun-pulse 9s ease-in-out infinite;
+    animation: star-pulse 9s ease-in-out infinite;
   }
 
-  .satellite {
+  .planet {
     position: absolute;
     inset-block-start: 0;
     inset-inline-start: 0;
@@ -438,7 +438,7 @@
     contain: layout style;
   }
 
-  .satellite img {
+  .planet img {
     display: block;
     inline-size: 72%;
     block-size: 72%;
@@ -451,30 +451,30 @@
     pointer-events: none;
   }
 
-  .satellite:hover img,
-  .satellite.paused img {
+  .planet:hover img,
+  .planet.paused img {
     transform: scale(1.12);
     filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15))
       drop-shadow(0 8px 28px rgba(0, 0, 0, 0.55));
   }
 
-  .satellite.dragging {
+  .planet.dragging {
     cursor: grabbing;
     z-index: 8;
   }
 
-  .satellite.dragging img {
+  .planet.dragging img {
     transform: scale(1.15);
     filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.22))
       drop-shadow(0 10px 32px rgba(0, 0, 0, 0.6));
   }
 
-  .nucleus {
+  .supernova {
     position: absolute;
     top: 42%;
     left: 50%;
-    width: var(--size-orbit-icon);
-    height: var(--size-orbit-icon);
+    width: var(--size-orbit-planet);
+    height: var(--size-orbit-planet);
     padding: 0;
     border: none;
     background: transparent;
@@ -483,11 +483,11 @@
     z-index: 5;
   }
 
-  .nucleus::after {
+  .supernova::after {
     content: none;
   }
 
-  .nucleus img {
+  .supernova img {
     display: block;
     width: 100%;
     height: auto;
@@ -496,7 +496,7 @@
     transition: transform var(--duration-med) var(--ease-out);
   }
 
-  .nucleus:hover img {
+  .supernova:hover img {
     transform: scale(1.06);
   }
 
@@ -509,7 +509,7 @@
     inline-size: min(var(--width-copy), calc(100% - var(--space-8)));
     max-inline-size: calc(100% - var(--space-8));
     box-sizing: border-box;
-    padding-block-end: env(safe-area-inset-bottom, 0px);
+    padding-block-end: calc(2.75rem + env(safe-area-inset-bottom, 0px));
     pointer-events: none;
     overflow-wrap: anywhere;
   }
@@ -687,7 +687,7 @@
   }
 }
 
-@keyframes satellite-tease {
+@keyframes planet-tease {
   0%,
   70%,
   100% {
@@ -703,7 +703,7 @@
   }
 }
 
-@keyframes nucleus-tap-ring {
+@keyframes supernova-tap-ring {
   0%,
   100% {
     opacity: 0.35;
@@ -716,7 +716,7 @@
   }
 }
 
-@keyframes sun-pulse {
+@keyframes star-pulse {
   0%,
   100% {
     opacity: 0.75;
@@ -754,29 +754,28 @@
     }
 
     .hints {
-      inset-block-start: 4.5rem;
+      inset-block-start: 1.1rem;
     }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   @scope (.orbit-hero) {
-    .satellite {
+    .planet {
       will-change: auto;
     }
 
-    .corona {
-      animation: none;
-    }
-
-    .mark.throw,
-    .stage.hinting .satellite img,
-    .stage.hinting .nucleus::after,
-    .hint,
-    .comet,
-    .spark,
-    .pulse-star,
-    .haze {
+    :is(
+      .corona,
+      .mark.throw,
+      .stage.hinting .planet img,
+      .stage.hinting .supernova::after,
+      .hint,
+      .comet,
+      .spark,
+      .pulse-star,
+      .haze
+    ) {
       animation: none;
     }
 
@@ -791,19 +790,21 @@
 }
 
 @scope (.orbit-hero.paused) {
-  .corona,
-  .mark.throw,
-  .stage.hinting .satellite img,
-  .stage.hinting .nucleus::after,
-  .hint,
-  .comet,
-  .spark,
-  .pulse-star,
-  .haze {
+  :is(
+    .corona,
+    .mark.throw,
+    .stage.hinting .planet img,
+    .stage.hinting .supernova::after,
+    .hint,
+    .comet,
+    .spark,
+    .pulse-star,
+    .haze
+  ) {
     animation-play-state: paused;
   }
 
-  .satellite {
+  .planet {
     will-change: auto;
   }
 }

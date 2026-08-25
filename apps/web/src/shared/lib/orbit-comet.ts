@@ -1,4 +1,6 @@
 import { rollKarmicDice } from "#app/shared/lib/karmic-dice";
+import { rand } from "#app/shared/lib/orbit-rand";
+import { subscribeWindowEvent } from "#app/shared/lib/subscribe-window-event";
 
 export const ORBIT_COMET_TRIGGER_EVENT = "orbit-comet-trigger";
 
@@ -12,11 +14,46 @@ export type CometFlight = {
   delay: number;
 };
 
-let cometSeq = 0;
+type CometSide = {
+  left: [number, number];
+  top: [number, number];
+  angle: [number, number];
+  travelUnit: "vw" | "vh";
+  travelRange: [number, number];
+};
 
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min);
-}
+const COMET_SIDES: CometSide[] = [
+  {
+    left: [-10, -4],
+    top: [6, 78],
+    angle: [8, 42],
+    travelUnit: "vw",
+    travelRange: [125, 155],
+  },
+  {
+    left: [104, 110],
+    top: [6, 78],
+    angle: [148, 178],
+    travelUnit: "vw",
+    travelRange: [125, 155],
+  },
+  {
+    left: [8, 88],
+    top: [-12, -4],
+    angle: [58, 122],
+    travelUnit: "vh",
+    travelRange: [115, 145],
+  },
+  {
+    left: [8, 88],
+    top: [104, 112],
+    angle: [-122, -58],
+    travelUnit: "vh",
+    travelRange: [115, 145],
+  },
+];
+
+let cometSeq = 0;
 
 export function rollCometCount(): 1 | 2 {
   return rollKarmicDice(2);
@@ -24,52 +61,16 @@ export function rollCometCount(): 1 | 2 {
 
 export function createCometFlight(delay = 0): CometFlight {
   cometSeq += 1;
-  const side = Math.floor(Math.random() * 4);
+  const side = COMET_SIDES[Math.floor(Math.random() * COMET_SIDES.length)];
   const duration = rand(2.6, 3.8);
-  const travel = `${rand(125, 155)}vw`;
-
-  if (side === 0) {
-    return {
-      id: cometSeq,
-      left: rand(-10, -4),
-      top: rand(6, 78),
-      angle: rand(8, 42),
-      travel,
-      duration,
-      delay,
-    };
-  }
-
-  if (side === 1) {
-    return {
-      id: cometSeq,
-      left: rand(104, 110),
-      top: rand(6, 78),
-      angle: rand(148, 178),
-      travel,
-      duration,
-      delay,
-    };
-  }
-
-  if (side === 2) {
-    return {
-      id: cometSeq,
-      left: rand(8, 88),
-      top: rand(-12, -4),
-      angle: rand(58, 122),
-      travel: `${rand(115, 145)}vh`,
-      duration,
-      delay,
-    };
-  }
+  const [travelMin, travelMax] = side.travelRange;
 
   return {
     id: cometSeq,
-    left: rand(8, 88),
-    top: rand(104, 112),
-    angle: rand(-122, -58),
-    travel: `${rand(115, 145)}vh`,
+    left: rand(side.left[0], side.left[1]),
+    top: rand(side.top[0], side.top[1]),
+    angle: rand(side.angle[0], side.angle[1]),
+    travel: `${rand(travelMin, travelMax)}${side.travelUnit}`,
     duration,
     delay,
   };
@@ -92,7 +93,5 @@ export function triggerOrbitComet() {
 }
 
 export function subscribeOrbitCometTrigger(listener: () => void) {
-  window.addEventListener(ORBIT_COMET_TRIGGER_EVENT, listener);
-
-  return () => window.removeEventListener(ORBIT_COMET_TRIGGER_EVENT, listener);
+  return subscribeWindowEvent(ORBIT_COMET_TRIGGER_EVENT, listener);
 }

@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 
 import { ORBIT_TECH } from "#app/entities/skill/tech-stack";
+import { subscribeOrbitPresence } from "#app/shared/lib/orbit-presence";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 export type BounceBody = {
@@ -20,11 +21,11 @@ const MAX_THROW_SPEED = 320;
 const WALL_PADDING = 16;
 const WALL_DAMPING = 0.9;
 const RESTITUTION = 0.78;
-const NUCLEUS_Y_RATIO = 0.42;
+const STAR_Y_RATIO = 0.42;
 const SUBSTEPS = 3;
 const POSITION_ITERS = 2;
 const BALL_SCALE = 1.08;
-const SUN_COLLISION_SCALE = 1.15;
+const STAR_COLLISION_SCALE = 1.15;
 const STUCK_SPEED_THRESHOLD = 10;
 const STUCK_DRIFT_PX = 20;
 const STUCK_SECONDS = 10;
@@ -35,8 +36,8 @@ function ballRadius(size: number) {
   return (size / 2) * BALL_SCALE;
 }
 
-function sunCollisionRadius(nucleusSize: number) {
-  return (nucleusSize / 2) * SUN_COLLISION_SCALE;
+function starCollisionRadius(starSize: number) {
+  return (starSize / 2) * STAR_COLLISION_SCALE;
 }
 
 function clampSpeed(vx: number, vy: number, maxSpeed = MAX_SPEED) {
@@ -54,18 +55,18 @@ export function clampThrowSpeed(vx: number, vy: number) {
   return clampSpeed(vx, vy, MAX_THROW_SPEED);
 }
 
-export function satelliteTransform(x: number, y: number) {
+export function planetTransform(x: number, y: number) {
   return `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
 }
 
-export function paintSatellites(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
+export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
   for (const body of bodies) {
     const el = elements.get(body.id);
     if (!el) {
       continue;
     }
 
-    el.style.transform = satelliteTransform(body.x, body.y);
+    el.style.transform = planetTransform(body.x, body.y);
   }
 }
 
@@ -88,14 +89,14 @@ function ensureMinSpeed(body: BounceBody, minSpeed: number) {
   body.vy = Math.sin(angle) * minSpeed;
 }
 
-function createBodies(width: number, height: number, sunRadius: number): BounceBody[] {
+function createBodies(width: number, height: number, starRadius: number): BounceBody[] {
   const cx = width / 2;
-  const cy = height * NUCLEUS_Y_RATIO;
+  const cy = height * STAR_Y_RATIO;
 
   return ORBIT_TECH.map((tech, index) => {
     const radius = ballRadius(tech.size);
     const angle = (index / ORBIT_TECH.length) * Math.PI * 2 + 0.4;
-    const dist = sunRadius + radius + 48 + (index % 5) * 38 + Math.floor(index / 5) * 28;
+    const dist = starRadius + radius + 48 + (index % 5) * 38 + Math.floor(index / 5) * 28;
 
     let vx = (Math.random() - 0.5) * 65;
     let vy = (Math.random() - 0.5) * 65;
@@ -120,11 +121,11 @@ function createBodies(width: number, height: number, sunRadius: number): BounceB
   });
 }
 
-function nudgeUnstuck(body: BounceBody, sunX: number, sunY: number, sunRadius: number) {
-  const dx = body.x - sunX;
-  const dy = body.y - sunY;
+function nudgeUnstuck(body: BounceBody, starX: number, starY: number, starRadius: number) {
+  const dx = body.x - starX;
+  const dy = body.y - starY;
   const dist = Math.hypot(dx, dy);
-  const safeOrbit = sunRadius + body.radius + 48;
+  const safeOrbit = starRadius + body.radius + 48;
 
   if (dist < safeOrbit) {
     const nx = dist > 1 ? dx / dist : Math.cos(Math.random() * Math.PI * 2);
@@ -148,9 +149,9 @@ function nudgeUnstuck(body: BounceBody, sunX: number, sunY: number, sunRadius: n
 
 function updateStuckState(
   body: BounceBody,
-  sunX: number,
-  sunY: number,
-  sunRadius: number,
+  starX: number,
+  starY: number,
+  starRadius: number,
   dt: number,
   pausedId: string | null,
 ) {
@@ -174,7 +175,7 @@ function updateStuckState(
   }
 
   if (body.stuckSeconds >= STUCK_SECONDS) {
-    nudgeUnstuck(body, sunX, sunY, sunRadius);
+    nudgeUnstuck(body, starX, starY, starRadius);
     body.stuckSeconds = 0;
     body.stuckAnchorX = body.x;
     body.stuckAnchorY = body.y;
@@ -328,17 +329,17 @@ function solveCollisions(
   bodies: BounceBody[],
   width: number,
   height: number,
-  sunX: number,
-  sunY: number,
-  sunRadius: number,
+  starX: number,
+  starY: number,
+  starRadius: number,
   pausedId: string | null,
 ) {
-  const sun: CircleBody = {
-    x: sunX,
-    y: sunY,
+  const star: CircleBody = {
+    x: starX,
+    y: starY,
     vx: 0,
     vy: 0,
-    radius: sunRadius,
+    radius: starRadius,
   };
 
   for (let iter = 0; iter < POSITION_ITERS; iter++) {
@@ -347,7 +348,7 @@ function solveCollisions(
       if (!bodyStatic) {
         bounceWalls(body, width, height);
       }
-      resolveCircles(body, sun, bodyStatic, true);
+      resolveCircles(body, star, bodyStatic, true);
     }
 
     for (let i = 0; i < bodies.length; i++) {
@@ -373,12 +374,12 @@ function step(
   bodies: BounceBody[],
   width: number,
   height: number,
-  sunRadius: number,
+  starRadius: number,
   pausedId: string | null,
   dt: number,
 ) {
-  const sunX = width / 2;
-  const sunY = height * NUCLEUS_Y_RATIO;
+  const starX = width / 2;
+  const starY = height * STAR_Y_RATIO;
   const subDt = dt / SUBSTEPS;
 
   for (let sub = 0; sub < SUBSTEPS; sub++) {
@@ -388,21 +389,21 @@ function step(
       }
 
       if (sub === 0) {
-        updateStuckState(body, sunX, sunY, sunRadius, dt, pausedId);
+        updateStuckState(body, starX, starY, starRadius, dt, pausedId);
       }
 
       body.x += body.vx * subDt;
       body.y += body.vy * subDt;
     }
 
-    solveCollisions(bodies, width, height, sunX, sunY, sunRadius, pausedId);
+    solveCollisions(bodies, width, height, starX, starY, starRadius, pausedId);
   }
 }
 
 export function useBouncePhysics(
   stageRef: RefObject<HTMLElement | null>,
-  satelliteElsRef: RefObject<Map<string, HTMLElement | null>>,
-  nucleusSize: number,
+  planetElsRef: RefObject<Map<string, HTMLElement | null>>,
+  starSize: number,
   interactionId: string | null,
   motionMode: "auto" | "paused" = "auto",
 ) {
@@ -429,7 +430,7 @@ export function useBouncePhysics(
 
     const root = stage.closest(".orbit-hero") ?? stage;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const sunRadius = sunCollisionRadius(nucleusSize);
+    const starRadius = starCollisionRadius(starSize);
     const PAUSE_DELAY_MS = 1000;
 
     const measure = () => {
@@ -445,9 +446,9 @@ export function useBouncePhysics(
         return;
       }
 
-      const initial = createBodies(width, height, sunRadius);
+      const initial = createBodies(width, height, starRadius);
       bodiesRef.current = initial;
-      paintSatellites(initial, satelliteElsRef.current);
+      paintPlanets(initial, planetElsRef.current);
     };
 
     init();
@@ -493,8 +494,8 @@ export function useBouncePhysics(
 
       const { width, height } = sizeRef.current;
       if (width > 0 && height > 0 && bodiesRef.current.length > 0) {
-        step(bodiesRef.current, width, height, sunRadius, interactionRef.current, dt);
-        paintSatellites(bodiesRef.current, satelliteElsRef.current);
+        step(bodiesRef.current, width, height, starRadius, interactionRef.current, dt);
+        paintPlanets(bodiesRef.current, planetElsRef.current);
       }
 
       raf = requestAnimationFrame(tick);
@@ -542,25 +543,16 @@ export function useBouncePhysics(
 
     syncRunningRef.current = syncRunning;
 
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        inView = entry.isIntersecting && entry.intersectionRatio > 0;
-        syncRunning();
-      },
-      { threshold: [0, 0.05], rootMargin: "0px" },
-    );
-    io.observe(root);
-
-    const onVisibility = () => {
-      pageVisible = document.visibilityState === "visible";
-      syncRunning();
-    };
-
     const onResize = () => {
       init();
     };
 
-    document.addEventListener("visibilitychange", onVisibility);
+    const unsubscribePresence = subscribeOrbitPresence(root, (next) => {
+      inView = next.inView;
+      pageVisible = next.pageVisible;
+      syncRunning();
+    });
+
     window.addEventListener("resize", onResize);
     syncRunning();
 
@@ -571,12 +563,11 @@ export function useBouncePhysics(
       }
       loopActive = false;
       cancelAnimationFrame(raf);
-      io.disconnect();
-      document.removeEventListener("visibilitychange", onVisibility);
+      unsubscribePresence();
       window.removeEventListener("resize", onResize);
       root.classList.remove("paused");
     };
-  }, [stageRef, satelliteElsRef, nucleusSize]);
+  }, [stageRef, planetElsRef, starSize]);
 
   return { bodiesRef };
 }

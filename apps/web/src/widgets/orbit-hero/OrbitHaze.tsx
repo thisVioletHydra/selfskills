@@ -2,7 +2,9 @@ import type { HazeCount } from "#app/shared/lib/orbit-haze";
 import type { OrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
 import type { CSSProperties } from "react";
 
+import { appendCapped } from "#app/shared/lib/orbit-list";
 import { rollHazeCount, subscribeOrbitHazeForce } from "#app/shared/lib/orbit-haze";
+import { prefersReducedMotion, rand } from "#app/shared/lib/orbit-rand";
 import { useOrbitAmbientActive } from "#app/widgets/orbit-hero/useOrbitAmbientActive";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -54,10 +56,6 @@ const TONES: Record<HazeTone, string> = {
 
 let hazeSeq = 0;
 let generationSeq = 0;
-
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min);
-}
 
 function pickTone(): HazeTone {
   return TONE_POOL[Math.floor(Math.random() * TONE_POOL.length)];
@@ -148,24 +146,16 @@ function createGeneration(count: HazeCount, debug = false): HazeGeneration {
   };
 }
 
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 type OrbitHazeProps = {
   motionMode: OrbitMotionMode;
 };
 
-export function OrbitHaze({ motionMode }: OrbitHazeProps) {
-  const ambientActive = useOrbitAmbientActive(motionMode);
-  const ambientActiveRef = useRef(ambientActive);
-  const [seed] = useState(() => createGeneration(prefersReducedMotion() ? 1 : rollHazeCount()));
-  const [generations, setGenerations] = useState<HazeGeneration[]>(() => [seed]);
+function OrbitHazeAmbient() {
+  const [generations, setGenerations] = useState<HazeGeneration[]>([]);
   const removeTimersRef = useRef<Map<number, number>>(new Map());
-
-  useEffect(() => {
-    ambientActiveRef.current = ambientActive;
-  }, [ambientActive]);
+  const seedRef = useRef(
+    createGeneration(prefersReducedMotion() ? 1 : rollHazeCount()),
+  );
 
   const clearTimers = useCallback(() => {
     for (const timer of removeTimersRef.current.values()) {
@@ -175,15 +165,24 @@ export function OrbitHaze({ motionMode }: OrbitHazeProps) {
   }, []);
 
   const pushGeneration = useCallback((generation: HazeGeneration) => {
-    if (!ambientActiveRef.current) {
-      return;
-    }
-
     setGenerations((current) => {
-      const next = [...current, generation];
+      const next = appendCapped(current, [generation], MAX_GENERATIONS);
+      const kept = new Set(next.map((item) => item.id));
 
-      return next.length > MAX_GENERATIONS ? next.slice(-MAX_GENERATIONS) : next;
+      for (const [id, timer] of removeTimersRef.current) {
+        if (!kept.has(id)) {
+          window.clearTimeout(timer);
+          removeTimersRef.current.delete(id);
+        }
+      }
+
+      return next;
     });
+
+    const existing = removeTimersRef.current.get(generation.id);
+    if (existing) {
+      window.clearTimeout(existing);
+    }
 
     const timer = window.setTimeout(() => {
       setGenerations((current) => current.filter((item) => item.id !== generation.id));
@@ -199,16 +198,6 @@ export function OrbitHaze({ motionMode }: OrbitHazeProps) {
   }, [clearTimers]);
 
   useEffect(() => {
-    if (!ambientActive) {
-      clearGenerations();
-
-      return;
-    }
-
-    setGenerations((current) => (current.length > 0 ? current : [seed]));
-  }, [ambientActive, clearGenerations, seed]);
-
-  useEffect(() => {
     return subscribeOrbitHazeForce((count) => {
       clearGenerations();
       pushGeneration(createGeneration(count, true));
@@ -216,28 +205,19 @@ export function OrbitHaze({ motionMode }: OrbitHazeProps) {
   }, [clearGenerations, pushGeneration]);
 
   useEffect(() => {
-    if (!ambientActive || prefersReducedMotion()) {
-      return;
-    }
+    pushGeneration(seedRef.current);
 
-    const timers = removeTimersRef.current;
-
-    const seedTimer = window.setTimeout(() => {
-      setGenerations((current) => current.filter((item) => item.id !== seed.id));
-      timers.delete(seed.id);
-    }, seed.lifeMs);
-    timers.set(seed.id, seedTimer);
-
-    const interval = window.setInterval(() => {
-      pushGeneration(createGeneration(rollHazeCount()));
-    }, ROLL_INTERVAL_MS);
+    const interval = prefersReducedMotion()
+      ? 0
+      : window.setInterval(() => {
+          pushGeneration(createGeneration(rollHazeCount()));
+        }, ROLL_INTERVAL_MS);
 
     return () => {
       window.clearInterval(interval);
-      window.clearTimeout(seedTimer);
-      timers.delete(seed.id);
+      clearGenerations();
     };
-  }, [ambientActive, pushGeneration, seed]);
+  }, [clearGenerations, pushGeneration]);
 
   return (
     <div className="haze-layer" aria-hidden="true">
@@ -256,11 +236,7 @@ export function OrbitHaze({ motionMode }: OrbitHazeProps) {
           } as CSSProperties;
 
           return (
-            <span
-              key={blob.id}
-              className={`haze${blob.debug ? " debug" : ""}`}
-              style={style}
-            >
+            <span key={blob.id} className={`haze${blob.debug ? " debug" : ""}`} style={style}>
               <span className="haze-core" />
               {blob.lobes.map((lobe) => {
                 const lobeStyle = {
@@ -280,4 +256,14 @@ export function OrbitHaze({ motionMode }: OrbitHazeProps) {
       )}
     </div>
   );
+}
+
+export function OrbitHaze({ motionMode }: OrbitHazeProps) {
+  const ambientActive = useOrbitAmbientActive(motionMode);
+
+  if (!ambientActive) {
+    return null;
+  }
+
+  return <OrbitHazeAmbient />;
 }

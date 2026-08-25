@@ -1,6 +1,6 @@
-import type { ResumeInfo } from '#app/entities/resume/resume';
+import type { ResumeInfo } from "#app/entities/resume/resume";
 
-import { DEMO_RESUME } from '#app/entities/resume/resume';
+import { DEMO_RESUME } from "#app/entities/resume/resume";
 
 function wait(ms: number) {
   return new Promise<void>((resolve) => {

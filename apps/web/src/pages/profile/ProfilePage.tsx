@@ -9,11 +9,15 @@ import { SkillsBlock } from '#app/widgets/skills-block/SkillsBlock';
 import '#app/pages/profile/profile-page.css';
 
 export function ProfilePage() {
+  const portraitStyle = {
+    "--portrait-url": `url(${PROFILE.portrait})`,
+  } as CSSProperties;
+
   return (
     <>
-      <SiteHeader />
       <main>
         <OrbitHero />
+        <SiteHeader />
 
         <section className="cosmos-section about" id="about">
           <div className="stars" aria-hidden="true" />
@@ -23,7 +27,7 @@ export function ProfilePage() {
                 className="shot"
                 role="img"
                 aria-label={`Портрет: ${PROFILE.name}`}
-                style={{ "--portrait-url": `url(${PROFILE.portrait})` } as CSSProperties}
+                style={portraitStyle}
               />
             </div>
 

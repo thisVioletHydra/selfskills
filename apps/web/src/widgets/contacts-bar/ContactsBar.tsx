@@ -1,9 +1,9 @@
-import { CopyContact } from '#app/features/copy-contact/CopyContact';
-import '#app/widgets/contacts-bar/contacts-bar.css';
+import { CopyContact } from "#app/features/copy-contact/CopyContact";
+import "#app/widgets/contacts-bar/contacts-bar.css";
 
-const EMAIL = 'hello@selfskills.dev';
-const TELEGRAM = '#contact';
-const GITHUB = 'https://github.com/thisVioletHydra';
+const EMAIL = "hello@selfskills.dev";
+const TELEGRAM = "#contact";
+const GITHUB = "https://github.com/thisVioletHydra";
 
 export function ContactsBar() {
   return (

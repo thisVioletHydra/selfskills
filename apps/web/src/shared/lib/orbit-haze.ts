@@ -1,6 +1,7 @@
 import type { KarmicCount } from "#app/shared/lib/karmic-dice";
 
 import { rollKarmicDice } from "#app/shared/lib/karmic-dice";
+import { subscribeWindowEvent } from "#app/shared/lib/subscribe-window-event";
 
 export type HazeCount = KarmicCount;
 export type OrbitHazeForceDetail = {
@@ -8,6 +9,10 @@ export type OrbitHazeForceDetail = {
 };
 
 export const ORBIT_HAZE_FORCE_EVENT = "orbit-haze-force";
+
+function isHazeCount(value: unknown): value is HazeCount {
+  return value === 1 || value === 2 || value === 3 || value === 4;
+}
 
 export function forceOrbitHaze(count: HazeCount) {
   window.dispatchEvent(
@@ -18,16 +23,12 @@ export function forceOrbitHaze(count: HazeCount) {
 }
 
 export function subscribeOrbitHazeForce(listener: (count: HazeCount) => void) {
-  const onForce = (event: Event) => {
+  return subscribeWindowEvent(ORBIT_HAZE_FORCE_EVENT, (event) => {
     const detail = (event as CustomEvent<OrbitHazeForceDetail>).detail;
-    if (detail?.count === 1 || detail?.count === 2 || detail?.count === 3 || detail?.count === 4) {
+    if (isHazeCount(detail?.count)) {
       listener(detail.count);
     }
-  };
-
-  window.addEventListener(ORBIT_HAZE_FORCE_EVENT, onForce);
-
-  return () => window.removeEventListener(ORBIT_HAZE_FORCE_EVENT, onForce);
+  });
 }
 
 export function rollHazeCount(): HazeCount {
