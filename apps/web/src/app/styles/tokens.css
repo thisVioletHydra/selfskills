@@ -84,7 +84,7 @@
 
     /* Layout */
     --width-content: 45rem;
-    --width-about: 45rem; /* 720px */
+    --width-about: 54rem; /* ~864px — шире 720, peek сверху не трогаем */
     --width-copy: 32.5rem;
     --width-measure: 38rem;
     --width-modal: 30rem;

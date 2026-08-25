@@ -98,13 +98,14 @@
     inline-size: min(100%, var(--width-about));
     max-inline-size: var(--width-about);
     margin-inline: auto;
-    padding-block: var(--space-5) var(--space-section-y);
+    /* сверху мало — peek макушки; воздух снизу перед details */
+    padding-block: var(--space-4) clamp(4.5rem, 3.2rem + 4vi, 7rem);
     padding-inline: var(--space-section-x);
   }
 
   .persona-photo {
     position: relative;
-    inline-size: min(100%, 18rem);
+    inline-size: min(100%, 19rem);
     block-size: auto;
     aspect-ratio: 1;
     margin-inline: auto;
@@ -227,7 +228,7 @@
     }
 
     .persona-photo {
-      inline-size: min(72vw, 18rem);
+      inline-size: min(72vw, 19rem);
     }
   }
 }
@@ -235,12 +236,12 @@
 @media (width >= 900px) {
   @scope (.cosmos-section.about) {
     .persona-stage {
-      grid-template-columns: minmax(0, 1fr) 17rem;
+      grid-template-columns: minmax(0, 1fr) 20.5rem;
       grid-template-rows: auto;
-      gap: 2rem;
+      gap: 2.5rem;
       align-items: center;
       justify-items: stretch;
-      padding-block: var(--space-4) var(--space-section-y);
+      padding-block: var(--space-4) clamp(5rem, 3.5rem + 5vi, 8rem);
       padding-inline: 0;
     }
 
@@ -250,13 +251,18 @@
       max-inline-size: none;
       min-inline-size: 0;
       margin-inline: 0;
+      gap: var(--space-4);
+    }
+
+    .lead-head {
+      gap: var(--space-3);
     }
 
     .persona-photo {
       grid-column: 2;
       grid-row: 1;
-      inline-size: 17rem;
-      max-inline-size: 17rem;
+      inline-size: 20.5rem;
+      max-inline-size: 20.5rem;
       margin-inline: 0;
       justify-self: end;
     }
@@ -286,21 +292,26 @@
     }
 
     .name {
-      font-size: clamp(2rem, 1.4rem + 2.8vi, 3.25rem);
+      font-size: clamp(2.35rem, 1.6rem + 3.2vi, 3.75rem);
     }
 
     .role {
-      font-size: var(--text-md);
+      font-size: var(--text-lg);
     }
 
     .blurb {
-      font-size: var(--text-md);
-      line-height: var(--leading-normal);
+      font-size: var(--text-lg);
+      line-height: 1.6;
+      max-inline-size: 36rem;
     }
   }
 }
 
 @scope (.cosmos-section.details) {
+  :scope {
+    padding-block-start: clamp(3.5rem, 2.5rem + 3vi, 5.5rem);
+  }
+
   .stars {
     opacity: 0.3;
   }
