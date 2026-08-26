@@ -10,8 +10,10 @@ import { sleep } from '#app/shared/lib/sleep';
 export async function fetchResume(sourceUrl: string): Promise<ResumeInfo> {
   await sleep(700 + Math.floor(Math.random() * 500));
 
+  const trimmed = sourceUrl.trim();
+
   return {
     ...DEMO_RESUME,
-    sourceUrl: sourceUrl.trim() || undefined,
+    sourceUrl: trimmed !== '' ? trimmed : undefined,
   };
 }

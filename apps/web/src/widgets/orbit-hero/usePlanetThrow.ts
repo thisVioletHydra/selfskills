@@ -139,14 +139,14 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
 
   const paintBody = (id: string, x: number, y: number) => {
     const el = planetElsRef.current.get(id);
-    if (el) {
+    if (el != null) {
       el.style.transform = planetTransform(x, y);
     }
   };
 
   const onPointerDown = (tech: TechStackItem, event: ReactPointerEvent<HTMLButtonElement>) => {
     const stage = stageRef.current;
-    if (!stage) {
+    if (stage == null) {
       return;
     }
 
@@ -155,7 +155,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     const point = stagePoint(stage, event.clientX, event.clientY);
     const body = getBody(tech.id);
 
-    if (!body) {
+    if (body == null) {
       return;
     }
 
@@ -183,7 +183,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
 
     const stage = stageRef.current;
     const body = getBody(tech.id);
-    if (!stage || !body) {
+    if (stage == null || body == null) {
       return;
     }
 
@@ -215,7 +215,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
 
     const body = getBody(tech.id);
-    if (body) {
+    if (body != null) {
       if (didDragRef.current) {
         const release = computeReleaseVelocity(samplesRef.current, dragStartRef.current);
         body.vx = release.vx;
@@ -249,7 +249,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   };
 
   const onPointerEnter = (tech: TechStackItem) => {
-    if (!draggingId) {
+    if (draggingId == null || draggingId === '') {
       setHoveredId(tech.id);
     }
   };

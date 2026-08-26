@@ -62,7 +62,7 @@ export function planetTransform(x: number, y: number) {
 export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
   for (const body of bodies) {
     const el = elements.get(body.id);
-    if (!el) {
+    if (el == null) {
       continue;
     }
 
@@ -424,7 +424,7 @@ export function useBouncePhysics(
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
-    if (!stage) {
+    if (stage == null) {
       return;
     }
 
@@ -474,7 +474,7 @@ export function useBouncePhysics(
 
     const stopLoop = () => {
       loopActive = false;
-      if (raf) {
+      if (raf !== 0) {
         cancelAnimationFrame(raf);
         raf = 0;
       }
@@ -513,7 +513,7 @@ export function useBouncePhysics(
 
     const syncRunning = () => {
       if (shouldRun()) {
-        if (pauseTimer) {
+        if (pauseTimer !== 0) {
           window.clearTimeout(pauseTimer);
           pauseTimer = 0;
         }
@@ -522,7 +522,7 @@ export function useBouncePhysics(
         return;
       }
 
-      if (pauseTimer) {
+      if (pauseTimer !== 0) {
         window.clearTimeout(pauseTimer);
         pauseTimer = 0;
       }
@@ -557,7 +557,7 @@ export function useBouncePhysics(
 
     return () => {
       syncRunningRef.current = () => {};
-      if (pauseTimer) {
+      if (pauseTimer !== 0) {
         window.clearTimeout(pauseTimer);
       }
       loopActive = false;

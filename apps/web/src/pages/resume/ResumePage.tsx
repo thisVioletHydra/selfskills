@@ -28,7 +28,7 @@ export function ResumePage({ resume, onOpenPortfolio }: ResumePageProps) {
         <p className="status">
           {resume.status} · обновлено {resume.updatedAt}
         </p>
-        {resume.sourceUrl && (
+        {resume.sourceUrl != null && resume.sourceUrl !== '' && (
           <p className="source">
             Источник: <span>{resume.sourceUrl}</span>
           </p>
@@ -71,16 +71,18 @@ export function ResumePage({ resume, onOpenPortfolio }: ResumePageProps) {
               </p>
               <h3 className="job-role">{job.role}</h3>
               <p className="job-company">
-                {job.url ? (
+                {job.url != null && job.url !== '' ? (
                   <a href={job.url} target="_blank" rel="noopener noreferrer">
                     {job.company}
                   </a>
                 ) : (
                   job.company
                 )}
-                {job.location ? ` · ${job.location}` : ''}
+                {job.location != null && job.location !== '' ? ` · ${job.location}` : ''}
               </p>
-              {job.productNote && <p className="text">{job.productNote}</p>}
+              {job.productNote != null && job.productNote !== '' && (
+                <p className="text">{job.productNote}</p>
+              )}
               <p className="stack">{job.stack.join(' · ')}</p>
               <ul className="highlights">
                 {job.highlights.map((item) => (

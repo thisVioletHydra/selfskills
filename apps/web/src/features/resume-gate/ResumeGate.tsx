@@ -76,7 +76,7 @@ export function ResumeGate({ busy = false, error = null, onContinue, onSkip }: R
         </div>
 
         <p className="hint">Пропустить — сразу на визитку / вакансию.</p>
-        {error && (
+        {error != null && error !== '' && (
           <p className="error" role="alert">
             {error}
           </p>

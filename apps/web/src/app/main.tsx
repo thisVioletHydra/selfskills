@@ -5,7 +5,7 @@ import '#app/app/styles/global.css';
 
 const root = document.getElementById('root');
 
-if (!root) {
+if (root == null) {
   throw new Error('Root element #root not found');
 }
 

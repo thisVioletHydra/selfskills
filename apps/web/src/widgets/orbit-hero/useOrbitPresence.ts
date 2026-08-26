@@ -15,7 +15,7 @@ export function useOrbitPresence(targetId = 'hero') {
   useEffect(() => {
     const target = document.getElementById(targetId);
 
-    return target ? subscribeOrbitPresence(target, setState) : undefined;
+    return target != null ? subscribeOrbitPresence(target, setState) : undefined;
   }, [targetId]);
 
   return state;

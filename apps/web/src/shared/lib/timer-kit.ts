@@ -42,11 +42,12 @@ function isJitter(config: ScheduleConfig): config is JitterSchedule {
 function jitterMs(minMs: number, maxMs: number) {
   const lo = Math.min(minMs, maxMs);
   const hi = Math.max(minMs, maxMs);
+
   return lo + Math.floor(Math.random() * (hi - lo + 1));
 }
 
 function detachAbort(entry: TimerHandle) {
-  if (entry.signal && entry.abortListener) {
+  if (entry.signal != null && entry.abortListener != null) {
     entry.signal.removeEventListener('abort', entry.abortListener);
   }
 }
@@ -67,12 +68,12 @@ function clearHandle(entry: TimerHandle) {
 export function schedule(config: ScheduleConfig) {
   cancel(config.id);
 
-  if (config.signal?.aborted) {
+  if (config.signal != null && config.signal.aborted === true) {
     return;
   }
 
   const bindAbort = (entry: TimerHandle) => {
-    if (!config.signal) {
+    if (config.signal == null) {
       return;
     }
 
@@ -92,6 +93,7 @@ export function schedule(config: ScheduleConfig) {
     const entry: TimerHandle = { kind: 'interval', handle };
     bindAbort(entry);
     registry.set(config.id, entry);
+
     return;
   }
 
@@ -107,27 +109,29 @@ export function schedule(config: ScheduleConfig) {
         return;
       }
 
-      const minMs =
-        isFirst && config.firstMinMs !== undefined ? config.firstMinMs : config.minMs;
-      const maxMs =
-        isFirst && config.firstMaxMs !== undefined ? config.firstMaxMs : config.maxMs;
+      const minMs = isFirst && config.firstMinMs !== undefined ? config.firstMinMs : config.minMs;
+      const maxMs = isFirst && config.firstMaxMs !== undefined ? config.firstMaxMs : config.maxMs;
 
       isFirst = false;
 
-      entry.handle = window.setTimeout(() => {
-        if (registry.get(config.id) !== entry) {
-          return;
-        }
+      entry.handle = window.setTimeout(
+        () => {
+          if (registry.get(config.id) !== entry) {
+            return;
+          }
 
-        config.onFire();
+          config.onFire();
 
-        if (registry.get(config.id) === entry) {
-          arm();
-        }
-      }, jitterMs(minMs, maxMs));
+          if (registry.get(config.id) === entry) {
+            arm();
+          }
+        },
+        jitterMs(minMs, maxMs),
+      );
     };
 
     arm();
+
     return;
   }
 
@@ -147,7 +151,7 @@ export function schedule(config: ScheduleConfig) {
 
 export function cancel(id: string) {
   const entry = registry.get(id);
-  if (!entry) {
+  if (entry == null) {
     return;
   }
 

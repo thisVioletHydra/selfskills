@@ -221,5 +221,5 @@ export const TECH_STACK: TechStackItem[] = [
   },
 ];
 
-export const CORE_TECH = TECH_STACK.find((item) => item.isCore)!;
-export const ORBIT_TECH = TECH_STACK.filter((item) => !item.isCore);
+export const CORE_TECH = TECH_STACK.find((item) => item.isCore === true)!;
+export const ORBIT_TECH = TECH_STACK.filter((item) => item.isCore !== true);

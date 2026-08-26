@@ -7,7 +7,7 @@ export function SiteHeader() {
 
   useEffect(() => {
     const header = headerRef.current;
-    if (!header) return;
+    if (header == null) return;
 
     const update = () => {
       // sticky pinned only when the bar is flush with the viewport top
