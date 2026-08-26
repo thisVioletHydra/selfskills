@@ -1,14 +1,15 @@
-import type { HazeCount } from "#app/shared/lib/orbit-haze";
-import type { OrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
-import type { CSSProperties } from "react";
+import type { HazeCount } from '#app/shared/lib/orbit-haze';
+import type { OrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
+import type { CSSProperties } from 'react';
 
-import { appendCapped } from "#app/shared/lib/orbit-list";
-import { rollHazeCount, subscribeOrbitHazeForce } from "#app/shared/lib/orbit-haze";
-import { prefersReducedMotion, rand } from "#app/shared/lib/orbit-rand";
-import { useOrbitPresence } from "#app/widgets/orbit-hero/useOrbitPresence";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { rollHazeCount, subscribeOrbitHazeForce } from '#app/shared/lib/orbit-haze';
+import { appendCapped } from '#app/shared/lib/orbit-list';
+import { prefersReducedMotion, rand } from '#app/shared/lib/orbit-rand';
+import { cancel, cancelAll, hasTimer, schedule } from '#app/shared/lib/timer-kit';
+import { useOrbitPresence } from '#app/widgets/orbit-hero/useOrbitPresence';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-type HazeTone = "cold" | "warm" | "white";
+type HazeTone = 'cold' | 'warm' | 'white';
 
 type HazeLobe = {
   key: string;
@@ -43,19 +44,25 @@ type HazeGeneration = {
 
 const ROLL_INTERVAL_MS = 12_000;
 const MAX_GENERATIONS = 2;
-const TONE_POOL: HazeTone[] = ["cold", "warm", "white"];
+const HAZE_SPAWN_ID = 'haze-spawn';
+const HAZE_LIFE_PREFIX = 'haze-life-';
+const TONE_POOL: HazeTone[] = ['cold', 'warm', 'white'];
 const SUN_X = 50;
 const SUN_Y = 42;
 const CENTER_RADIUS = 22;
 
 const TONES: Record<HazeTone, string> = {
-  cold: "rgba(80, 125, 195, 0.62)",
-  warm: "rgba(155, 105, 58, 0.58)",
-  white: "rgba(230, 236, 255, 0.48)",
+  cold: 'rgba(80, 125, 195, 0.62)',
+  warm: 'rgba(155, 105, 58, 0.58)',
+  white: 'rgba(230, 236, 255, 0.48)',
 };
 
 let hazeSeq = 0;
 let generationSeq = 0;
+
+function hazeLifeId(generationId: number) {
+  return `${HAZE_LIFE_PREFIX}${generationId}`;
+}
 
 function pickTone(): HazeTone {
   return TONE_POOL[Math.floor(Math.random() * TONE_POOL.length)];
@@ -96,7 +103,7 @@ function makePuddleClip() {
     points.push(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
   }
 
-  return `polygon(${points.join(", ")})`;
+  return `polygon(${points.join(', ')})`;
 }
 
 function makeLobes(blobId: number): HazeLobe[] {
@@ -151,89 +158,88 @@ type OrbitHazeProps = {
 };
 
 function OrbitHazeAmbient({ motionMode }: OrbitHazeProps) {
-  const { inView, pageVisible } = useOrbitPresence("hero");
+  const { inView, pageVisible } = useOrbitPresence('hero');
   const [generations, setGenerations] = useState<HazeGeneration[]>(() => [
     createGeneration(prefersReducedMotion() ? 1 : rollHazeCount()),
   ]);
   const generationsRef = useRef(generations);
-  const removeTimersRef = useRef<Map<number, number>>(new Map());
   const reduced = prefersReducedMotion();
-  const frozen = motionMode === "paused" || reduced;
+  const frozen = motionMode === 'paused' || reduced;
   const canSpawn = !frozen && inView && pageVisible;
 
-  generationsRef.current = generations;
+  useEffect(() => {
+    generationsRef.current = generations;
+  }, [generations]);
 
-  const clearTimers = useCallback(() => {
-    for (const timer of removeTimersRef.current.values()) {
-      window.clearTimeout(timer);
-    }
-    removeTimersRef.current.clear();
+  const clearLifeTimers = useCallback(() => {
+    cancelAll(HAZE_LIFE_PREFIX);
   }, []);
 
   const armRemoveTimer = useCallback((generation: HazeGeneration) => {
-    const existing = removeTimersRef.current.get(generation.id);
-    if (existing) {
-      window.clearTimeout(existing);
-    }
-
-    const timer = window.setTimeout(() => {
-      setGenerations((current) => current.filter((item) => item.id !== generation.id));
-      removeTimersRef.current.delete(generation.id);
-    }, generation.lifeMs);
-
-    removeTimersRef.current.set(generation.id, timer);
+    schedule({
+      id: hazeLifeId(generation.id),
+      ms: generation.lifeMs,
+      onFire: () => {
+        setGenerations((current) => current.filter((item) => item.id !== generation.id));
+      },
+    });
   }, []);
 
-  const pushGeneration = useCallback((generation: HazeGeneration, armTimer: boolean) => {
-    setGenerations((current) => {
-      const next = appendCapped(current, [generation], MAX_GENERATIONS);
-      const kept = new Set(next.map((item) => item.id));
+  const pushGeneration = useCallback(
+    (generation: HazeGeneration, armTimer: boolean) => {
+      setGenerations((current) => {
+        const next = appendCapped(current, [generation], MAX_GENERATIONS);
+        const kept = new Set(next.map((item) => item.id));
 
-      for (const [id, timer] of removeTimersRef.current) {
-        if (!kept.has(id)) {
-          window.clearTimeout(timer);
-          removeTimersRef.current.delete(id);
+        for (const item of current) {
+          if (!kept.has(item.id)) {
+            cancel(hazeLifeId(item.id));
+          }
         }
+
+        return next;
+      });
+
+      if (armTimer) {
+        armRemoveTimer(generation);
       }
-
-      return next;
-    });
-
-    if (armTimer) {
-      armRemoveTimer(generation);
-    }
-  }, [armRemoveTimer]);
+    },
+    [armRemoveTimer],
+  );
 
   useEffect(() => {
     return subscribeOrbitHazeForce((count) => {
-      clearTimers();
+      clearLifeTimers();
       const generation = createGeneration(count, true);
       setGenerations([generation]);
       if (!frozen) {
         armRemoveTimer(generation);
       }
     });
-  }, [armRemoveTimer, clearTimers, frozen]);
+  }, [armRemoveTimer, clearLifeTimers, frozen]);
 
   useEffect(() => {
     if (frozen) {
-      clearTimers();
+      clearLifeTimers();
+
       return;
     }
 
     for (const generation of generationsRef.current) {
-      if (!removeTimersRef.current.has(generation.id)) {
+      if (!hasTimer(hazeLifeId(generation.id))) {
         armRemoveTimer(generation);
       }
     }
 
     return () => {
-      clearTimers();
+      clearLifeTimers();
     };
-  }, [armRemoveTimer, clearTimers, frozen]);
+  }, [armRemoveTimer, clearLifeTimers, frozen]);
 
   useEffect(() => {
     if (!canSpawn) {
+      cancel(HAZE_SPAWN_ID);
+
       return;
     }
 
@@ -241,44 +247,48 @@ function OrbitHazeAmbient({ motionMode }: OrbitHazeProps) {
       pushGeneration(createGeneration(rollHazeCount()), true);
     }
 
-    const interval = window.setInterval(() => {
-      pushGeneration(createGeneration(rollHazeCount()), true);
-    }, ROLL_INTERVAL_MS);
+    schedule({
+      id: HAZE_SPAWN_ID,
+      everyMs: ROLL_INTERVAL_MS,
+      onFire: () => {
+        pushGeneration(createGeneration(rollHazeCount()), true);
+      },
+    });
 
     return () => {
-      window.clearInterval(interval);
+      cancel(HAZE_SPAWN_ID);
     };
   }, [canSpawn, pushGeneration]);
 
-  useEffect(() => () => clearTimers(), [clearTimers]);
+  useEffect(() => () => clearLifeTimers(), [clearLifeTimers]);
 
   return (
     <div className="haze-layer" aria-hidden="true">
       {generations.flatMap((generation) =>
         generation.blobs.map((blob) => {
           const style = {
-            "--haze-w": `${blob.width}vw`,
-            "--haze-h": `${blob.height}vw`,
-            "--haze-left": `${blob.left}%`,
-            "--haze-top": `${blob.top}%`,
-            "--haze-rot": `${blob.rotate}deg`,
-            "--haze-opacity": blob.opacity,
-            "--haze-color": TONES[blob.tone],
-            "--haze-clip": blob.clip,
-            "--haze-duration": `${blob.duration}s`,
+            '--haze-w': `${blob.width}vw`,
+            '--haze-h': `${blob.height}vw`,
+            '--haze-left': `${blob.left}%`,
+            '--haze-top': `${blob.top}%`,
+            '--haze-rot': `${blob.rotate}deg`,
+            '--haze-opacity': blob.opacity,
+            '--haze-color': TONES[blob.tone],
+            '--haze-clip': blob.clip,
+            '--haze-duration': `${blob.duration}s`,
           } as CSSProperties;
 
           return (
-            <span key={blob.id} className={`haze${blob.debug ? " debug" : ""}`} style={style}>
+            <span key={blob.id} className={`haze${blob.debug ? ' debug' : ''}`} style={style}>
               <span className="haze-core" />
               {blob.lobes.map((lobe) => {
                 const lobeStyle = {
-                  "--lobe-x": `${lobe.offsetX}%`,
-                  "--lobe-y": `${lobe.offsetY}%`,
-                  "--lobe-sx": lobe.scaleX,
-                  "--lobe-sy": lobe.scaleY,
-                  "--lobe-radius": lobe.radius,
-                  "--lobe-opacity": lobe.opacityScale,
+                  '--lobe-x': `${lobe.offsetX}%`,
+                  '--lobe-y': `${lobe.offsetY}%`,
+                  '--lobe-sx': lobe.scaleX,
+                  '--lobe-sy': lobe.scaleY,
+                  '--lobe-radius': lobe.radius,
+                  '--lobe-opacity': lobe.opacityScale,
                 } as CSSProperties;
 
                 return <span key={lobe.key} className="haze-lobe" style={lobeStyle} />;

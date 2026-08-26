@@ -23,7 +23,7 @@ function notify() {
 function onVisibility() {
   presence = {
     ...presence,
-    pageVisible: document.visibilityState === "visible",
+    pageVisible: document.visibilityState === 'visible',
   };
   notify();
 }
@@ -34,7 +34,7 @@ function teardownObserver() {
     io = null;
   }
 
-  document.removeEventListener("visibilitychange", onVisibility);
+  document.removeEventListener('visibilitychange', onVisibility);
   observed = null;
 }
 
@@ -47,7 +47,7 @@ function ensureAttached(target: Element) {
   observed = target;
   presence = {
     ...presence,
-    pageVisible: document.visibilityState === "visible",
+    pageVisible: document.visibilityState === 'visible',
   };
 
   io = new IntersectionObserver(
@@ -58,10 +58,10 @@ function ensureAttached(target: Element) {
       };
       notify();
     },
-    { threshold: [0, 0.05], rootMargin: "0px" },
+    { threshold: [0, 0.05], rootMargin: '0px' },
   );
   io.observe(target);
-  document.addEventListener("visibilitychange", onVisibility);
+  document.addEventListener('visibilitychange', onVisibility);
 }
 
 /** One IO + visibilitychange for every orbit subscriber on the same target. */

@@ -3,11 +3,13 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
     "build": "pnpm --filter web build",
     "lint": "pnpm --filter web lint",
     "format": "pnpm --filter web format && pnpm --filter web exec oxfmt \"$PWD/package.json\" \"$PWD/.oxfmtrc.json\" \"$PWD/.vscode/settings.json\"",
     "format:check": "pnpm --filter web format:check && pnpm --filter web exec oxfmt --check \"$PWD/package.json\" \"$PWD/.oxfmtrc.json\" \"$PWD/.vscode/settings.json\"",
-    "preview": "pnpm --filter web preview"
+    "preview": "pnpm --filter web preview",
+    "db:up": "docker compose -f infra/docker-compose.yml up -d"
   },
   "engines": {
     "node": "24"

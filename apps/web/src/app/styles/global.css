@@ -57,7 +57,12 @@
     font-optical-sizing: auto;
     background:
       radial-gradient(ellipse 80% 50% at 50% 0%, var(--color-accent-mist) 0%, transparent 45%),
-      radial-gradient(ellipse 100% 80% at 50% 40%, var(--color-bg-lift) 0%, var(--color-bg) 55%, var(--color-bg-deep) 100%);
+      radial-gradient(
+        ellipse 100% 80% at 50% 40%,
+        var(--color-bg-lift) 0%,
+        var(--color-bg) 55%,
+        var(--color-bg-deep) 100%
+      );
     background-attachment: fixed;
     color: var(--color-text);
     line-height: var(--leading-normal);

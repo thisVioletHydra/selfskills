@@ -1,13 +1,13 @@
-import type { OrbitHintState } from "#app/shared/lib/orbit-hint-state";
+import type { OrbitHintState } from '#app/shared/lib/orbit-hint-state';
 
 import {
   readOrbitHintState,
   subscribeOrbitHintReset,
   writeOrbitHintState,
-} from "#app/shared/lib/orbit-hint-state";
-import { useCallback, useEffect, useState } from "react";
+} from '#app/shared/lib/orbit-hint-state';
+import { useCallback, useEffect, useState } from 'react';
 
-export type OrbitHintKey = "tapDismissed" | "throwDismissed";
+export type OrbitHintKey = 'tapDismissed' | 'throwDismissed';
 
 export type OrbitHintItem = {
   key: OrbitHintKey;
@@ -18,18 +18,18 @@ export type OrbitHintItem = {
   hiding: boolean;
 };
 
-const HINT_COPY: Omit<OrbitHintItem, "visible" | "hiding">[] = [
+const HINT_COPY: Omit<OrbitHintItem, 'visible' | 'hiding'>[] = [
   {
-    key: "tapDismissed",
-    text: "Тап — карточка",
-    mark: "◎",
-    markClass: "mark",
+    key: 'tapDismissed',
+    text: 'Тап — карточка',
+    mark: '◎',
+    markClass: 'mark',
   },
   {
-    key: "throwDismissed",
-    text: "Зажми и швырни",
-    mark: "↗",
-    markClass: "mark throw",
+    key: 'throwDismissed',
+    text: 'Зажми и швырни',
+    mark: '↗',
+    markClass: 'mark throw',
   },
 ];
 
@@ -89,7 +89,7 @@ export function useOrbitHints() {
     dismiss,
     finishHide,
     markTeaseDone,
-    dismissTapHint: () => dismiss("tapDismissed"),
-    dismissThrowHint: () => dismiss("throwDismissed"),
+    dismissTapHint: () => dismiss('tapDismissed'),
+    dismissThrowHint: () => dismiss('throwDismissed'),
   };
 }

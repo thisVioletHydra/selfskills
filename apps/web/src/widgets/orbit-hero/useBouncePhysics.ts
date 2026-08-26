@@ -1,8 +1,8 @@
-import type { RefObject } from "react";
+import type { RefObject } from 'react';
 
-import { ORBIT_TECH } from "#app/entities/skill/tech-stack";
-import { subscribeOrbitPresence } from "#app/shared/lib/orbit-presence";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { ORBIT_TECH } from '#app/entities/skill/tech-stack';
+import { subscribeOrbitPresence } from '#app/shared/lib/orbit-presence';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 export type BounceBody = {
   id: string;
@@ -405,7 +405,7 @@ export function useBouncePhysics(
   planetElsRef: RefObject<Map<string, HTMLElement | null>>,
   starSize: number,
   interactionId: string | null,
-  motionMode: "auto" | "paused" = "auto",
+  motionMode: 'auto' | 'paused' = 'auto',
 ) {
   const bodiesRef = useRef<BounceBody[]>([]);
   const interactionRef = useRef(interactionId);
@@ -428,8 +428,8 @@ export function useBouncePhysics(
       return;
     }
 
-    const root = stage.closest(".orbit-hero") ?? stage;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const root = stage.closest('.orbit-hero') ?? stage;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const starRadius = starCollisionRadius(starSize);
     const PAUSE_DELAY_MS = 1000;
 
@@ -454,7 +454,7 @@ export function useBouncePhysics(
     init();
 
     if (reducedMotion) {
-      root.classList.add("paused");
+      root.classList.add('paused');
 
       return;
     }
@@ -464,13 +464,12 @@ export function useBouncePhysics(
     let pauseTimer = 0;
     let last = performance.now();
     let inView = true;
-    let pageVisible = document.visibilityState === "visible";
+    let pageVisible = document.visibilityState === 'visible';
 
-    const shouldRun = () =>
-      motionModeRef.current === "auto" && inView && pageVisible;
+    const shouldRun = () => motionModeRef.current === 'auto' && inView && pageVisible;
 
     const setPausedClass = (paused: boolean) => {
-      root.classList.toggle("paused", paused);
+      root.classList.toggle('paused', paused);
     };
 
     const stopLoop = () => {
@@ -529,7 +528,7 @@ export function useBouncePhysics(
       }
 
       // User pause: freeze now. Off-screen / hidden tab: delay before freeze.
-      if (motionModeRef.current === "paused" || !loopActive) {
+      if (motionModeRef.current === 'paused' || !loopActive) {
         stopLoop();
 
         return;
@@ -553,7 +552,7 @@ export function useBouncePhysics(
       syncRunning();
     });
 
-    window.addEventListener("resize", onResize);
+    window.addEventListener('resize', onResize);
     syncRunning();
 
     return () => {
@@ -564,8 +563,8 @@ export function useBouncePhysics(
       loopActive = false;
       cancelAnimationFrame(raf);
       unsubscribePresence();
-      window.removeEventListener("resize", onResize);
-      root.classList.remove("paused");
+      window.removeEventListener('resize', onResize);
+      root.classList.remove('paused');
     };
   }, [stageRef, planetElsRef, starSize]);
 

@@ -1,8 +1,8 @@
-import { rollKarmicDice } from "#app/shared/lib/karmic-dice";
-import { rand } from "#app/shared/lib/orbit-rand";
-import { subscribeWindowEvent } from "#app/shared/lib/subscribe-window-event";
+import { rollKarmicDice } from '#app/shared/lib/karmic-dice';
+import { rand } from '#app/shared/lib/orbit-rand';
+import { subscribeWindowEvent } from '#app/shared/lib/subscribe-window-event';
 
-export const ORBIT_COMET_TRIGGER_EVENT = "orbit-comet-trigger";
+export const ORBIT_COMET_TRIGGER_EVENT = 'orbit-comet-trigger';
 
 export type CometFlight = {
   id: number;
@@ -18,7 +18,7 @@ type CometSide = {
   left: [number, number];
   top: [number, number];
   angle: [number, number];
-  travelUnit: "vw" | "vh";
+  travelUnit: 'vw' | 'vh';
   travelRange: [number, number];
 };
 
@@ -27,28 +27,28 @@ const COMET_SIDES: CometSide[] = [
     left: [-10, -4],
     top: [6, 78],
     angle: [8, 42],
-    travelUnit: "vw",
+    travelUnit: 'vw',
     travelRange: [125, 155],
   },
   {
     left: [104, 110],
     top: [6, 78],
     angle: [148, 178],
-    travelUnit: "vw",
+    travelUnit: 'vw',
     travelRange: [125, 155],
   },
   {
     left: [8, 88],
     top: [-12, -4],
     angle: [58, 122],
-    travelUnit: "vh",
+    travelUnit: 'vh',
     travelRange: [115, 145],
   },
   {
     left: [8, 88],
     top: [104, 112],
     angle: [-122, -58],
-    travelUnit: "vh",
+    travelUnit: 'vh',
     travelRange: [115, 145],
   },
 ];

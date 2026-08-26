@@ -1,5 +1,5 @@
-import { PROJECTS } from "#app/entities/project/projects";
-import "#app/widgets/projects-grid/projects-grid.css";
+import { PROJECTS } from '#app/entities/project/projects';
+import '#app/widgets/projects-grid/projects-grid.css';
 
 export function ProjectsGrid() {
   return (
@@ -16,12 +16,12 @@ export function ProjectsGrid() {
               <a
                 className="link"
                 href={project.href}
-                target={project.href.startsWith("http") ? "_blank" : undefined}
-                rel={project.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                target={project.href.startsWith('http') ? '_blank' : undefined}
+                rel={project.href.startsWith('http') ? 'noopener noreferrer' : undefined}
               >
                 <h3 className="title">{project.title}</h3>
                 <p className="summary">{project.summary}</p>
-                <p className="stack">{project.stack.join(" · ")}</p>
+                <p className="stack">{project.stack.join(' · ')}</p>
               </a>
             </li>
           ))}

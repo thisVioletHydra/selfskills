@@ -1,5 +1,6 @@
-import { PROFILE } from '#app/entities/profile/profile';
 import type { CSSProperties } from 'react';
+
+import { PROFILE } from '#app/entities/profile/profile';
 import { SiteFooter } from '#app/shared/ui/SiteFooter';
 import { SiteHeader } from '#app/shared/ui/SiteHeader';
 import { ContactsBar } from '#app/widgets/contacts-bar/ContactsBar';
@@ -10,7 +11,7 @@ import '#app/pages/profile/profile-page.css';
 
 export function ProfilePage() {
   const portraitStyle = {
-    "--portrait-url": `url(${PROFILE.portrait})`,
+    '--portrait-url': `url(${PROFILE.portrait})`,
   } as CSSProperties;
 
   return (

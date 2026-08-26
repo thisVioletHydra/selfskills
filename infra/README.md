@@ -2,6 +2,6 @@
 
 Инфра для запуска.
 
-Сюда: `docker-compose.yml`, Dockerfile для api (когда дойдём).
+**Шаг 5:** открой `docker-compose.yml` — гайд в комментах (postgres + api). Фронт в Docker не кладём.
 
-Сервисы: **postgres** + **api**. Фронт в Docker не кладём.
+Сюда же позже Dockerfile для api.

@@ -1,18 +1,18 @@
-import type { TechStackItem } from "#app/entities/skill/tech-stack";
-import type { OrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
+import type { TechStackItem } from '#app/entities/skill/tech-stack';
+import type { OrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
 
-import { CORE_TECH, ORBIT_TECH } from "#app/entities/skill/tech-stack";
-import { TechModal } from "#app/features/tech-modal/TechModal";
-import { readOrbitMotionMode, writeOrbitMotionMode } from "#app/shared/lib/orbit-motion-state";
-import { resetOrbitHintState } from "#app/shared/lib/orbit-hint-state";
-import { OrbitComets } from "#app/widgets/orbit-hero/OrbitComet";
-import { OrbitHaze } from "#app/widgets/orbit-hero/OrbitHaze";
-import { OrbitPulseStars } from "#app/widgets/orbit-hero/OrbitPulseStars";
-import { useBouncePhysics } from "#app/widgets/orbit-hero/useBouncePhysics";
-import { usePlanetThrow } from "#app/widgets/orbit-hero/usePlanetThrow";
-import { useOrbitHints } from "#app/widgets/orbit-hero/useOrbitHints";
-import { useRef, useState } from "react";
-import "#app/widgets/orbit-hero/orbit-hero.css";
+import { CORE_TECH, ORBIT_TECH } from '#app/entities/skill/tech-stack';
+import { TechModal } from '#app/features/tech-modal/TechModal';
+import { resetOrbitHintState } from '#app/shared/lib/orbit-hint-state';
+import { readOrbitMotionMode, writeOrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
+import { OrbitComets } from '#app/widgets/orbit-hero/OrbitComet';
+import { OrbitHaze } from '#app/widgets/orbit-hero/OrbitHaze';
+import { OrbitPulseStars } from '#app/widgets/orbit-hero/OrbitPulseStars';
+import { useBouncePhysics } from '#app/widgets/orbit-hero/useBouncePhysics';
+import { useOrbitHints } from '#app/widgets/orbit-hero/useOrbitHints';
+import { usePlanetThrow } from '#app/widgets/orbit-hero/usePlanetThrow';
+import { useRef, useState } from 'react';
+import '#app/widgets/orbit-hero/orbit-hero.css';
 
 export function OrbitHero() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -22,14 +22,8 @@ export function OrbitHero() {
   const [activeTech, setActiveTech] = useState<TechStackItem | null>(null);
   const [motionMode, setMotionMode] = useState<OrbitMotionMode>(() => readOrbitMotionMode());
 
-  const {
-    hints,
-    teaseActive,
-    dismissTapHint,
-    dismissThrowHint,
-    finishHide,
-    markTeaseDone,
-  } = useOrbitHints();
+  const { hints, teaseActive, dismissTapHint, dismissThrowHint, finishHide, markTeaseDone } =
+    useOrbitHints();
 
   const interactionId = draggingId ?? hoveredId;
   const { bodiesRef } = useBouncePhysics(
@@ -41,7 +35,7 @@ export function OrbitHero() {
   );
 
   const toggleMotion = () => {
-    const next: OrbitMotionMode = motionMode === "auto" ? "paused" : "auto";
+    const next: OrbitMotionMode = motionMode === 'auto' ? 'paused' : 'auto';
     writeOrbitMotionMode(next);
     setMotionMode(next);
   };
@@ -70,9 +64,9 @@ export function OrbitHero() {
     },
   });
 
-  const stageClassName = teaseActive ? "stage hinting" : "stage";
+  const stageClassName = teaseActive ? 'stage hinting' : 'stage';
   const hintsVisible = hints.some((hint) => hint.visible || hint.hiding);
-  const isPaused = motionMode === "paused";
+  const isPaused = motionMode === 'paused';
 
   return (
     <section className="orbit-hero" id="hero">
@@ -118,8 +112,8 @@ export function OrbitHero() {
           className="motion-chip"
           onClick={toggleMotion}
           aria-pressed={isPaused}
-          aria-label={isPaused ? "Запустить орбиту" : "Поставить орбиту на паузу"}
-          title={isPaused ? "Play" : "Pause"}
+          aria-label={isPaused ? 'Запустить орбиту' : 'Поставить орбиту на паузу'}
+          title={isPaused ? 'Play' : 'Pause'}
         >
           {isPaused ? (
             <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
@@ -131,7 +125,7 @@ export function OrbitHero() {
               <rect x="9.6" y="2.8" width="3.2" height="10.4" rx="0.6" fill="currentColor" />
             </svg>
           )}
-          <span className="label">{isPaused ? "Play" : "Pause"}</span>
+          <span className="label">{isPaused ? 'Play' : 'Pause'}</span>
         </button>
 
         {hintsVisible && (
@@ -140,9 +134,9 @@ export function OrbitHero() {
               hint.visible ? (
                 <p
                   key={hint.key}
-                  className={`hint${hint.hiding ? " out" : ""}`}
+                  className={`hint${hint.hiding ? ' out' : ''}`}
                   onAnimationEnd={(event) => {
-                    if (event.animationName === "hint-fade-out" && hint.hiding) {
+                    if (event.animationName === 'hint-fade-out' && hint.hiding) {
                       finishHide(hint.key);
                     }
                   }}
@@ -166,7 +160,7 @@ export function OrbitHero() {
         {ORBIT_TECH.map((tech, index) => {
           const isActive = interactionId === tech.id;
           const isDragging = draggingId === tech.id;
-          const teaseAlt = index % 2 === 1 ? " tease-alt" : "";
+          const teaseAlt = index % 2 === 1 ? ' tease-alt' : '';
 
           return (
             <button
@@ -175,7 +169,7 @@ export function OrbitHero() {
               ref={(node) => {
                 planetElsRef.current.set(tech.id, node);
               }}
-              className={`planet${teaseAlt}${isActive ? " paused" : ""}${isDragging ? " dragging" : ""}`}
+              className={`planet${teaseAlt}${isActive ? ' paused' : ''}${isDragging ? ' dragging' : ''}`}
               style={{
                 width: `${tech.size}px`,
                 height: `${tech.size}px`,

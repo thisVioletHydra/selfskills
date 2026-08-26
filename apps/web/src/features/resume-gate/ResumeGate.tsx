@@ -39,7 +39,9 @@ export function ResumeGate({ busy = false, error = null, onContinue, onSkip }: R
         <h1 id="resume-gate-title" className="title">
           Вставь ссылку на резюме
         </h1>
-        <p className="sub">Пока бета: с сервера приедет демо. Потом — Prisma / GraphQL без костылей.</p>
+        <p className="sub">
+          Пока бета: с сервера приедет демо. Потом — Prisma / GraphQL без костылей.
+        </p>
 
         <label className="label" htmlFor={inputId}>
           Ссылка

@@ -1,0 +1,58 @@
+// STEP 2 — Prisma schema
+//
+// Зачем: модели под визитку. Один клиент на всё API.
+// Команды (из apps/api, после deps): pnpm prisma:generate / prisma:migrate
+//
+// Ориентир моделей (подстрой под фронт):
+//
+//   generator client {
+//     provider = "prisma-client-js"
+//   }
+//
+//   datasource db {
+//     provider = "postgresql"
+//     url      = env("DATABASE_URL")
+//   }
+//
+//   model Profile {
+//     id        String   @id @default(cuid())
+//     name      String
+//     role      String
+//     tag       String?
+//     blurb     String?
+//     // contacts / facts — Json или отдельные таблицы
+//     createdAt DateTime @default(now())
+//     updatedAt DateTime @updatedAt
+//   }
+//
+//   model Skill {
+//     id    String @id @default(cuid())
+//     name  String
+//     // ...
+//   }
+//
+//   model Project {
+//     id      String   @id @default(cuid())
+//     title   String
+//     summary String?
+//     stack   String[]
+//     href    String?
+//   }
+//
+// Seed-данные смотри на фронте:
+//   apps/web/src/entities/profile/profile.ts
+//   apps/web/src/entities/skill/tech-stack.ts
+//   apps/web/src/entities/project/projects.ts
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// TODO(STEP 2): раскомментируй/добавь model Profile, Skill, Project выше по примеру
+
+// NEXT: src/prisma/prisma.service.ts — Nest-обёртка над PrismaClient

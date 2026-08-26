@@ -1,6 +1,6 @@
-import type { ResumeInfo } from "#app/entities/resume/resume";
+import type { ResumeInfo } from '#app/entities/resume/resume';
 
-import "#app/pages/resume/resume-page.css";
+import '#app/pages/resume/resume-page.css';
 
 type ResumePageProps = {
   resume: ResumeInfo;
@@ -39,7 +39,7 @@ export function ResumePage({ resume, onOpenPortfolio }: ResumePageProps) {
         <h2 className="heading">Контакты</h2>
         <ul className="list">
           <li>
-            <a href={`tel:${resume.phone.replace(/\s/g, "")}`}>{resume.phone}</a>
+            <a href={`tel:${resume.phone.replace(/\s/g, '')}`}>{resume.phone}</a>
           </li>
           <li>
             <a href={`mailto:${resume.email}`}>{resume.email}</a>
@@ -78,10 +78,10 @@ export function ResumePage({ resume, onOpenPortfolio }: ResumePageProps) {
                 ) : (
                   job.company
                 )}
-                {job.location ? ` · ${job.location}` : ""}
+                {job.location ? ` · ${job.location}` : ''}
               </p>
               {job.productNote && <p className="text">{job.productNote}</p>}
-              <p className="stack">{job.stack.join(" · ")}</p>
+              <p className="stack">{job.stack.join(' · ')}</p>
               <ul className="highlights">
                 {job.highlights.map((item) => (
                   <li key={item.slice(0, 48)}>{item}</li>

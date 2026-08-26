@@ -1,3 +1,5 @@
 # skill
 
-Модуль навыков: список скиллов через GraphQL, хранение в Postgres через Prisma.
+Навыки через GraphQL + Prisma.
+
+**Шаг 4:** тот же шаблон, что profile (`skill.module` → service → resolver).

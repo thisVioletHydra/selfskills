@@ -179,7 +179,7 @@
   }
 
   .stars::after {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -271,6 +271,148 @@
     transform: translate(-50%, -50%);
     background: radial-gradient(circle, rgba(247, 223, 30, 0.05) 0%, transparent 62%);
     pointer-events: none;
+  }
+
+  .flash-layer {
+    --flash-x: 50%;
+    --flash-y: 42%;
+    --flash-hue: 210;
+    --flash-max-h: var(--size-orbit-planet);
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: clip;
+    pointer-events: none;
+  }
+
+  .flash {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* warm/white center under JS — как раньше, ярко */
+  .flash-burst {
+    position: absolute;
+    top: var(--flash-y);
+    left: var(--flash-x);
+    width: calc(var(--flash-max-h) * 1.5);
+    height: calc(var(--flash-max-h) * 1.5);
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side circle at center,
+      hsl(0 0% 100% / 1) 0%,
+      hsl(0 0% 100% / 0.95) 12%,
+      hsl(48 100% 88% / 0.8) 28%,
+      hsl(42 95% 58% / 0.4) 48%,
+      hsl(210 90% 60% / 0.2) 65%,
+      transparent 80%
+    );
+    box-shadow:
+      0 0 16px 6px hsl(0 0% 100% / 0.7),
+      0 0 36px 16px hsl(48 100% 70% / 0.4),
+      0 0 72px 28px hsl(210 95% 55% / 0.25);
+    filter: blur(4px);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+    animation:
+      flash-burst-grow 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) forwards,
+      flash-burst-fade 3.8s linear forwards;
+  }
+
+  /* цельный горизонтальный луч — рост и фейд раздельно = без рывков */
+  .flash-ray {
+    position: absolute;
+    top: var(--flash-y);
+    left: 50%;
+    width: 140vw;
+    height: var(--flash-max-h);
+    margin-left: -70vw;
+    opacity: 0;
+    transform: translateY(-50%) scaleX(0.02) scaleY(0.18);
+    transform-origin: center;
+    animation:
+      flash-ray-grow 2.1s cubic-bezier(0.55, 0, 0.8, 0.25) forwards,
+      flash-ray-fade 3.8s linear forwards;
+    will-change: transform, opacity;
+  }
+
+  /* заливка светом — мягкий голубой bloom */
+  .flash-ray-bloom {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      closest-side ellipse at center,
+      hsl(0 0% 100% / 0.55) 0%,
+      hsl(var(--flash-hue) 95% 75% / 0.55) 18%,
+      hsl(var(--flash-hue) 100% 60% / 0.32) 42%,
+      hsl(var(--flash-hue) 90% 45% / 0.1) 68%,
+      transparent 100%
+    );
+    filter: blur(10px);
+  }
+
+  /* тонкая горячая линия по оси */
+  .flash-ray-core {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform: translateY(-50%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--flash-hue) 100% 70% / 0.55) 8%,
+      hsl(0 0% 100% / 0.95) 35%,
+      hsl(0 0% 100% / 1) 50%,
+      hsl(0 0% 100% / 0.95) 65%,
+      hsl(var(--flash-hue) 100% 70% / 0.55) 92%,
+      transparent 100%
+    );
+    box-shadow:
+      0 0 4px 1px hsl(0 0% 100% / 0.85),
+      0 0 14px 3px hsl(var(--flash-hue) 100% 65% / 0.55),
+      0 0 28px 8px hsl(var(--flash-hue) 100% 55% / 0.28);
+  }
+
+  .flash-chip {
+    position: absolute;
+    top: calc(1.1rem + 2.55rem);
+    left: max(1rem, var(--space-section-x));
+    z-index: 8;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.38rem 0.72rem 0.38rem 0.62rem;
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-glass);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.8125rem;
+    line-height: var(--leading-tight);
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      background var(--duration-fast) var(--ease-out);
+  }
+
+  .flash-chip:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  .flash-chip .glyph {
+    display: block;
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .flash-chip .label {
+    font-weight: 500;
   }
 
   .hints {
@@ -407,7 +549,7 @@
   }
 
   .stage.hinting .supernova::after {
-    content: "";
+    content: '';
     position: absolute;
     inset: -10px;
     border: 1px dashed var(--color-accent-ring);
@@ -701,6 +843,68 @@
   }
 }
 
+/* вспышка и луч стартуют вместе (t=0) */
+@keyframes flash-burst-grow {
+  from {
+    transform: translate(-50%, -50%) scale(0.28);
+  }
+
+  to {
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+}
+
+@keyframes flash-burst-fade {
+  0% {
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  55% {
+    opacity: 0.45;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* один участок transform = плавный разгон без ступенек */
+@keyframes flash-ray-grow {
+  from {
+    transform: translateY(-50%) scaleX(0.02) scaleY(0.18);
+  }
+
+  to {
+    transform: translateY(-50%) scaleX(1) scaleY(1);
+  }
+}
+
+@keyframes flash-ray-fade {
+  0% {
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  52% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 @keyframes hint-fade-in {
   from {
     opacity: 0;
@@ -829,13 +1033,19 @@
       .comet,
       .spark,
       .pulse-star,
-      .haze
+      .haze,
+      .flash-burst,
+      .flash-ray
     ) {
       animation: none;
     }
 
     .haze {
       opacity: 0.2;
+    }
+
+    .flash-layer {
+      display: none;
     }
 
     .hint.out {
@@ -852,7 +1062,9 @@
     .comet,
     .spark,
     .pulse-star,
-    .haze
+    .haze,
+    .flash-burst,
+    .flash-ray
   ) {
     animation-play-state: paused;
   }
@@ -864,7 +1076,8 @@
 
 @media (hover: hover) {
   @scope (.orbit-hero) {
-    .motion-chip:hover {
+    .motion-chip:hover,
+    .flash-chip:hover {
       color: var(--color-accent);
       border-color: color-mix(in oklch, var(--color-accent) 45%, transparent);
     }

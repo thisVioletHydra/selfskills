@@ -1,10 +1,10 @@
-import * as parserPlain from "eslint-parser-plain";
-import prettier from "eslint-plugin-prettier";
+import * as parserPlain from 'eslint-parser-plain';
+import prettier from 'eslint-plugin-prettier';
 
 /** @type {import("eslint").Linter.Config[]} */
 export default [
   {
-    files: ["**/*.{svg,xml}"],
+    files: ['**/*.{svg,xml}'],
     languageOptions: {
       parser: parserPlain,
     },
@@ -12,12 +12,12 @@ export default [
       prettier,
     },
     rules: {
-      "prettier/prettier": [
-        "error",
+      'prettier/prettier': [
+        'error',
         {
-          parser: "xml",
-          plugins: ["@prettier/plugin-xml"],
-          xmlWhitespaceSensitivity: "ignore",
+          parser: 'xml',
+          plugins: ['@prettier/plugin-xml'],
+          xmlWhitespaceSensitivity: 'ignore',
           printWidth: 100,
           semi: false,
         },

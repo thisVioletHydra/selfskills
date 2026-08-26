@@ -1,0 +1,15 @@
+{
+  "name": "api",
+  "private": true,
+  "version": "0.0.0",
+  "description": "STEP 0: см. step-0.GUIDE.md — допиши deps и scripts, потом src/main.ts",
+  "scripts": {
+    "start:dev": "echo \"STEP 0: поставь @nestjs/cli и замени этот echo на nest start --watch\"",
+    "build": "echo \"STEP 0: nest build\"",
+    "prisma:generate": "echo \"STEP 2: prisma generate\"",
+    "prisma:migrate": "echo \"STEP 2: prisma migrate dev\"",
+    "prisma:seed": "echo \"STEP 5: prisma db seed\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

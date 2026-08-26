@@ -1,12 +1,12 @@
 /* Registered props — анимируемые / typed */
 @property --color-accent {
-  syntax: "<color>";
+  syntax: '<color>';
   inherits: true;
   initial-value: oklch(0.9 0.17 102);
 }
 
 @property --space-unit {
-  syntax: "<length>";
+  syntax: '<length>';
   inherits: true;
   initial-value: 0.25rem;
 }
@@ -60,10 +60,10 @@
     --space-10: calc(var(--space-unit) * 18);
     --space-section-y: clamp(3.25rem, 2.4rem + 3.5vi, 4.5rem);
     --space-section-x: clamp(1rem, 0.55rem + 2vi, 1.5rem);
-    --space-peek: clamp(9rem, 7rem + 6dvh, 12rem);
+    --space-peek: clamp(10.5rem, 8.25rem + 7dvh, 14rem);
 
     /* Type — fluid via vi */
-    --font-sans: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+    --font-sans: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
     --text-xs: 0.75rem;
     --text-sm: 0.875rem;
     --text-md: 0.95rem;

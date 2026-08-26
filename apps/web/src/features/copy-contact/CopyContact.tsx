@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { cancel, schedule } from '#app/shared/lib/timer-kit';
+import { useEffect, useId, useState } from 'react';
 
 type CopyContactProps = {
   value: string;
@@ -6,15 +7,29 @@ type CopyContactProps = {
   className?: string;
 };
 
-export function CopyContact({ value, label = "Email", className }: CopyContactProps) {
+export function CopyContact({ value, label = 'Email', className }: CopyContactProps) {
   const [copied, setCopied] = useState(false);
+  const resetId = `copy-contact-reset-${useId()}`;
+
+  useEffect(() => {
+    return () => {
+      cancel(resetId);
+    };
+  }, [resetId]);
 
   const onCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
+      schedule({
+        id: resetId,
+        ms: 1600,
+        onFire: () => {
+          setCopied(false);
+        },
+      });
     } catch {
+      cancel(resetId);
       setCopied(false);
     }
   };
@@ -26,9 +41,9 @@ export function CopyContact({ value, label = "Email", className }: CopyContactPr
       onClick={() => {
         void onCopy();
       }}
-      aria-label={copied ? "Скопировано" : `Скопировать ${label}`}
+      aria-label={copied ? 'Скопировано' : `Скопировать ${label}`}
     >
-      {copied ? "Скопировано" : label}
+      {copied ? 'Скопировано' : label}
     </button>
   );
 }

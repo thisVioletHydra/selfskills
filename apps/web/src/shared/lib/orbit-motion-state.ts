@@ -1,16 +1,16 @@
-export type OrbitMotionMode = "auto" | "paused";
+export type OrbitMotionMode = 'auto' | 'paused';
 
-const STORAGE_KEY = "orbit-motion-mode";
-const DEFAULT_MODE: OrbitMotionMode = "auto";
+const STORAGE_KEY = 'orbit-motion-mode';
+const DEFAULT_MODE: OrbitMotionMode = 'auto';
 
 export function readOrbitMotionMode(): OrbitMotionMode {
-  if (typeof localStorage === "undefined") {
+  if (typeof localStorage === 'undefined') {
     return DEFAULT_MODE;
   }
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === "auto" || raw === "paused") {
+    if (raw === 'auto' || raw === 'paused') {
       return raw;
     }
   } catch {
@@ -21,7 +21,7 @@ export function readOrbitMotionMode(): OrbitMotionMode {
 }
 
 export function writeOrbitMotionMode(mode: OrbitMotionMode) {
-  if (typeof localStorage === "undefined") {
+  if (typeof localStorage === 'undefined') {
     return;
   }
 

@@ -98,8 +98,8 @@
     inline-size: min(100%, var(--width-about));
     max-inline-size: var(--width-about);
     margin-inline: auto;
-    /* сверху мало — peek макушки; воздух снизу перед details */
-    padding-block: var(--space-4) clamp(4.5rem, 3.2rem + 4vi, 7rem);
+    /* место под sticky-хедер + peek макушки; воздух снизу перед details */
+    padding-block: calc(var(--header-h) + var(--space-3)) clamp(4.5rem, 3.2rem + 4vi, 7rem);
     padding-inline: var(--space-section-x);
   }
 
@@ -114,7 +114,7 @@
 
   /* Soft wash strictly under the circle */
   .persona-photo::before {
-    content: "";
+    content: '';
     position: absolute;
     z-index: 0;
     inset-inline: 8%;
@@ -159,14 +159,15 @@
   }
 
   .shot::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     border-radius: 50%;
     background-image: var(--portrait-url);
     background-repeat: no-repeat;
     background-size: cover;
-    background-position: center 20%;
+    /* лёгкий сдвиг от пустоты справа, макушка в кадре */
+    background-position: 34% 12%;
   }
 
   .lead {
@@ -236,12 +237,14 @@
 @media (width >= 900px) {
   @scope (.cosmos-section.about) {
     .persona-stage {
-      grid-template-columns: minmax(0, 1fr) 20.5rem;
+      grid-template-columns: minmax(0, 1fr) 19.5rem;
       grid-template-rows: auto;
-      gap: 2.5rem;
+      gap: 2.25rem;
       align-items: center;
       justify-items: stretch;
-      padding-block: var(--space-4) clamp(5rem, 3.5rem + 5vi, 8rem);
+      /* оптический trim: пустой правый край кадра больше не раздувает сцену */
+      max-inline-size: calc(var(--width-about) - 2.5rem);
+      padding-block: calc(var(--header-h) + var(--space-3)) clamp(5rem, 3.5rem + 5vi, 8rem);
       padding-inline: 0;
     }
 
@@ -261,8 +264,8 @@
     .persona-photo {
       grid-column: 2;
       grid-row: 1;
-      inline-size: 20.5rem;
-      max-inline-size: 20.5rem;
+      inline-size: 19.5rem;
+      max-inline-size: 19.5rem;
       margin-inline: 0;
       justify-self: end;
     }
@@ -281,7 +284,8 @@
     }
 
     .shot::before {
-      background-position: center 18%;
+      background-size: cover;
+      background-position: 34% 10%;
     }
 
     .tag,

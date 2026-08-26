@@ -1,15 +1,15 @@
-import type { OrbitPresence } from "#app/shared/lib/orbit-presence";
+import type { OrbitPresence } from '#app/shared/lib/orbit-presence';
 
-import { subscribeOrbitPresence } from "#app/shared/lib/orbit-presence";
-import { useEffect, useState } from "react";
+import { subscribeOrbitPresence } from '#app/shared/lib/orbit-presence';
+import { useEffect, useState } from 'react';
 
 const INITIAL: OrbitPresence = {
   inView: true,
-  pageVisible: typeof document === "undefined" ? true : document.visibilityState === "visible",
+  pageVisible: typeof document === 'undefined' ? true : document.visibilityState === 'visible',
 };
 
 /** Hero (or any target) in viewport + tab visible. */
-export function useOrbitPresence(targetId = "hero") {
+export function useOrbitPresence(targetId = 'hero') {
   const [state, setState] = useState<OrbitPresence>(INITIAL);
 
   useEffect(() => {
