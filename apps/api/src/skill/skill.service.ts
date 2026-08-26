@@ -1,9 +1,4 @@
-/**
- * STEP 4 — SkillService → Prisma (или временно TECH_STACK с фронта).
- *
- * Источник правды для seed: apps/web/src/entities/skill/tech-stack.ts
- */
+import { Injectable } from '@nestjs/common';
 
-// TODO(STEP 4): SkillService
-
-/** NEXT: ./skill.resolver.ts */
+@Injectable()
+export class SkillService {}

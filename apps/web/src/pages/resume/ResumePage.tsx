@@ -1,6 +1,6 @@
-import type { ResumeInfo } from '#app/entities/resume/resume';
+import type { ResumeInfo } from '#web/entities/resume/resume';
 
-import '#app/pages/resume/resume-page.css';
+import '#web/pages/resume/resume-page.css';
 
 type ResumePageProps = {
   resume: ResumeInfo;

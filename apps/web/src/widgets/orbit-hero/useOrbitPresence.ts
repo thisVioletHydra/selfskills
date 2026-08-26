@@ -1,6 +1,6 @@
-import type { OrbitPresence } from '#app/shared/lib/orbit-presence';
+import type { OrbitPresence } from '#web/shared/lib/orbit-presence';
 
-import { subscribeOrbitPresence } from '#app/shared/lib/orbit-presence';
+import { subscribeOrbitPresence } from '#web/shared/lib/orbit-presence';
 import { useEffect, useState } from 'react';
 
 const INITIAL: OrbitPresence = {

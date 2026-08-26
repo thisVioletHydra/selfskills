@@ -1,6 +1,6 @@
-import { rollKarmicDice } from '#app/shared/lib/karmic-dice';
-import { rand } from '#app/shared/lib/orbit-rand';
-import { subscribeWindowEvent } from '#app/shared/lib/subscribe-window-event';
+import { rollKarmicDice } from '#web/shared/lib/karmic-dice';
+import { rand } from '#web/shared/lib/orbit-rand';
+import { subscribeWindowEvent } from '#web/shared/lib/subscribe-window-event';
 
 export const ORBIT_COMET_TRIGGER_EVENT = 'orbit-comet-trigger';
 

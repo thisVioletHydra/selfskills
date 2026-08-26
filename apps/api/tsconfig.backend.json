@@ -8,6 +8,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "strict": true,
+    "strictPropertyInitialization": false,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -23,9 +24,12 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "types": ["node"],
     "paths": {
-      "#api/*": ["./src/*"]
+      "#api/*": ["./src/*"],
+      "#prisma/*": ["./prisma/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"]
 }

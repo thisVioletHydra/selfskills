@@ -1,26 +1,33 @@
-/**
- * STEP 3 — ProfileService.
- *
- * Зачем: бизнес/данные. Резолвер тонкий → сервис → Prisma.
- *
- * Пример:
- *
- *   import { Injectable } from '@nestjs/common';
- *   import { PrismaService } from '#api/prisma/prisma.service';
- *
- *   @Injectable()
- *   export class ProfileService {
- *     constructor(private readonly prisma: PrismaService) {}
- *
- *     findOne() {
- *       // return this.prisma.profile.findFirst();
- *       // пока нет миграций — можно временно вернуть хардкод как на фронте PROFILE
- *     }
- *   }
- */
+import { Inject, Injectable } from '@nestjs/common';
+import type { Profile as ProfileRow } from '@prisma/client';
 
-// TODO(STEP 3): ProfileService
+import type { PrismaService } from '#api/prisma/prisma.service';
+import { TOKEN_PRISMA } from '#api/prisma/prisma.tokens';
+import { PROFILE_SLUG } from '#api/profile/profile.constants';
+import type { Profile } from '#api/profile/graphql/profile.model';
 
-/**
- * NEXT: ./profile.resolver.ts — GraphQL query.
- */
+function mapProfile(row: ProfileRow): Profile {
+  return {
+    name: row.name,
+    role: row.role,
+    tag: row.tag,
+    blurb: row.blurb,
+    portrait: row.portrait,
+    facts: row.facts as unknown as Profile['facts'],
+    goals: row.goals as unknown as string[],
+    about: row.about as unknown as string[],
+  };
+}
+
+@Injectable()
+export class ProfileService {
+  constructor(@Inject(TOKEN_PRISMA) private readonly prisma: PrismaService) {}
+
+  async findOne(): Promise<Profile | null> {
+    const row = await this.prisma.profile.findUnique({
+      where: { slug: PROFILE_SLUG },
+    });
+
+    return row ? mapProfile(row) : null;
+  }
+}

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import '#app/features/resume-gate/resume-gate.css';
+import '#web/features/resume-gate/resume-gate.css';
 
 type ResumeGateProps = {
   busy?: boolean;

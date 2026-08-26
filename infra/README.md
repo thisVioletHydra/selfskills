@@ -1,7 +1,33 @@
 # infra
 
-Инфра для запуска.
+Postgres через **Colima** (без Docker Desktop, без автозапуска при логине).
 
-**Шаг 5:** открой `docker-compose.yml` — гайд в комментах (postgres + api). Фронт в Docker не кладём.
+## Первый раз
 
-Сюда же позже Dockerfile для api.
+```bash
+brew install colima docker docker-compose
+```
+
+Не делай `brew services start colima`.
+
+## Три терминала
+
+```bash
+pnpm db up       # терминал 1 — держит postgres, Ctrl+C = stop
+pnpm back        # терминал 2
+pnpm front       # терминал 3
+```
+
+`pnpm db down` — если контейнер остался висеть после краша терминала.
+
+`pnpm db destroy` — убить БД под ноль (volume).
+
+Первый clone — migrate + seed:
+
+```bash
+cd apps/api
+pnpm exec prisma migrate dev
+pnpm exec prisma db seed
+```
+
+Colima выключить: `colima stop`

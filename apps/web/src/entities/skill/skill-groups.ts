@@ -1,4 +1,4 @@
-import { TECH_STACK } from '#app/entities/skill/tech-stack';
+import { TECH_STACK } from '#web/entities/skill/tech-stack';
 
 export type SkillGroup = {
   id: string;

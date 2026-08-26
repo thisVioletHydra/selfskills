@@ -1,5 +1,5 @@
-import { PROJECTS } from '#app/entities/project/projects';
-import '#app/widgets/projects-grid/projects-grid.css';
+import { PROJECTS } from '#web/entities/project/projects';
+import '#web/widgets/projects-grid/projects-grid.css';
 
 export function ProjectsGrid() {
   return (

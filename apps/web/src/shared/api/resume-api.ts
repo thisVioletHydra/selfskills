@@ -1,7 +1,7 @@
-import type { ResumeInfo } from '#app/entities/resume/resume';
+import type { ResumeInfo } from '#web/entities/resume/resume';
 
-import { DEMO_RESUME } from '#app/entities/resume/resume';
-import { sleep } from '#app/shared/lib/sleep';
+import { DEMO_RESUME } from '#web/entities/resume/resume';
+import { sleep } from '#web/shared/lib/sleep';
 
 /**
  * Заглушка под будущий GraphQL/Prisma.

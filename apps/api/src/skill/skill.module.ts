@@ -1,12 +1,4 @@
-/**
- * STEP 4 — SkillModule (шаблон как profile).
- *
- *   @Module({ providers: [SkillResolver, SkillService] })
- *   export class SkillModule {}
- *
- * Подключи в AppModule после ProfileModule.
- */
+import { Module } from '@nestjs/common';
 
-// TODO(STEP 4): SkillModule
-
-/** NEXT: ./skill.service.ts → ./skill.resolver.ts */
+@Module({})
+export class SkillModule {}

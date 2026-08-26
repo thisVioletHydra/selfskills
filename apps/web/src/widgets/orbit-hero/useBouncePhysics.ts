@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 
-import { ORBIT_TECH } from '#app/entities/skill/tech-stack';
-import { subscribeOrbitPresence } from '#app/shared/lib/orbit-presence';
+import { ORBIT_TECH } from '#web/entities/skill/tech-stack';
+import { subscribeOrbitPresence } from '#web/shared/lib/orbit-presence';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 
 export type BounceBody = {

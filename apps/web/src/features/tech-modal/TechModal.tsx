@@ -1,7 +1,7 @@
-import type { TechStackItem } from '#app/entities/skill/tech-stack';
+import type { TechStackItem } from '#web/entities/skill/tech-stack';
 
 import { useEffect } from 'react';
-import '#app/features/tech-modal/tech-modal.css';
+import '#web/features/tech-modal/tech-modal.css';
 
 type TechModalProps = {
   tech: TechStackItem | null;

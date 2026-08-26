@@ -1,23 +1,11 @@
-/**
- * STEP 2 — PrismaModule.
- *
- * Пример:
- *
- *   import { Global, Module } from '@nestjs/common';
- *   import { PrismaService } from '#api/prisma/prisma.service';
- *
- *   @Global()
- *   @Module({
- *     providers: [PrismaService],
- *     exports: [PrismaService],
- *   })
- *   export class PrismaModule {}
- *
- * Потом импортни PrismaModule в AppModule.
- */
+import { Global, Module } from '@nestjs/common';
 
-// TODO(STEP 2): @Global() @Module(...) export class PrismaModule {}
+import { PrismaService } from '#api/prisma/prisma.service';
+import { TOKEN_PRISMA } from '#api/prisma/prisma.tokens';
 
-/**
- * NEXT: ../profile/profile.module.ts — шаг 3, ПЕРВЫЙ GraphQL API для связи с проектом.
- */
+@Global()
+@Module({
+  providers: [PrismaService, { provide: TOKEN_PRISMA, useExisting: PrismaService }],
+  exports: [PrismaService, TOKEN_PRISMA],
+})
+export class PrismaModule {}

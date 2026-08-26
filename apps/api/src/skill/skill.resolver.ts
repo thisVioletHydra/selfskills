@@ -1,11 +1,4 @@
-/**
- * STEP 4 — SkillResolver.
- *
- * Пример: @Query(() => [Skill]) skills() { return this.skillService.findAll(); }
- */
+import { Resolver } from '@nestjs/graphql';
 
-// TODO(STEP 4): Skill + SkillResolver
-
-/**
- * NEXT: ../project/project.module.ts — проекты визитки.
- */
+@Resolver()
+export class SkillResolver {}

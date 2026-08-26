@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import '#app/shared/ui/site-chrome.css';
+import '#web/shared/ui/site-chrome.css';
 
 export function SiteHeader() {
   const headerRef = useRef<HTMLElement>(null);

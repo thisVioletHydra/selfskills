@@ -1,4 +1,4 @@
-import { subscribeWindowEvent } from '#app/shared/lib/subscribe-window-event';
+import { subscribeWindowEvent } from '#web/shared/lib/subscribe-window-event';
 
 export type OrbitHintState = {
   tapDismissed: boolean;

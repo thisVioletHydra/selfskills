@@ -1,5 +1,5 @@
-import { SKILL_GROUPS } from '#app/entities/skill/skill-groups';
-import '#app/widgets/skills-block/skills-block.css';
+import { SKILL_GROUPS } from '#web/entities/skill/skill-groups';
+import '#web/widgets/skills-block/skills-block.css';
 
 export function SkillsBlock() {
   return (

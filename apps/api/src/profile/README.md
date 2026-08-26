@@ -1,7 +1,7 @@
 # profile
 
-Модуль профиля: GraphQL-тип, резолвер, сервис.
+`query profile` → ProfileResolver → ProfileService → Prisma → Postgres.
 
-Данные из Prisma (таблица профиля). Отдаёт имя, роль, био, контакты базово.
+DI через tokens (`TOKEN_PROFILE_SERVICE`, `TOKEN_PRISMA`): в resolver/service — `import type`, в module — wiring.
 
-**Шаг 3:** первый GraphQL для связи с визиткой — `profile.module.ts` → service → resolver.
+Без seed в БД query вернёт 404.

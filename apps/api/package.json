@@ -2,25 +2,33 @@
   "name": "api",
   "version": "0.0.0",
   "private": true,
-  "description": "STEP 0: см. step-0.GUIDE.md — допиши deps и scripts, потом src/main.ts",
+  "description": "NestJS API",
   "imports": {
     "#api/*": "./src/*"
   },
   "scripts": {
-    "start:dev": "echo \"STEP 0: поставь @nestjs/cli и замени этот echo на nest start --watch\"",
-    "build": "echo \"STEP 0: nest build\"",
-    "prisma:generate": "echo \"STEP 2: prisma generate\"",
-    "prisma:migrate": "echo \"STEP 2: prisma migrate dev\"",
-    "prisma:seed": "echo \"STEP 5: prisma db seed\""
+    "start:dev": "nest start --watch",
+    "build": "nest build",
+    "lint": "oxlint --type-aware src prisma",
+    "format": "oxlint --type-aware --fix src prisma",
+    "typecheck": "tsc --noEmit -p tsconfig.backend.json && tsc --noEmit -p tsconfig.prisma.json",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
+    "@as-integrations/fastify": "^3.1.0",
     "@nestjs/apollo": "^13.4.5",
     "@nestjs/common": "^11.2.3",
     "@nestjs/core": "^11.2.3",
     "@nestjs/graphql": "^13.4.5",
-    "@nestjs/platform-express": "^11.2.3",
-    "@prisma/client": "^7.10.0",
+    "@nestjs/platform-fastify": "^11.2.3",
+    "@prisma/client": "^6.19.3",
+    "fastify": "^5.12.1",
     "graphql": "^16.14.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
@@ -28,10 +36,14 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
     "@nestjs/schematics": "^11.1.0",
+    "@selfskills/oxlint-rules": "workspace:*",
+    "@swc/cli": "^0.8.1",
     "@swc/core": "^1.16.1",
     "@types/node": "^26.3.0",
-    "prisma": "7.10.0",
+    "oxlint": "^1.79.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "prisma": "6.19.3",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
+    "typescript": "^6.0.3"
   }
 }

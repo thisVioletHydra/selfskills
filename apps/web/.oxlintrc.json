@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc", "import"],
+  "plugins": ["react", "typescript", "oxc", "import", "unicorn"],
   "jsPlugins": ["@stylistic/eslint-plugin"],
   "rules": {
     "react/rules-of-hooks": "error",
@@ -20,8 +20,10 @@
       { "blankLine": "always", "prev": "*", "next": "return" }
     ],
 
-    "eqeqeq": ["error", "always"],
     "no-negated-condition": "warn",
+    "unicorn/catch-error-name": "error",
+
+    "eqeqeq": ["error", "always"],
 
     "typescript/strict-boolean-expressions": [
       "error",

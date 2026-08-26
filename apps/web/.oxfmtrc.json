@@ -4,7 +4,7 @@
   "singleQuote": true,
   "sortImports": {
     "newlinesBetween": false,
-    "internalPattern": ["^#app/"],
+    "internalPattern": ["^#web/"],
     "groups": [
       [
         "type-import",

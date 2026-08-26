@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "imports": {
-    "#app/*": "./src/*"
+    "#web/*": "./src/*"
   },
   "scripts": {
     "dev": "vite",

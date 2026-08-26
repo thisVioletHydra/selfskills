@@ -1,38 +1,14 @@
-# STEP 5 — Docker Compose: только db + api (фронт снаружи на pnpm).
-#
-# Зачем: Postgres для Prisma; api-контейнер опционально позже.
-# С хоста: DATABASE_URL с localhost. Из контейнера api: хост = db.
-#
-# Пример (раскомментируй/допиши):
-#
-# services:
-#   db:
-#     image: postgres:16-alpine
-#     environment:
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: postgres
-#       POSTGRES_DB: selfskills
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - pgdata:/var/lib/postgresql/data
-#
-#   api:
-#     build:
-#       context: ../apps/api
-#       dockerfile: Dockerfile
-#     environment:
-#       DATABASE_URL: postgresql://postgres:postgres@db:5432/selfskills?schema=public
-#       PORT: "3000"
-#     ports:
-#       - "3000:3000"
-#     depends_on:
-#       - db
-#
-# volumes:
-#   pgdata:
-#
-# NEXT: подними db → migrate → seed → start:dev → проверь /graphql
-# Потом: web → живой GraphQL (отдельный шаг).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: selfskills
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
-services: {}
+volumes:
+  pgdata:

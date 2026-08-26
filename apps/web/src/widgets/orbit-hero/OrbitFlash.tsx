@@ -1,13 +1,13 @@
-import type { OrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
+import type { OrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
 
 /**
  * SHELVED — anamorphic flash. Не монтируется из OrbitHero.
  * Включить: `<OrbitFlash motionMode={motionMode} />` в OrbitHero.
  */
-import { subscribeOrbitFlashTrigger } from '#app/shared/lib/orbit-flash';
-import { prefersReducedMotion } from '#app/shared/lib/orbit-rand';
-import { cancel, schedule } from '#app/shared/lib/timer-kit';
-import { useOrbitPresence } from '#app/widgets/orbit-hero/useOrbitPresence';
+import { subscribeOrbitFlashTrigger } from '#web/shared/lib/orbit-flash';
+import { prefersReducedMotion } from '#web/shared/lib/orbit-rand';
+import { cancel, schedule } from '#web/shared/lib/timer-kit';
+import { useOrbitPresence } from '#web/widgets/orbit-hero/useOrbitPresence';
 import { useCallback, useEffect, useState } from 'react';
 
 const FLASH_FIRST_MIN_MS = 45_000;

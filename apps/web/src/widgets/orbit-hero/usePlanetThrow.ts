@@ -1,8 +1,8 @@
-import type { TechStackItem } from '#app/entities/skill/tech-stack';
-import type { BounceBody } from '#app/widgets/orbit-hero/useBouncePhysics';
+import type { TechStackItem } from '#web/entities/skill/tech-stack';
+import type { BounceBody } from '#web/widgets/orbit-hero/useBouncePhysics';
 import type { Dispatch, PointerEvent as ReactPointerEvent, RefObject, SetStateAction } from 'react';
 
-import { clampThrowSpeed, planetTransform } from '#app/widgets/orbit-hero/useBouncePhysics';
+import { clampThrowSpeed, planetTransform } from '#web/widgets/orbit-hero/useBouncePhysics';
 import { useRef } from 'react';
 
 type PointSample = {

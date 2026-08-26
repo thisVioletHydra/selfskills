@@ -1,10 +1,10 @@
-import type { OrbitHintState } from '#app/shared/lib/orbit-hint-state';
+import type { OrbitHintState } from '#web/shared/lib/orbit-hint-state';
 
 import {
   readOrbitHintState,
   subscribeOrbitHintReset,
   writeOrbitHintState,
-} from '#app/shared/lib/orbit-hint-state';
+} from '#web/shared/lib/orbit-hint-state';
 import { useCallback, useEffect, useState } from 'react';
 
 export type OrbitHintKey = 'tapDismissed' | 'throwDismissed';

@@ -1,7 +1,7 @@
-import type { KarmicCount } from '#app/shared/lib/karmic-dice';
+import type { KarmicCount } from '#web/shared/lib/karmic-dice';
 
-import { rollKarmicDice } from '#app/shared/lib/karmic-dice';
-import { subscribeWindowEvent } from '#app/shared/lib/subscribe-window-event';
+import { rollKarmicDice } from '#web/shared/lib/karmic-dice';
+import { subscribeWindowEvent } from '#web/shared/lib/subscribe-window-event';
 
 export type HazeCount = KarmicCount;
 export type OrbitHazeForceDetail = {

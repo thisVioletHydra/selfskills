@@ -1,16 +1,16 @@
-import type { CometFlight } from '#app/shared/lib/orbit-comet';
-import type { OrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
+import type { CometFlight } from '#web/shared/lib/orbit-comet';
+import type { OrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
 import type { CSSProperties } from 'react';
 
 import {
   cometFlightLifetimeMs,
   createCometWave,
   subscribeOrbitCometTrigger,
-} from '#app/shared/lib/orbit-comet';
-import { appendCapped } from '#app/shared/lib/orbit-list';
-import { prefersReducedMotion } from '#app/shared/lib/orbit-rand';
-import { cancel, schedule } from '#app/shared/lib/timer-kit';
-import { useOrbitPresence } from '#app/widgets/orbit-hero/useOrbitPresence';
+} from '#web/shared/lib/orbit-comet';
+import { appendCapped } from '#web/shared/lib/orbit-list';
+import { prefersReducedMotion } from '#web/shared/lib/orbit-rand';
+import { cancel, schedule } from '#web/shared/lib/timer-kit';
+import { useOrbitPresence } from '#web/widgets/orbit-hero/useOrbitPresence';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const SPARK_COUNT = 14;

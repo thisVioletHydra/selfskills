@@ -402,3 +402,87 @@
     }
   }
 }
+
+@scope (.cosmos-section) {
+  .skel {
+    display: block;
+    margin: 0;
+    border-radius: 0.35rem;
+    background: linear-gradient(
+      90deg,
+      oklch(from var(--color-line) l c h / 0.35) 0%,
+      oklch(from var(--color-line) l c h / 0.55) 50%,
+      oklch(from var(--color-line) l c h / 0.35) 100%
+    );
+    background-size: 200% 100%;
+    animation: profile-skel 1.4s ease-in-out infinite;
+  }
+
+  .skel-tag {
+    inline-size: 4rem;
+    block-size: 0.75rem;
+    margin-inline: auto;
+  }
+
+  .skel-name {
+    inline-size: min(100%, 14rem);
+    block-size: 2.2rem;
+    margin-inline: auto;
+  }
+
+  .skel-role {
+    inline-size: min(100%, 20rem);
+    block-size: 1rem;
+    margin-inline: auto;
+  }
+
+  .skel-blurb {
+    inline-size: 100%;
+    block-size: 0.85rem;
+  }
+
+  .skel-blurb--short {
+    inline-size: 72%;
+    margin-inline: auto;
+  }
+
+  .skel-heading {
+    inline-size: 6rem;
+    block-size: 1.1rem;
+    margin-block-end: var(--space-4);
+  }
+
+  .skel-facts {
+    block-size: 9rem;
+  }
+
+  .skel-goals {
+    block-size: 7rem;
+  }
+
+  .skel-copy {
+    block-size: 0.85rem;
+    margin-block-end: var(--space-3);
+  }
+
+  .skel-copy:last-child {
+    inline-size: 88%;
+  }
+}
+
+@scope (.cosmos-section.about) {
+  .shot--pending::before {
+    background-image: none;
+    background-color: oklch(from var(--color-line) l c h / 0.4);
+  }
+}
+
+@keyframes profile-skel {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}

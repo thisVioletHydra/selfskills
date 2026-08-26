@@ -4,7 +4,8 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "builder": "swc",
-    "typeCheck": true,
-    "deleteOutDir": true
+    "typeCheck": false,
+    "deleteOutDir": true,
+    "tsConfigPath": "tsconfig.backend.json"
   }
 }

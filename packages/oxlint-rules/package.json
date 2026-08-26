@@ -1,0 +1,8 @@
+{
+  "name": "@selfskills/oxlint-rules",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.mjs",
+  "files": ["index.mjs", "rules"]
+}

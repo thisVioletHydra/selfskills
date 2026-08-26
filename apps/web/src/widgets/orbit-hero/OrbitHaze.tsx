@@ -1,12 +1,12 @@
-import type { HazeCount } from '#app/shared/lib/orbit-haze';
-import type { OrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
+import type { HazeCount } from '#web/shared/lib/orbit-haze';
+import type { OrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
 import type { CSSProperties } from 'react';
 
-import { rollHazeCount, subscribeOrbitHazeForce } from '#app/shared/lib/orbit-haze';
-import { appendCapped } from '#app/shared/lib/orbit-list';
-import { prefersReducedMotion, rand } from '#app/shared/lib/orbit-rand';
-import { cancel, cancelAll, hasTimer, schedule } from '#app/shared/lib/timer-kit';
-import { useOrbitPresence } from '#app/widgets/orbit-hero/useOrbitPresence';
+import { rollHazeCount, subscribeOrbitHazeForce } from '#web/shared/lib/orbit-haze';
+import { appendCapped } from '#web/shared/lib/orbit-list';
+import { prefersReducedMotion, rand } from '#web/shared/lib/orbit-rand';
+import { cancel, cancelAll, hasTimer, schedule } from '#web/shared/lib/timer-kit';
+import { useOrbitPresence } from '#web/widgets/orbit-hero/useOrbitPresence';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type HazeTone = 'cold' | 'warm' | 'white';

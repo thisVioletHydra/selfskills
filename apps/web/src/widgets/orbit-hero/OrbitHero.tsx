@@ -1,18 +1,18 @@
-import type { TechStackItem } from '#app/entities/skill/tech-stack';
-import type { OrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
+import type { TechStackItem } from '#web/entities/skill/tech-stack';
+import type { OrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
 
-import { CORE_TECH, ORBIT_TECH } from '#app/entities/skill/tech-stack';
-import { TechModal } from '#app/features/tech-modal/TechModal';
-import { resetOrbitHintState } from '#app/shared/lib/orbit-hint-state';
-import { readOrbitMotionMode, writeOrbitMotionMode } from '#app/shared/lib/orbit-motion-state';
-import { OrbitComets } from '#app/widgets/orbit-hero/OrbitComet';
-import { OrbitHaze } from '#app/widgets/orbit-hero/OrbitHaze';
-import { OrbitPulseStars } from '#app/widgets/orbit-hero/OrbitPulseStars';
-import { useBouncePhysics } from '#app/widgets/orbit-hero/useBouncePhysics';
-import { useOrbitHints } from '#app/widgets/orbit-hero/useOrbitHints';
-import { usePlanetThrow } from '#app/widgets/orbit-hero/usePlanetThrow';
+import { CORE_TECH, ORBIT_TECH } from '#web/entities/skill/tech-stack';
+import { TechModal } from '#web/features/tech-modal/TechModal';
+import { resetOrbitHintState } from '#web/shared/lib/orbit-hint-state';
+import { readOrbitMotionMode, writeOrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
+import { OrbitComets } from '#web/widgets/orbit-hero/OrbitComet';
+import { OrbitHaze } from '#web/widgets/orbit-hero/OrbitHaze';
+import { OrbitPulseStars } from '#web/widgets/orbit-hero/OrbitPulseStars';
+import { useBouncePhysics } from '#web/widgets/orbit-hero/useBouncePhysics';
+import { useOrbitHints } from '#web/widgets/orbit-hero/useOrbitHints';
+import { usePlanetThrow } from '#web/widgets/orbit-hero/usePlanetThrow';
 import { useRef, useState } from 'react';
-import '#app/widgets/orbit-hero/orbit-hero.css';
+import '#web/widgets/orbit-hero/orbit-hero.css';
 
 export function OrbitHero() {
   const stageRef = useRef<HTMLDivElement>(null);

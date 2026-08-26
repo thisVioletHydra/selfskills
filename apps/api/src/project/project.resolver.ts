@@ -1,11 +1,4 @@
-/**
- * STEP 4 — ProjectResolver.
- *
- * Пример: @Query(() => [Project]) projects() { ... }
- */
+import { Resolver } from '@nestjs/graphql';
 
-// TODO(STEP 4): Project + ProjectResolver
-
-/**
- * NEXT: ../../prisma/seed.ts и ../../../infra/docker-compose.yml — шаг 5.
- */
+@Resolver()
+export class ProjectResolver {}

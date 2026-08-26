@@ -1,4 +1,4 @@
-import { cancel, schedule } from '#app/shared/lib/timer-kit';
+import { cancel, schedule } from '#web/shared/lib/timer-kit';
 import { useEffect, useId, useState } from 'react';
 
 type CopyContactProps = {

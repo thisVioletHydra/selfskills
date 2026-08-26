@@ -1,9 +1,4 @@
-/**
- * STEP 4 — ProjectService.
- *
- * Чтение списка + позже CRUD если нужно по ТЗ.
- */
+import { Injectable } from '@nestjs/common';
 
-// TODO(STEP 4): ProjectService
-
-/** NEXT: ./project.resolver.ts */
+@Injectable()
+export class ProjectService {}

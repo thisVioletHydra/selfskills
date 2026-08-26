@@ -1,5 +1,5 @@
-import { CopyContact } from '#app/features/copy-contact/CopyContact';
-import '#app/widgets/contacts-bar/contacts-bar.css';
+import { CopyContact } from '#web/features/copy-contact/CopyContact';
+import '#web/widgets/contacts-bar/contacts-bar.css';
 
 const EMAIL = 'hello@selfskills.dev';
 const TELEGRAM = '#contact';

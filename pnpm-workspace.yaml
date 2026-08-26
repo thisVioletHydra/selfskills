@@ -10,9 +10,11 @@ minimumReleaseAgeExclude:
 
 packages:
   - 'apps/*'
+  - 'packages/*'
 
 allowBuilds:
   '@apollo/protobufjs': true
+  '@prisma/client': true
   '@prisma/engines': true
   '@swc/core': true
   esbuild: true

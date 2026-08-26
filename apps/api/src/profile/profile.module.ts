@@ -1,24 +1,14 @@
-/**
- * STEP 3 — ProfileModule (первый живой GraphQL).
- *
- * Зачем: фронт потом ткнётся в query profile. Не весь CRUD сразу — чтение ок.
- *
- * Пример:
- *
- *   import { Module } from '@nestjs/common';
- *   import { ProfileResolver } from '#api/profile/profile.resolver';
- *   import { ProfileService } from '#api/profile/profile.service';
- *
- *   @Module({
- *     providers: [ProfileResolver, ProfileService],
- *   })
- *   export class ProfileModule {}
- *
- * Не забудь ProfileModule в AppModule.imports.
- */
+import { Module } from '@nestjs/common';
 
-// TODO(STEP 3): ProfileModule
+import { ProfileResolver } from '#api/profile/profile.resolver';
+import { ProfileService } from '#api/profile/profile.service';
+import { TOKEN_PROFILE_SERVICE } from '#api/profile/profile.tokens';
 
-/**
- * NEXT: ./profile.service.ts → потом ./profile.resolver.ts
- */
+@Module({
+  providers: [
+    ProfileService,
+    { provide: TOKEN_PROFILE_SERVICE, useExisting: ProfileService },
+    ProfileResolver,
+  ],
+})
+export class ProfileModule {}
