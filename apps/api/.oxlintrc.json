@@ -6,9 +6,11 @@
     "unicorn"
   ],
   "jsPlugins": [
+    "@stylistic/eslint-plugin",
     "@selfskills/oxlint-rules"
   ],
   "rules": {
+    "import/newline-after-import": "error",
     "import/consistent-type-specifier-style": [
       "error",
       "prefer-top-level"
@@ -20,12 +22,26 @@
         "fixStyle": "separate-type-imports"
       }
     ],
+    "@stylistic/padding-line-between-statements": [
+      "warn",
+      { "blankLine": "always", "prev": "*", "next": "return" },
+      { "blankLine": "always", "prev": "*", "next": "function" }
+    ],
     "eqeqeq": [
       "error",
       "always"
     ],
     "no-negated-condition": "warn",
-    "unicorn/catch-error-name": "error",
+    "id-length": [
+      "error",
+      {
+        "min": 2,
+        "exceptions": ["i", "j", "f", "_"],
+        "properties": "never"
+      }
+    ],
+    "selfskills/consistent-parameter-layout": "warn",
+    "selfskills/padding-line-before-decorator": "warn",
     "selfskills/prefer-process-import": "error",
     "unicorn/prefer-node-protocol": "error",
     "unicorn/import-style": [
