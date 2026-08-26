@@ -1,11 +1,10 @@
 {
-  "$schema": "./apps/web/node_modules/oxfmt/configuration_schema.json",
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "semi": true,
   "singleQuote": true,
-  "printWidth": 120,
   "sortImports": {
     "newlinesBetween": false,
-    "internalPattern": ["^#web/", "^#api/"],
+    "internalPattern": ["^#api/"],
     "groups": [
       [
         "type-import",

@@ -1,0 +1,69 @@
+/** @param {import('eslint').AST.Token} token */
+export function isOpeningParenToken(token) {
+  return token.type === 'Punctuator' && token.value === '(';
+}
+
+/** @param {import('eslint').AST.Token} token */
+export function isClosingParenToken(token) {
+  return token.type === 'Punctuator' && token.value === ')';
+}
+
+/** @param {import('eslint').SourceCode} sourceCode */
+export function isTokenOnSameLine(sourceCode, left, right) {
+  return left.loc.start.line === right.loc.start.line;
+}
+
+/** @param {import('eslint').SourceCode} sourceCode */
+export function getLineIndent(sourceCode, lineNumber) {
+  const line = sourceCode.lines[lineNumber - 1] ?? '';
+  const match = line.match(/^[\t ]*/);
+  return match?.[0] ?? '';
+}
+
+/**
+ * @param {import('eslint').SourceCode} sourceCode
+ * @param {import('estree').FunctionDeclaration | import('estree').FunctionExpression | import('estree').ArrowFunctionExpression} node
+ */
+export function getFunctionParameterParens(sourceCode, node) {
+  const leftParen = sourceCode.getFirstToken(node, isOpeningParenToken);
+  if (!leftParen) {
+    return null;
+  }
+
+  let rightParen = null;
+  if (node.body) {
+    const bodyStart = sourceCode.getFirstToken(node.body);
+    if (bodyStart) {
+      rightParen = sourceCode.getTokenBefore(bodyStart, isClosingParenToken);
+    }
+  }
+
+  if (!rightParen && node.params.length > 0) {
+    rightParen = sourceCode.getTokenAfter(
+      node.params.at(-1),
+      isClosingParenToken,
+    );
+  }
+
+  if (!rightParen) {
+    rightParen = sourceCode.getTokenAfter(leftParen, isClosingParenToken);
+  }
+
+  if (!rightParen) {
+    return null;
+  }
+
+  return { leftParen, rightParen };
+}
+
+/** @param {import('estree').Node} node */
+export function isParameterNode(node) {
+  return (
+    node.type === 'Identifier'
+    || node.type === 'AssignmentPattern'
+    || node.type === 'RestElement'
+    || node.type === 'TSParameterProperty'
+    || node.type === 'ArrayPattern'
+    || node.type === 'ObjectPattern'
+  );
+}

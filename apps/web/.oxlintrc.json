@@ -21,7 +21,14 @@
     ],
 
     "no-negated-condition": "warn",
-    "unicorn/catch-error-name": "error",
+    "id-length": [
+      "error",
+      {
+        "min": 2,
+        "exceptions": ["i", "j", "f", "_"],
+        "properties": "never"
+      }
+    ],
 
     "eqeqeq": ["error", "always"],
 

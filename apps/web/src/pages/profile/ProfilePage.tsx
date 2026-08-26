@@ -76,12 +76,12 @@ export function ProfilePage() {
         setError(null);
         setProfile(data);
       })
-      .catch((error: unknown) => {
+      .catch((caught: unknown) => {
         if (cancelled) {
           return;
         }
 
-        const message = error instanceof Error ? error.message : 'Не удалось загрузить профиль';
+        const message = caught instanceof Error ? caught.message : 'Не удалось загрузить профиль';
         setProfile(null);
         setError(message);
       });

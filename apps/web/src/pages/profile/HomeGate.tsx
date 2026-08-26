@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 
 import { GatewayPage } from '#web/pages/gateway/GatewayPage';
@@ -9,11 +10,9 @@ type Gate = 'pending' | 'up' | 'down';
 
 export function HomeGate() {
   const [gate, setGate] = useState<Gate>('pending');
-  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    setGate('pending');
 
     pingBackend().then((ok) => {
       if (!cancelled) {
@@ -24,15 +23,13 @@ export function HomeGate() {
     return () => {
       cancelled = true;
     };
-  }, [attempt]);
+  }, []);
 
-  if (gate === 'pending') {
-    return <main className="fault-page fault-page--blank" aria-busy="true" />;
-  }
+  const views: Record<Gate, ReactNode> = {
+    pending: <main className="fault-page fault-page--blank" aria-busy="true" />,
+    down: <GatewayPage onRetry={() => setGate('up')} />,
+    up: <ProfilePage />,
+  };
 
-  if (gate === 'down') {
-    return <GatewayPage onRetry={() => setGate('up')} />;
-  }
-
-  return <ProfilePage />;
+  return views[gate];
 }
