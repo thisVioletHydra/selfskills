@@ -23,7 +23,7 @@ export function readOrbitHintState(): OrbitHintState {
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw == null || raw === '') {
+    if (raw === null || raw === undefined || raw === '') {
       return { ...DEFAULT_STATE };
     }
 

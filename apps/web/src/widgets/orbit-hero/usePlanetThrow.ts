@@ -139,14 +139,14 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
 
   const paintBody = (id: string, x: number, y: number) => {
     const el = planetElsRef.current.get(id);
-    if (el != null) {
+    if (el !== null && el !== undefined) {
       el.style.transform = planetTransform(x, y);
     }
   };
 
   const onPointerDown = (tech: TechStackItem, event: ReactPointerEvent<HTMLButtonElement>) => {
     const stage = stageRef.current;
-    if (stage == null) {
+    if (stage === null || stage === undefined) {
       return;
     }
 
@@ -155,7 +155,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     const point = stagePoint(stage, event.clientX, event.clientY);
     const body = getBody(tech.id);
 
-    if (body == null) {
+    if (body === null || body === undefined) {
       return;
     }
 
@@ -183,7 +183,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
 
     const stage = stageRef.current;
     const body = getBody(tech.id);
-    if (stage == null || body == null) {
+    if (stage === null || stage === undefined || body === null || body === undefined) {
       return;
     }
 
@@ -215,7 +215,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
 
     const body = getBody(tech.id);
-    if (body != null) {
+    if (body !== null && body !== undefined) {
       if (didDragRef.current) {
         const release = computeReleaseVelocity(samplesRef.current, dragStartRef.current);
         body.vx = release.vx;
@@ -249,7 +249,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   };
 
   const onPointerEnter = (tech: TechStackItem) => {
-    if (draggingId == null || draggingId === '') {
+    if (draggingId === null || draggingId === undefined || draggingId === '') {
       setHoveredId(tech.id);
     }
   };

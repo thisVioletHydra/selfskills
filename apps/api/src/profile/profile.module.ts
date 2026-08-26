@@ -6,8 +6,8 @@
  * Пример:
  *
  *   import { Module } from '@nestjs/common';
- *   import { ProfileResolver } from './profile.resolver';
- *   import { ProfileService } from './profile.service';
+ *   import { ProfileResolver } from '#api/profile/profile.resolver';
+ *   import { ProfileService } from '#api/profile/profile.service';
  *
  *   @Module({
  *     providers: [ProfileResolver, ProfileService],

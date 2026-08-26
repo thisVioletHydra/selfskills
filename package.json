@@ -1,11 +1,13 @@
 {
   "name": "selfskills",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
     "build": "pnpm --filter web build",
-    "lint": "pnpm --filter web lint",
+    "lint": "pnpm lint:pnpm && pnpm --filter web lint",
+    "lint:pnpm": "eslint -c eslint.config.js --max-warnings=0 pnpm-workspace.yaml package.json apps/*/package.json",
     "format": "pnpm --filter web format && pnpm --filter web exec oxfmt \"$PWD/package.json\" \"$PWD/.oxfmtrc.json\" \"$PWD/.vscode/settings.json\"",
     "format:check": "pnpm --filter web format:check && pnpm --filter web exec oxfmt --check \"$PWD/package.json\" \"$PWD/.oxfmtrc.json\" \"$PWD/.vscode/settings.json\"",
     "preview": "pnpm --filter web preview",
@@ -14,5 +16,11 @@
   "engines": {
     "node": "24"
   },
-  "packageManager": "pnpm@11.22.0"
+  "packageManager": "pnpm@11.22.0",
+  "devDependencies": {
+    "eslint": "^10.9.0",
+    "eslint-plugin-pnpm": "^1.8.0",
+    "jsonc-eslint-parser": "^3.3.0",
+    "yaml-eslint-parser": "^2.1.0"
+  }
 }

@@ -4,7 +4,7 @@
  * Пример:
  *
  *   import { Global, Module } from '@nestjs/common';
- *   import { PrismaService } from './prisma.service';
+ *   import { PrismaService } from '#api/prisma/prisma.service';
  *
  *   @Global()
  *   @Module({

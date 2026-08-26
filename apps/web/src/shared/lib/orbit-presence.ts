@@ -29,7 +29,7 @@ function onVisibility() {
 }
 
 function teardownObserver() {
-  if (io != null) {
+  if (io !== null && io !== undefined) {
     io.disconnect();
     io = null;
   }
@@ -39,7 +39,7 @@ function teardownObserver() {
 }
 
 function ensureAttached(target: Element) {
-  if (observed === target && io != null) {
+  if (observed === target && io !== null && io !== undefined) {
     return;
   }
 

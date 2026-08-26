@@ -6,7 +6,7 @@
  * Пример:
  *
  *   import { Query, Resolver, ObjectType, Field } from '@nestjs/graphql';
- *   import { ProfileService } from './profile.service';
+ *   import { ProfileService } from '#api/profile/profile.service';
  *
  *   @ObjectType()
  *   export class Profile {

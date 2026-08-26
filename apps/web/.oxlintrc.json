@@ -20,6 +20,9 @@
       { "blankLine": "always", "prev": "*", "next": "return" }
     ],
 
+    "eqeqeq": ["error", "always"],
+    "no-negated-condition": "warn",
+
     "typescript/strict-boolean-expressions": [
       "error",
       {

@@ -14,6 +14,6 @@ export async function fetchResume(sourceUrl: string): Promise<ResumeInfo> {
 
   return {
     ...DEMO_RESUME,
-    sourceUrl: trimmed !== '' ? trimmed : undefined,
+    sourceUrl: trimmed === '' ? undefined : trimmed,
   };
 }

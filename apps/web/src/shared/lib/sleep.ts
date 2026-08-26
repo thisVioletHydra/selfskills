@@ -5,7 +5,7 @@ export type SleepSignal = AbortSignal | undefined;
  * Не для ambient spawn — там timer-kit (id + cancel + interval/jitter).
  */
 export function sleep(ms: number, signal?: SleepSignal): Promise<void> {
-  if (signal != null && signal.aborted === true) {
+  if (signal !== null && signal !== undefined && signal.aborted === true) {
     return Promise.reject(abortError());
   }
 

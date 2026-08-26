@@ -1,8 +1,21 @@
+shellEmulator: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - chokidar@4.0.3
+  - prisma@7.10.0
+
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@types/react-dom@19.2.5'
+
 packages:
   - 'apps/*'
 
 allowBuilds:
+  '@apollo/protobufjs': true
+  '@prisma/engines': true
+  '@swc/core': true
   esbuild: true
-
-minimumReleaseAgeExclude:
-  - '@types/react-dom@19.2.5'
+  msgpackr-extract: true
+  prisma: true
+  workerd: true

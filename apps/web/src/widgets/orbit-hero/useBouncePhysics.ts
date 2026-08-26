@@ -62,7 +62,7 @@ export function planetTransform(x: number, y: number) {
 export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
   for (const body of bodies) {
     const el = elements.get(body.id);
-    if (el == null) {
+    if (el === null || el === undefined) {
       continue;
     }
 
@@ -424,7 +424,7 @@ export function useBouncePhysics(
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
-    if (stage == null) {
+    if (stage === null || stage === undefined) {
       return;
     }
 

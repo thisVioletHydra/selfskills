@@ -47,7 +47,7 @@ function jitterMs(minMs: number, maxMs: number) {
 }
 
 function detachAbort(entry: TimerHandle) {
-  if (entry.signal != null && entry.abortListener != null) {
+  if (entry.signal !== null && entry.signal !== undefined && entry.abortListener !== null && entry.abortListener !== undefined) {
     entry.signal.removeEventListener('abort', entry.abortListener);
   }
 }
@@ -68,12 +68,12 @@ function clearHandle(entry: TimerHandle) {
 export function schedule(config: ScheduleConfig) {
   cancel(config.id);
 
-  if (config.signal != null && config.signal.aborted === true) {
+  if (config.signal !== null && config.signal !== undefined && config.signal.aborted === true) {
     return;
   }
 
   const bindAbort = (entry: TimerHandle) => {
-    if (config.signal == null) {
+    if (config.signal === null || config.signal === undefined) {
       return;
     }
 
@@ -151,7 +151,7 @@ export function schedule(config: ScheduleConfig) {
 
 export function cancel(id: string) {
   const entry = registry.get(id);
-  if (entry == null) {
+  if (entry === null || entry === undefined) {
     return;
   }
 

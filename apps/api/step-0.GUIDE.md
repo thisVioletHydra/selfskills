@@ -9,9 +9,18 @@ JSON не умеет комментарии — гайд здесь. Файлы 
 ```bash
 cd apps/api
 pnpm add @nestjs/common @nestjs/core @nestjs/platform-express @nestjs/graphql @nestjs/apollo @apollo/server graphql reflect-metadata rxjs @prisma/client
-pnpm add -D typescript @nestjs/cli @nestjs/schematics @swc/core @types/node prisma tsx
+pnpm add -D typescript@^7 @nestjs/cli @nestjs/schematics @swc/core @types/node prisma tsx
 ```
 
+В `package.json` уже есть:
+
+```json
+"imports": {
+  "#api/*": "./src/*"
+}
+```
+
+Импорты внутри src — через `#api/...`, как `#app/...` на web.
 Scripts (ориентир):
 
 - `start:dev` — Nest watch (SWC)
@@ -22,9 +31,15 @@ Scripts (ориентир):
 
 ## tsconfig.json
 
-- `strict`, `experimentalDecorators`, `emitDecoratorMetadata`
-- `outDir`: `dist`, `rootDir`: `src` (или как в nest-cli)
-- module/moduleResolution под Nest 11 / NodeNext — смотри актуальный Nest scaffold
+Как в `apps/web`, только под Nest:
+
+- TypeScript **7** (`typescript` в devDependencies)
+- **без `baseUrl`** (deprecated-шляпа)
+- сабпути Node через `#`: в `package.json` → `"imports": { "#api/*": "./src/*" }`, в tsconfig → `"paths": { "#api/*": ["./src/*"] }`
+- `module` / `moduleResolution`: `ESNext` + `bundler` (как web); Nest-декор: `experimentalDecorators` + `emitDecoratorMetadata`
+- импорты в коде: `import { PrismaService } from '#api/prisma/prisma.service'` — не `../../../`
+
+`prisma/seed.ts` в этот tsconfig не входит — крути через `tsx` отдельно (шаг 5).
 
 ## nest-cli.json
 

@@ -10,7 +10,7 @@ type TechModalProps = {
 
 export function TechModal({ tech, onClose }: TechModalProps) {
   useEffect(() => {
-    if (tech == null) {
+    if (tech === null || tech === undefined) {
       return;
     }
 
@@ -29,7 +29,7 @@ export function TechModal({ tech, onClose }: TechModalProps) {
     };
   }, [tech, onClose]);
 
-  if (tech == null) {
+  if (tech === null || tech === undefined) {
     return null;
   }
 
