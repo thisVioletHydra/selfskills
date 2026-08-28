@@ -1,4 +1,4 @@
-@scope (.tech-modal) {
+@scope (.planet-modal) {
   :scope {
     position: fixed;
     inset: 0;
@@ -101,7 +101,7 @@
 }
 
 @supports (backdrop-filter: blur(4px)) {
-  @scope (.tech-modal) {
+  @scope (.planet-modal) {
     :scope {
       background: color-mix(in oklch, oklch(0 0 0) 55%, transparent);
     }

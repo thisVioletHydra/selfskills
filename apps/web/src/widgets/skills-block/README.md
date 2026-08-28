@@ -1,3 +1,3 @@
 # widgets/skills-block
 
-Блок навыков. Список из entity `skill`.
+Список планет группами. Данные из `entities/planet`.

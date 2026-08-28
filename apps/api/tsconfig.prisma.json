@@ -4,14 +4,14 @@
     "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "skipLibCheck": true,
-    "isolatedModules": true,
+    "types": ["node"],
     "strict": true,
-    "verbatimModuleSyntax": true,
+    "noEmit": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "noEmit": true,
-    "types": ["node"]
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
   },
   "include": ["prisma/**/*.ts"]
 }

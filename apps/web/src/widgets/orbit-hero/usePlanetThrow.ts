@@ -1,4 +1,4 @@
-import type { TechStackItem } from '#web/entities/skill/tech-stack';
+import type { Planet } from '#web/entities/planet/planets';
 import type { BounceBody } from '#web/widgets/orbit-hero/useBouncePhysics';
 import type { Dispatch, PointerEvent as ReactPointerEvent, RefObject, SetStateAction } from 'react';
 
@@ -18,7 +18,7 @@ type UsePlanetThrowOptions = {
   draggingId: string | null;
   setDraggingId: Dispatch<SetStateAction<string | null>>;
   setHoveredId: Dispatch<SetStateAction<string | null>>;
-  onOpen: (tech: TechStackItem) => void;
+  onOpen: (planet: Planet) => void;
   onThrow?: () => void;
 };
 
@@ -144,7 +144,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
   };
 
-  const onPointerDown = (tech: TechStackItem, event: ReactPointerEvent<HTMLButtonElement>) => {
+  const onPointerDown = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
     const stage = stageRef.current;
     if (stage === null || stage === undefined) {
       return;
@@ -153,7 +153,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     event.currentTarget.setPointerCapture(event.pointerId);
 
     const point = stagePoint(stage, event.clientX, event.clientY);
-    const body = getBody(tech.id);
+    const body = getBody(planet.id);
 
     if (body === null || body === undefined) {
       return;
@@ -170,19 +170,19 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     body.stuckSeconds = 0;
     body.stuckAnchorX = point.x;
     body.stuckAnchorY = point.y;
-    paintBody(tech.id, point.x, point.y);
+    paintBody(planet.id, point.x, point.y);
 
-    setDraggingId(tech.id);
+    setDraggingId(planet.id);
     setHoveredId(null);
   };
 
-  const onPointerMove = (tech: TechStackItem, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (draggingId !== tech.id) {
+  const onPointerMove = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (draggingId !== planet.id) {
       return;
     }
 
     const stage = stageRef.current;
-    const body = getBody(tech.id);
+    const body = getBody(planet.id);
     if (stage === null || stage === undefined || body === null || body === undefined) {
       return;
     }
@@ -192,7 +192,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     body.y = point.y;
     body.vx = 0;
     body.vy = 0;
-    paintBody(tech.id, point.x, point.y);
+    paintBody(planet.id, point.x, point.y);
 
     samplesRef.current.push({ x: point.x, y: point.y, t: performance.now() });
     if (samplesRef.current.length > 24) {
@@ -205,8 +205,8 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
   };
 
-  const onPointerUp = (tech: TechStackItem, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (draggingId !== tech.id) {
+  const onPointerUp = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (draggingId !== planet.id) {
       return;
     }
 
@@ -214,7 +214,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
-    const body = getBody(tech.id);
+    const body = getBody(planet.id);
     if (body !== null && body !== undefined) {
       if (didDragRef.current) {
         const release = computeReleaseVelocity(samplesRef.current, dragStartRef.current);
@@ -234,12 +234,12 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     samplesRef.current = [];
 
     if (!didDragRef.current) {
-      onOpen(tech);
+      onOpen(planet);
     }
   };
 
-  const onPointerCancel = (tech: TechStackItem) => {
-    if (draggingId !== tech.id) {
+  const onPointerCancel = (planet: Planet) => {
+    if (draggingId !== planet.id) {
       return;
     }
 
@@ -248,14 +248,14 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     didDragRef.current = false;
   };
 
-  const onPointerEnter = (tech: TechStackItem) => {
+  const onPointerEnter = (planet: Planet) => {
     if (draggingId === null || draggingId === undefined || draggingId === '') {
-      setHoveredId(tech.id);
+      setHoveredId(planet.id);
     }
   };
 
-  const onPointerLeave = (tech: TechStackItem) => {
-    setHoveredId((current) => (current === tech.id ? null : current));
+  const onPointerLeave = (planet: Planet) => {
+    setHoveredId((current) => (current === planet.id ? null : current));
   };
 
   return {

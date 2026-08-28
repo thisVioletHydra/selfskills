@@ -1,15 +1,15 @@
-import { TECH_STACK } from '#web/entities/skill/tech-stack';
+import { PLANETS } from '#web/entities/planet/planets';
 
-export type SkillGroup = {
+export type PlanetGroup = {
   id: string;
   title: string;
   items: string[];
 };
 
 const byId = (...ids: string[]) =>
-  TECH_STACK.filter((item) => ids.includes(item.id)).map((item) => item.name);
+  PLANETS.filter((item) => ids.includes(item.id)).map((item) => item.name);
 
-export const SKILL_GROUPS: SkillGroup[] = [
+export const PLANET_GROUPS: PlanetGroup[] = [
   {
     id: 'core',
     title: 'Core',
@@ -33,6 +33,6 @@ export const SKILL_GROUPS: SkillGroup[] = [
   {
     id: 'hobby',
     title: 'Hobby',
-    items: byId('rust'),
+    items: byId('rust', 'vscode'),
   },
 ];

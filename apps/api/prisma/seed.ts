@@ -1,6 +1,6 @@
-import { profileSeed } from './seed-data/profile';
-import { PrismaClient } from '@prisma/client';
 import process from 'node:process';
+import { PrismaClient } from '@prisma/client';
+import { profileSeed } from './seed-data/profile';
 
 const prisma = new PrismaClient();
 
@@ -14,7 +14,7 @@ async function main() {
   });
 }
 
-main()
+void main()
   .then(() => prisma.$disconnect())
   .catch(async (error) => {
     console.error(error);

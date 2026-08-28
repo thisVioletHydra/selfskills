@@ -13,3 +13,4 @@ export type ProfileInfo = {
   goals: string[];
   about: string[];
 };
+ 

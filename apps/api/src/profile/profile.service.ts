@@ -1,10 +1,10 @@
+import type { Profile as ProfileRow } from '@prisma/client';
 import type { PrismaService } from '#api/prisma/prisma.service';
 import type { Profile } from '#api/profile/graphql/profile.model';
-import type { Profile as ProfileRow } from '@prisma/client';
 
+import { Inject, Injectable } from '@nestjs/common';
 import { TOKEN_PRISMA } from '#api/prisma/prisma.tokens';
 import { PROFILE_SLUG } from '#api/profile/profile.constants';
-import { Inject, Injectable } from '@nestjs/common';
 
 function mapProfile(row: ProfileRow): Profile {
   return {

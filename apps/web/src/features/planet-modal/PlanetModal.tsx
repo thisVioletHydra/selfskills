@@ -1,16 +1,16 @@
-import type { TechStackItem } from '#web/entities/skill/tech-stack';
+import type { Planet } from '#web/entities/planet/planets';
 
 import { useEffect } from 'react';
-import '#web/features/tech-modal/tech-modal.css';
+import '#web/features/planet-modal/planet-modal.css';
 
-type TechModalProps = {
-  tech: TechStackItem | null;
+type PlanetModalProps = {
+  planet: Planet | null;
   onClose: () => void;
 };
 
-export function TechModal({ tech, onClose }: TechModalProps) {
+export function PlanetModal({ planet, onClose }: PlanetModalProps) {
   useEffect(() => {
-    if (tech === null || tech === undefined) {
+    if (planet === null || planet === undefined) {
       return;
     }
 
@@ -27,18 +27,18 @@ export function TechModal({ tech, onClose }: TechModalProps) {
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = '';
     };
-  }, [tech, onClose]);
+  }, [planet, onClose]);
 
-  if (tech === null || tech === undefined) {
+  if (planet === null || planet === undefined) {
     return null;
   }
 
   return (
-    <div className="tech-modal" onClick={onClose} role="presentation">
+    <div className="planet-modal" onClick={onClose} role="presentation">
       <dialog
         className="panel"
         open
-        aria-labelledby="tech-modal-title"
+        aria-labelledby="planet-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
         <button type="button" className="close" onClick={onClose} aria-label="Закрыть">
@@ -46,9 +46,9 @@ export function TechModal({ tech, onClose }: TechModalProps) {
         </button>
 
         <div className="head">
-          <img className="icon" src={tech.icon} alt="" />
-          <h2 id="tech-modal-title" className="title">
-            {tech.name}
+          <img className="icon" src={planet.icon} alt="" />
+          <h2 id="planet-modal-title" className="title">
+            {planet.name}
           </h2>
         </div>
 
@@ -56,16 +56,16 @@ export function TechModal({ tech, onClose }: TechModalProps) {
           <div className="field">
             <dt>Название</dt>
             <dd>
-              {tech.name} / {tech.reading}
+              {planet.name} / {planet.reading}
             </dd>
           </div>
           <div className="field">
             <dt>Что это такое</dt>
-            <dd>{tech.summary}</dd>
+            <dd>{planet.summary}</dd>
           </div>
           <div className="field">
             <dt>Опыт работы</dt>
-            <dd>{tech.experience}</dd>
+            <dd>{planet.experience}</dd>
           </div>
         </dl>
       </dialog>

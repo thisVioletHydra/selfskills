@@ -17,9 +17,10 @@ import sassIcon from '#web/icons/sass.svg';
 import tsdownIcon from '#web/icons/tsdown.svg';
 import typescriptIcon from '#web/icons/typescript.svg';
 import viteIcon from '#web/icons/vite.svg';
+import vscodeIcon from '#web/icons/vscode.svg';
 import vueIcon from '#web/icons/vue.svg';
 
-export type TechStackItem = {
+export type Planet = {
   id: string;
   name: string;
   reading: string;
@@ -30,7 +31,7 @@ export type TechStackItem = {
   isCore?: boolean;
 };
 
-export const TECH_STACK: TechStackItem[] = [
+export const PLANETS: Planet[] = [
   {
     id: 'javascript',
     name: 'JavaScript',
@@ -219,7 +220,16 @@ export const TECH_STACK: TechStackItem[] = [
     icon: rustIcon,
     size: 42,
   },
+  {
+    id: 'vscode',
+    name: 'VS Code',
+    reading: 'виэскод',
+    summary: 'Редактор кода — расширения, дебаг, терминал в одном окне.',
+    experience: 'Основной инструмент каждый день: TS, Vue/React, Nest, линт, git — всё отсюда.',
+    icon: vscodeIcon,
+    size: 42,
+  },
 ];
 
-export const CORE_TECH = TECH_STACK.find((item) => item.isCore === true)!;
-export const ORBIT_TECH = TECH_STACK.filter((item) => item.isCore !== true);
+export const CORE_PLANET = PLANETS.find((item) => item.isCore === true)!;
+export const ORBIT_PLANETS = PLANETS.filter((item) => item.isCore !== true);

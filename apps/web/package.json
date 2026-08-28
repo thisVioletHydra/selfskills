@@ -8,9 +8,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "oxlint --type-aware && eslint --max-warnings=0 \"**/*.{svg,xml}\"",
-    "format": "oxfmt && eslint --fix \"**/*.{svg,xml}\"",
-    "format:check": "oxfmt --check && eslint --max-warnings=0 \"**/*.{svg,xml}\"",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -18,19 +15,13 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@prettier/plugin-xml": "^3.4.2",
-    "@stylistic/eslint-plugin": "^5.10.0",
+    "@selfskills/oxlint-rules": "workspace:*",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.0",
-    "eslint": "^10.9.0",
-    "eslint-parser-plain": "^0.1.1",
-    "eslint-plugin-prettier": "^5.5.6",
-    "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",
     "oxlint-tsgolint": "^7.0.2001",
-    "prettier": "^3.9.6",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "vite": "^8.2.2"
   }
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "oxc", "import", "unicorn"],
-  "jsPlugins": ["@stylistic/eslint-plugin"],
+  "jsPlugins": ["../../packages/oxlint-rules/index.mjs"],
   "rules": {
     "react/rules-of-hooks": "error",
     "react/self-closing-comp": "warn",
@@ -15,23 +15,26 @@
         "fixStyle": "separate-type-imports"
       }
     ],
-    "@stylistic/padding-line-between-statements": [
-      "warn",
-      { "blankLine": "always", "prev": "*", "next": "return" }
-    ],
-
+    "selfskills/consistent-block-indent": "warn",
+    "selfskills/consistent-chain-layout": "warn",
+    "selfskills/consistent-parameter-layout": "warn",
+    "selfskills/consistent-property-indent": "warn",
+    "selfskills/consistent-ternary-layout": "warn",
+    "selfskills/no-blank-lines-in-arrow-expression": "warn",
+    "selfskills/no-blank-lines-in-chain": "warn",
+    "selfskills/padding-line-before-decorator": "warn",
+    "selfskills/prefer-process-import": "error",
     "no-negated-condition": "warn",
     "id-length": [
       "error",
       {
         "min": 2,
         "exceptions": ["i", "j", "f", "_"],
+        "exceptionPatterns": ["^[A-Z]$"],
         "properties": "never"
       }
     ],
-
     "eqeqeq": ["error", "always"],
-
     "typescript/strict-boolean-expressions": [
       "error",
       {
@@ -39,6 +42,7 @@
         "allowString": false,
         "allowNumber": false
       }
-    ]
+    ],
+    "typescript/no-floating-promises": "error"
   }
 }

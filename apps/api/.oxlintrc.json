@@ -6,11 +6,9 @@
     "unicorn"
   ],
   "jsPlugins": [
-    "@stylistic/eslint-plugin",
-    "@selfskills/oxlint-rules"
+    "../../packages/oxlint-rules/index.mjs"
   ],
   "rules": {
-    "import/newline-after-import": "error",
     "import/consistent-type-specifier-style": [
       "error",
       "prefer-top-level"
@@ -22,11 +20,7 @@
         "fixStyle": "separate-type-imports"
       }
     ],
-    "@stylistic/padding-line-between-statements": [
-      "warn",
-      { "blankLine": "always", "prev": "*", "next": "return" },
-      { "blankLine": "always", "prev": "*", "next": "function" }
-    ],
+    "typescript/no-floating-promises": "error",
     "eqeqeq": [
       "error",
       "always"
@@ -37,10 +31,17 @@
       {
         "min": 2,
         "exceptions": ["i", "j", "f", "_"],
+        "exceptionPatterns": ["^[A-Z]$"],
         "properties": "never"
       }
     ],
+    "selfskills/consistent-block-indent": "warn",
+    "selfskills/consistent-chain-layout": "warn",
     "selfskills/consistent-parameter-layout": "warn",
+    "selfskills/consistent-property-indent": "warn",
+    "selfskills/consistent-ternary-layout": "warn",
+    "selfskills/no-blank-lines-in-arrow-expression": "warn",
+    "selfskills/no-blank-lines-in-chain": "warn",
     "selfskills/padding-line-before-decorator": "warn",
     "selfskills/prefer-process-import": "error",
     "unicorn/prefer-node-protocol": "error",

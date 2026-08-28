@@ -1,6 +1,7 @@
 export type OrbitMotionMode = 'auto' | 'paused';
 
 const STORAGE_KEY = 'orbit-motion-mode';
+
 const DEFAULT_MODE: OrbitMotionMode = 'auto';
 
 export function readOrbitMotionMode(): OrbitMotionMode {

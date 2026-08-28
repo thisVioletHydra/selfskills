@@ -102,10 +102,12 @@ export function ProfilePage() {
   }
 
   const loading = profile === null;
-  const portraitStyle = profile
-    ? ({ '--portrait-url': `url(${profile.portrait})` } as CSSProperties)
-    : undefined;
-  const nameParts = profile ? splitDisplayName(profile.name) : null;
+  const portraitStyle = profile === null
+    ? undefined
+    : { '--portrait-url': `url(${profile.portrait})` } as CSSProperties;
+  const nameParts = profile === null
+    ? null
+    : splitDisplayName(profile.name);
 
   return (
     <>
@@ -124,27 +126,27 @@ export function ProfilePage() {
               <div
                 className={`shot${loading ? ' shot--pending' : ''}`}
                 role="img"
-                aria-label={profile ? `Портрет: ${profile.name}` : undefined}
+                aria-label={profile === null ? undefined : `Портрет: ${profile.name}`}
                 style={portraitStyle}
               />
             </div>
 
             <div className="lead">
-              {loading || nameParts === null ? (
-                <ProfileLeadSkeleton />
-              ) : (
-                <>
-                  <div className="lead-head">
-                    <p className="tag">{profile.tag}</p>
-                    <h2 className="name">
-                      <span className="mark">{nameParts.mark}</span>
-                      {nameParts.given ? ` ${nameParts.given}` : null}
-                    </h2>
-                    <p className="role">{profile.role}</p>
-                  </div>
-                  <p className="blurb">{profile.blurb}</p>
-                </>
-              )}
+              {loading || nameParts === null
+                ? <ProfileLeadSkeleton />
+                : (
+                    <>
+                      <div className="lead-head">
+                        <p className="tag">{profile.tag}</p>
+                        <h2 className="name">
+                          <span className="mark">{nameParts.mark}</span>
+                          {nameParts.given === '' ? null : ` ${nameParts.given}`}
+                        </h2>
+                        <p className="role">{profile.role}</p>
+                      </div>
+                      <p className="blurb">{profile.blurb}</p>
+                    </>
+                  )}
             </div>
           </div>
         </section>
@@ -155,43 +157,43 @@ export function ProfilePage() {
           aria-busy={loading}
         >
           <div className="stars" aria-hidden="true" />
-          {loading || profile === null ? (
-            <ProfileDetailsSkeleton />
-          ) : (
-            <div className="inner">
-              <div className="details-grid">
-                <div className="details-block">
-                  <h3 className="heading">Факты</h3>
-                  <dl className="facts">
-                    {profile.facts.map((fact) => (
-                      <div key={fact.label} className="fact">
-                        <dt>{fact.label}</dt>
-                        <dd>{fact.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
+          {loading || profile === null
+            ? <ProfileDetailsSkeleton />
+            : (
+                <div className="inner">
+                  <div className="details-grid">
+                    <div className="details-block">
+                      <h3 className="heading">Факты</h3>
+                      <dl className="facts">
+                        {profile.facts.map((fact) => (
+                          <div key={fact.label} className="fact">
+                            <dt>{fact.label}</dt>
+                            <dd>{fact.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </div>
 
-                <div className="details-block">
-                  <h3 className="heading">Куда целился</h3>
-                  <ul className="goals">
-                    {profile.goals.map((goal) => (
-                      <li key={goal.slice(0, 32)}>{goal}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+                    <div className="details-block">
+                      <h3 className="heading">Куда целился</h3>
+                      <ul className="goals">
+                        {profile.goals.map((goal) => (
+                          <li key={goal.slice(0, 32)}>{goal}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
 
-              <div className="details-about">
-                <h3 className="heading">О себе</h3>
-                {profile.about.map((paragraph) => (
-                  <p key={paragraph.slice(0, 40)} className="copy">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
+                  <div className="details-about">
+                    <h3 className="heading">О себе</h3>
+                    {profile.about.map((paragraph) => (
+                      <p key={paragraph.slice(0, 40)} className="copy">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
         </section>
 
         <SkillsBlock />

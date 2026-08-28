@@ -5,7 +5,9 @@ type PingResponse = {
   data?: { __typename?: string };
 };
 
-export async function pingBackend(): Promise<boolean> {
+let pingInFlight: Promise<boolean> | null = null;
+
+async function requestPing(): Promise<boolean> {
   const controller = new AbortController();
   const timer = globalThis.setTimeout(() => {
     controller.abort();
@@ -30,4 +32,15 @@ export async function pingBackend(): Promise<boolean> {
   } finally {
     globalThis.clearTimeout(timer);
   }
+}
+
+/** Concurrent callers share one in-flight request (Strict Mode remounts). */
+export function pingBackend(): Promise<boolean> {
+  if (pingInFlight === null) {
+    pingInFlight = requestPing().finally(() => {
+      pingInFlight = null;
+    });
+  }
+
+  return pingInFlight;
 }

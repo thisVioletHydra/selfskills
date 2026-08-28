@@ -2,7 +2,6 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class ProfileFact {
-
   @Field()
   label: string;
 
@@ -12,7 +11,6 @@ export class ProfileFact {
 
 @ObjectType()
 export class Profile {
-
   @Field()
   name: string;
 

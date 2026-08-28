@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 
-import { ORBIT_TECH } from '#web/entities/skill/tech-stack';
+import { ORBIT_PLANETS } from '#web/entities/planet/planets';
 import { subscribeOrbitPresence } from '#web/shared/lib/orbit-presence';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 
@@ -93,9 +93,9 @@ function createBodies(width: number, height: number, starRadius: number): Bounce
   const cx = width / 2;
   const cy = height * STAR_Y_RATIO;
 
-  return ORBIT_TECH.map((tech, index) => {
-    const radius = ballRadius(tech.size);
-    const angle = (index / ORBIT_TECH.length) * Math.PI * 2 + 0.4;
+  return ORBIT_PLANETS.map((planet, index) => {
+    const radius = ballRadius(planet.size);
+    const angle = (index / ORBIT_PLANETS.length) * Math.PI * 2 + 0.4;
     const dist = starRadius + radius + 48 + (index % 5) * 38 + Math.floor(index / 5) * 28;
 
     let vx = (Math.random() - 0.5) * 65;
@@ -108,7 +108,7 @@ function createBodies(width: number, height: number, starRadius: number): Bounce
     const y = cy + Math.sin(angle) * dist;
 
     return {
-      id: tech.id,
+      id: planet.id,
       x,
       y,
       vx,

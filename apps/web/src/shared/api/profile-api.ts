@@ -23,7 +23,9 @@ type GqlProfileResponse = {
   errors?: Array<{ message: string }>;
 };
 
-export async function fetchProfile(): Promise<ProfileInfo> {
+let profileInFlight: Promise<ProfileInfo> | null = null;
+
+async function requestProfile(): Promise<ProfileInfo> {
   const res = await fetch('/graphql', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -45,4 +47,15 @@ export async function fetchProfile(): Promise<ProfileInfo> {
   }
 
   return json.data.profile;
+}
+
+/** Concurrent callers share one in-flight request (Strict Mode remounts). */
+export function fetchProfile(): Promise<ProfileInfo> {
+  if (profileInFlight === null) {
+    profileInFlight = requestProfile().finally(() => {
+      profileInFlight = null;
+    });
+  }
+
+  return profileInFlight;
 }

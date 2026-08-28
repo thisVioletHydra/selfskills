@@ -1,0 +1,106 @@
+import { getLineIndent, isTokenOnSameLine } from '../utils/function-params.mjs';
+
+/** @param {import('eslint').SourceCode} sourceCode */
+function getOpeningBrace(sourceCode, node) {
+  if (node.type === 'TSTypeLiteral' || node.type === 'ObjectExpression') {
+    return sourceCode.getFirstToken(node, (token) => token.value === '{');
+  }
+
+  if (node.type === 'TSInterfaceBody' || node.type === 'ClassBody') {
+    return sourceCode.getFirstToken(node);
+  }
+
+  return null;
+}
+
+/** @param {import('estree').Node} node */
+function getMembers(node) {
+  if (node.type === 'TSTypeLiteral') {
+    return node.members ?? [];
+  }
+
+  if (node.type === 'ObjectExpression') {
+    return node.properties ?? [];
+  }
+
+  if (node.type === 'TSInterfaceBody' || node.type === 'ClassBody') {
+    return node.body ?? [];
+  }
+
+  return [];
+}
+
+/** @type {import('eslint').Rule.RuleModule} */
+export default {
+  meta: {
+    type: 'layout',
+    docs: {
+      description:
+        'Align object, type, interface, and class members to the opening brace indent plus two spaces.',
+    },
+    fixable: 'whitespace',
+    messages: {
+      inconsistentPropertyIndent:
+        'Member indent must match sibling properties in this block.',
+    },
+    schema: [],
+  },
+  create(context) {
+    const sourceCode = context.sourceCode;
+
+    function checkMemberBlock(node) {
+      const members = getMembers(node);
+      if (members.length === 0) {
+        return;
+      }
+
+      const openBrace = getOpeningBrace(sourceCode, node);
+      if (!openBrace) {
+        return;
+      }
+
+      const propertyIndent = `${getLineIndent(sourceCode, openBrace.loc.start.line)}  `;
+
+      for (const member of members) {
+        if (member.type === 'SpreadElement' || member.type === 'RestElement') {
+          continue;
+        }
+
+        const firstToken = sourceCode.getFirstToken(member);
+        if (!firstToken || isTokenOnSameLine(sourceCode, openBrace, firstToken)) {
+          continue;
+        }
+
+        const lineNumber = member.loc.start.line;
+        const actualIndent = getLineIndent(sourceCode, lineNumber);
+        if (actualIndent === propertyIndent) {
+          continue;
+        }
+
+        const lineStart = sourceCode.getIndexFromLoc({
+          line: lineNumber,
+          column: 0,
+        });
+        const memberStart = sourceCode.getIndexFromLoc(member.loc.start);
+
+        context.report({
+          node: member,
+          messageId: 'inconsistentPropertyIndent',
+          fix(fixer) {
+            return fixer.replaceTextRange(
+              [lineStart, memberStart],
+              propertyIndent,
+            );
+          },
+        });
+      }
+    }
+
+    return {
+      ObjectExpression: checkMemberBlock,
+      TSTypeLiteral: checkMemberBlock,
+      TSInterfaceBody: checkMemberBlock,
+      ClassBody: checkMemberBlock,
+    };
+  },
+};

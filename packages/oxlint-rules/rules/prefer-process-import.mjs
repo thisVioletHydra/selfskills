@@ -69,7 +69,9 @@ export default {
         return fixer.insertTextBefore(firstImport, text);
       }
 
-      const insertAt = sourceCode.getIndexAfterComments();
+      const insertAt = typeof sourceCode.getIndexAfterComments === 'function'
+        ? sourceCode.getIndexAfterComments()
+        : 0;
       return fixer.insertTextBeforeRange([insertAt, insertAt], text);
     }
 

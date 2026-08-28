@@ -1,8 +1,8 @@
-import type { TechStackItem } from '#web/entities/skill/tech-stack';
+import type { Planet } from '#web/entities/planet/planets';
 import type { OrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
 
-import { CORE_TECH, ORBIT_TECH } from '#web/entities/skill/tech-stack';
-import { TechModal } from '#web/features/tech-modal/TechModal';
+import { CORE_PLANET, ORBIT_PLANETS } from '#web/entities/planet/planets';
+import { PlanetModal } from '#web/features/planet-modal/PlanetModal';
 import { resetOrbitHintState } from '#web/shared/lib/orbit-hint-state';
 import { readOrbitMotionMode, writeOrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
 import { OrbitComets } from '#web/widgets/orbit-hero/OrbitComet';
@@ -19,7 +19,7 @@ export function OrbitHero() {
   const planetElsRef = useRef(new Map<string, HTMLElement | null>());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [activeTech, setActiveTech] = useState<TechStackItem | null>(null);
+  const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
   const [motionMode, setMotionMode] = useState<OrbitMotionMode>(() => readOrbitMotionMode());
 
   const { hints, teaseActive, dismissTapHint, dismissThrowHint, finishHide, markTeaseDone } =
@@ -29,7 +29,7 @@ export function OrbitHero() {
   const { bodiesRef } = useBouncePhysics(
     stageRef,
     planetElsRef,
-    CORE_TECH.size,
+    CORE_PLANET.size,
     interactionId,
     motionMode,
   );
@@ -44,10 +44,10 @@ export function OrbitHero() {
     markTeaseDone();
   };
 
-  const openTech = (tech: TechStackItem) => {
+  const openPlanet = (planet: Planet) => {
     markInteracted();
     dismissTapHint();
-    setActiveTech(tech);
+    setActivePlanet(planet);
   };
 
   const throwHandlers = usePlanetThrow({
@@ -57,7 +57,7 @@ export function OrbitHero() {
     draggingId,
     setDraggingId,
     setHoveredId,
-    onOpen: openTech,
+    onOpen: openPlanet,
     onThrow: () => {
       markInteracted();
       dismissThrowHint();
@@ -157,36 +157,36 @@ export function OrbitHero() {
           <div className="corona core" />
         </div>
 
-        {ORBIT_TECH.map((tech, index) => {
-          const isActive = interactionId === tech.id;
-          const isDragging = draggingId === tech.id;
+        {ORBIT_PLANETS.map((planet, index) => {
+          const isActive = interactionId === planet.id;
+          const isDragging = draggingId === planet.id;
           const teaseAlt = index % 2 === 1 ? ' tease-alt' : '';
 
           return (
             <button
-              key={tech.id}
+              key={planet.id}
               type="button"
               ref={(node) => {
-                planetElsRef.current.set(tech.id, node);
+                planetElsRef.current.set(planet.id, node);
               }}
               className={`planet${teaseAlt}${isActive ? ' paused' : ''}${isDragging ? ' dragging' : ''}`}
               style={{
-                width: `${tech.size}px`,
-                height: `${tech.size}px`,
+                width: `${planet.size}px`,
+                height: `${planet.size}px`,
               }}
-              onPointerEnter={() => throwHandlers.onPointerEnter(tech)}
-              onPointerLeave={() => throwHandlers.onPointerLeave(tech)}
+              onPointerEnter={() => throwHandlers.onPointerEnter(planet)}
+              onPointerLeave={() => throwHandlers.onPointerLeave(planet)}
               onPointerDown={(event) => {
                 markInteracted();
-                throwHandlers.onPointerDown(tech, event);
+                throwHandlers.onPointerDown(planet, event);
               }}
-              onPointerMove={(event) => throwHandlers.onPointerMove(tech, event)}
-              onPointerUp={(event) => throwHandlers.onPointerUp(tech, event)}
-              onPointerCancel={() => throwHandlers.onPointerCancel(tech)}
-              aria-label={`${tech.name}. Тап — карточка. Зажми и швырни.`}
+              onPointerMove={(event) => throwHandlers.onPointerMove(planet, event)}
+              onPointerUp={(event) => throwHandlers.onPointerUp(planet, event)}
+              onPointerCancel={() => throwHandlers.onPointerCancel(planet)}
+              aria-label={`${planet.name}. Тап — карточка. Зажми и швырни.`}
               title="Тап — карточка · зажми и швырни"
             >
-              <img src={tech.icon} alt="" draggable={false} />
+              <img src={planet.icon} alt="" draggable={false} />
             </button>
           );
         })}
@@ -194,15 +194,15 @@ export function OrbitHero() {
         <button
           type="button"
           className="supernova"
-          onClick={() => openTech(CORE_TECH)}
-          aria-label={`${CORE_TECH.name}. Тап — открыть карточку.`}
+          onClick={() => openPlanet(CORE_PLANET)}
+          aria-label={`${CORE_PLANET.name}. Тап — открыть карточку.`}
           title="Тап — карточка JavaScript"
         >
-          <img src={CORE_TECH.icon} alt="" draggable={false} />
+          <img src={CORE_PLANET.icon} alt="" draggable={false} />
         </button>
 
         <div className="copy">
-          <p className="tag">стек с орбиты</p>
+          <p className="tag">planets</p>
           <h1 className="title">
             JS в центре.
             <br />
@@ -215,7 +215,7 @@ export function OrbitHero() {
         </div>
       </div>
 
-      <TechModal tech={activeTech} onClose={() => setActiveTech(null)} />
+      <PlanetModal planet={activePlanet} onClose={() => setActivePlanet(null)} />
     </section>
   );
 }

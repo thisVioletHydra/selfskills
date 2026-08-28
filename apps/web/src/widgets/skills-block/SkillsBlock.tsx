@@ -1,4 +1,4 @@
-import { SKILL_GROUPS } from '#web/entities/skill/skill-groups';
+import { PLANET_GROUPS } from '#web/entities/planet/planet-groups';
 import '#web/widgets/skills-block/skills-block.css';
 
 export function SkillsBlock() {
@@ -14,7 +14,7 @@ export function SkillsBlock() {
         </p>
 
         <div className="skills">
-          {SKILL_GROUPS.map((group) => (
+          {PLANET_GROUPS.map((group) => (
             <div key={group.id} className="group">
               <h3 className="label">{group.title}</h3>
               <ul className="list">
