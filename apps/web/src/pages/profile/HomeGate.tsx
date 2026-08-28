@@ -14,11 +14,17 @@ export function HomeGate() {
   useEffect(() => {
     let cancelled = false;
 
-    pingBackend().then((ok) => {
-      if (!cancelled) {
-        setGate(ok ? 'up' : 'down');
-      }
-    });
+    pingBackend()
+      .then((ok) => {
+        if (!cancelled) {
+          setGate(ok ? 'up' : 'down');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGate('down');
+        }
+      });
 
     return () => {
       cancelled = true;

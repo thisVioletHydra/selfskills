@@ -88,22 +88,13 @@ export default {
             continue;
           }
 
-          const gapText = sourceCode.text.slice(
+          normalizeGap(
+            link.memberNode,
             range.linkStart.range[1],
             range.linkEnd.range[0],
+            '',
+            'collapseChain',
           );
-          if (/\n/.test(gapText)) {
-            context.report({
-              node: link.memberNode,
-              messageId: 'collapseChain',
-              fix(fixer) {
-                return fixer.replaceTextRange(
-                  [range.linkStart.range[1], range.linkEnd.range[0]],
-                  '',
-                );
-              },
-            });
-          }
         }
 
         return;

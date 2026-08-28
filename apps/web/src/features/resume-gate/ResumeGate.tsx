@@ -35,7 +35,7 @@ export function ResumeGate({ busy = false, error = null, onContinue, onSkip }: R
           onContinue(url);
         }}
       >
-        <p className="tag">selfskills</p>
+        <p className="tag">portfolio</p>
         <h1 id="resume-gate-title" className="title">
           Вставь ссылку на резюме
         </h1>

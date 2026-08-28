@@ -16,6 +16,14 @@ export function getChainRootExpression(expression) {
     return null;
   }
 
+  if (expression.type === 'UnaryExpression' && expression.operator === 'void') {
+    return getChainRootExpression(expression.argument);
+  }
+
+  if (expression.type === 'AwaitExpression') {
+    return getChainRootExpression(expression.argument);
+  }
+
   if (expression.type === 'ArrowFunctionExpression' && expression.body.type !== 'BlockStatement') {
     return expression.body;
   }

@@ -13,10 +13,13 @@
     hanging-punctuation: first last;
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
+    min-block-size: 100%;
+    background-color: var(--color-bg-deep);
   }
 
   body {
     margin: 0;
+    min-block-size: 100dvh;
   }
 
   img,
@@ -87,5 +90,15 @@
   ::selection {
     background: color-mix(in oklch, var(--color-accent) 35%, transparent);
     color: var(--color-bg-deep);
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100dvh;
+  }
+
+  #root > main {
+    flex: 1 0 auto;
   }
 }

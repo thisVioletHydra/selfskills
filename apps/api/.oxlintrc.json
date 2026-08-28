@@ -20,7 +20,8 @@
         "fixStyle": "separate-type-imports"
       }
     ],
-    "typescript/no-floating-promises": "error",
+    "typescript/no-floating-promises": "off",
+    "selfskills/no-floating-promise": "error",
     "eqeqeq": [
       "error",
       "always"
@@ -36,6 +37,7 @@
       }
     ],
     "selfskills/consistent-block-indent": "warn",
+    "selfskills/consistent-call-arguments": "warn",
     "selfskills/consistent-chain-layout": "warn",
     "selfskills/consistent-parameter-layout": "warn",
     "selfskills/consistent-property-indent": "warn",

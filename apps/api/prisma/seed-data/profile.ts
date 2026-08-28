@@ -13,6 +13,7 @@ export const profileSeed = {
     { label: 'Возраст', value: '29' },
     { label: 'Город', value: 'Москва' },
     { label: 'Формат', value: 'Удалённо' },
+
     { label: 'Занятость', value: 'Полная' },
     { label: 'Опыт', value: '5 лет' },
     { label: 'Образование', value: 'БГУИР, электронный маркетинг' },

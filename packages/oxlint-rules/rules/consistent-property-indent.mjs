@@ -1,7 +1,14 @@
 import { getLineIndent, isTokenOnSameLine } from '../utils/function-params.mjs';
 
-/** @param {import('eslint').SourceCode} sourceCode */
-function getOpeningBrace(sourceCode, node) {
+/**
+ * @param {import('eslint').SourceCode} sourceCode
+ * @param {import('estree').Node} node
+ */
+function getOpeningDelimiter(sourceCode, node) {
+  if (node.type === 'ArrayExpression') {
+    return sourceCode.getFirstToken(node, (token) => token.value === '[');
+  }
+
   if (node.type === 'TSTypeLiteral' || node.type === 'ObjectExpression') {
     return sourceCode.getFirstToken(node, (token) => token.value === '{');
   }
@@ -15,6 +22,10 @@ function getOpeningBrace(sourceCode, node) {
 
 /** @param {import('estree').Node} node */
 function getMembers(node) {
+  if (node.type === 'ArrayExpression') {
+    return node.elements.filter((element) => element !== null);
+  }
+
   if (node.type === 'TSTypeLiteral') {
     return node.members ?? [];
   }
@@ -36,12 +47,12 @@ export default {
     type: 'layout',
     docs: {
       description:
-        'Align object, type, interface, and class members to the opening brace indent plus two spaces.',
+        'Align object/array members to the opening `{` or `[` indent plus two spaces.',
     },
     fixable: 'whitespace',
     messages: {
       inconsistentPropertyIndent:
-        'Member indent must match sibling properties in this block.',
+        'Member indent must match sibling entries in this block.',
     },
     schema: [],
   },
@@ -54,12 +65,12 @@ export default {
         return;
       }
 
-      const openBrace = getOpeningBrace(sourceCode, node);
-      if (!openBrace) {
+      const openDelimiter = getOpeningDelimiter(sourceCode, node);
+      if (!openDelimiter) {
         return;
       }
 
-      const propertyIndent = `${getLineIndent(sourceCode, openBrace.loc.start.line)}  `;
+      const memberIndent = `${getLineIndent(sourceCode, openDelimiter.loc.start.line)}  `;
 
       for (const member of members) {
         if (member.type === 'SpreadElement' || member.type === 'RestElement') {
@@ -67,13 +78,13 @@ export default {
         }
 
         const firstToken = sourceCode.getFirstToken(member);
-        if (!firstToken || isTokenOnSameLine(sourceCode, openBrace, firstToken)) {
+        if (!firstToken || isTokenOnSameLine(sourceCode, openDelimiter, firstToken)) {
           continue;
         }
 
         const lineNumber = member.loc.start.line;
         const actualIndent = getLineIndent(sourceCode, lineNumber);
-        if (actualIndent === propertyIndent) {
+        if (actualIndent === memberIndent) {
           continue;
         }
 
@@ -89,7 +100,7 @@ export default {
           fix(fixer) {
             return fixer.replaceTextRange(
               [lineStart, memberStart],
-              propertyIndent,
+              memberIndent,
             );
           },
         });
@@ -97,6 +108,7 @@ export default {
     }
 
     return {
+      ArrayExpression: checkMemberBlock,
       ObjectExpression: checkMemberBlock,
       TSTypeLiteral: checkMemberBlock,
       TSInterfaceBody: checkMemberBlock,

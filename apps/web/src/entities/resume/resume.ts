@@ -8,6 +8,7 @@ export type ResumeJob = {
   industry?: string;
   role: string;
   productNote?: string;
+  productExampleUrl?: string;
   stack: string[];
   highlights: string[];
 };
@@ -107,7 +108,8 @@ export const DEMO_RESUME: ResumeInfo = {
       industry: 'ИТ, системная интеграция',
       role: 'Ведущий инженер-программист',
       productNote:
-        'Blitz Identity Provider — IAM/SSO. Публичный пример: https://login.mos.ru/sps/profile',
+        'Blitz Identity Provider — IAM/SSO-платформа для единого входа, регистрации и аутентификации через внешних провайдеров, включая банки, социальные сети и ЕСИА. Отвечал за security-critical frontend страниц авторизации и клиентские темы примерно для десяти проектов. Продукт включён в Реестр российского ПО и сертифицирован ФСТЭК России.',
+      productExampleUrl: 'https://login.mos.ru/sps/profile',
       stack: [
         'TypeScript',
         'JavaScript',

@@ -8,6 +8,11 @@ function getLineIndentFromLines(lines, lineNumber) {
   return match?.[0] ?? '';
 }
 
+/** @param {import('eslint').SourceCode} sourceCode */
+function isTokenOnSameLine(sourceCode, left, right) {
+  return left.loc.start.line === right.loc.start.line;
+}
+
 /**
  * @param {import('eslint').SourceCode} sourceCode
  * @param {import('estree').Node} node
@@ -54,6 +59,11 @@ export default {
       };
 
       for (const statement of node.body) {
+        const firstToken = sourceCode.getFirstToken(statement);
+        if (firstToken && isTokenOnSameLine(sourceCode, openBrace, firstToken)) {
+          continue;
+        }
+
         markStatement(sourceCode, statement, marks, mark);
       }
     }

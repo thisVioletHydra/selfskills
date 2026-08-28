@@ -8,32 +8,59 @@ export type ProjectItem = {
 
 export const PROJECTS: ProjectItem[] = [
   {
-    id: 'selfskills',
-    title: 'selfskills',
-    summary: 'Эта визитка: орбитальный hero, физика иконок, космический UI на React + FSD.',
-    stack: ['React', 'TypeScript', 'Vite'],
-    href: 'https://github.com/thisVioletHydra/selfskills',
-  },
-  {
-    id: 'api-kit',
-    title: 'Nest kit (скоро)',
-    summary: 'Бэкенд-заготовка под профиль и скилы: Nest, Prisma, GraphQL, Postgres в Docker.',
-    stack: ['NestJS', 'Prisma', 'GraphQL'],
-    href: '#',
-  },
-  {
-    id: 'ui-lab',
-    title: 'UI lab',
+    id: 'blitz-mos',
+    title: 'login.mos.ru — Blitz IdP',
     summary:
-      'Мелкие эксперименты с motion и интерфейсом — без дашборд-каши, только ощущение продукта.',
-    stack: ['React', 'CSS'],
-    href: '#',
+      'Публичный security-critical интерфейс единого входа Москвы. IAM/SSO: авторизация, регистрация, внешние провайдеры и клиентские темы примерно для десяти проектов.',
+    stack: ['TypeScript', 'Vue', 'Vite', 'PostCSS'],
+    href: 'https://login.mos.ru/sps/profile',
   },
   {
-    id: 'scripts',
-    title: 'Node scripts',
-    summary: 'Утилиты и CLI на Node: автоматизация рутины, без лишней магии.',
-    stack: ['Node.js', 'TypeScript'],
-    href: '#',
+    id: 'servit',
+    title: 'servit.by · infinity.servit.by',
+    summary:
+      'Корпоративный сайт и продуктовый лендинг: вёрстка, адаптив, интеграция контента и форм. Работа в связке с внутренними сервисами компании.',
+    stack: ['HTML5', 'CSS3', 'JavaScript', 'Vue'],
+    href: 'https://servit.by',
+  },
+  {
+    id: 'vds-by',
+    title: 'vds.by',
+    summary:
+      'Коммерческий сайт VDS-хостинга: посадочные блоки, тарифы, формы заявок и аккуратная типографика под B2B-аудиторию.',
+    stack: ['HTML', 'CSS', 'JavaScript'],
+    href: 'https://vds.by',
+  },
+  {
+    id: 'tylkopolski',
+    title: 'tylkopolski.by',
+    summary:
+      'Промо-страница и посадочный сценарий для польскоязычного продукта: структура контента, UI-блоки и мобильная вёрстка.',
+    stack: ['HTML', 'CSS', 'JavaScript'],
+    href: 'https://tylkopolski.by/s1/',
+  },
+  {
+    id: 'mazgi',
+    title: 'mazgi.by',
+    summary:
+      'Сайт под ключ: главная, каталог/услуги, контакты. Фокус на читаемости, скорости загрузки и предсказуемой вёрстке без лишней магии.',
+    stack: ['HTML', 'CSS', 'JavaScript'],
+    href: 'https://mazgi.by',
+  },
+  {
+    id: '7777taxi',
+    title: '7777taxi.com',
+    summary:
+      'Dev-версия сайта такси: интерфейс заказа, статические макеты и клиентская логика форм до выкладки в прод.',
+    stack: ['HTML', 'CSS', 'JavaScript'],
+    href: 'https://7777taxi.com/dev/',
+  },
+  {
+    id: 'email-templates',
+    title: 'Email-шаблоны (внутренние)',
+    summary:
+      'Набор HTML-писем для продуктовых рассылок: табличная вёрстка, inline-стили, тест в клиентах и согласование с брендом.',
+    stack: ['HTML', 'CSS', 'Pug'],
+    href: '#projects',
   },
 ];

@@ -57,40 +57,80 @@
 
 @scope (.site-footer) {
   :scope {
-    padding-block: var(--space-7);
+    position: relative;
+    margin-block-start: 3.5rem;
+    padding-block-start: var(--space-7);
+    padding-block-end: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
     padding-inline: var(--space-section-x);
     background:
+      radial-gradient(
+        ellipse 120% 45% at 50% 100%,
+        oklch(from var(--color-cold-base) l c h / 0.055) 0%,
+        transparent 62%
+      ),
       radial-gradient(ellipse 80% 80% at 50% 100%, var(--color-accent-mist) 0%, transparent 50%),
       var(--color-bg-deep);
-    border-block-start: 1px solid var(--color-line);
+    border-block-start: 0;
   }
 
-  .inner {
-    inline-size: min(100%, var(--width-content));
+  :scope::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    inline-size: 30%;
+    min-inline-size: 4.5rem;
+    block-size: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-line) 18%,
+      color-mix(in oklch, var(--color-cold-base) 12%, var(--color-line)) 50%,
+      var(--color-line) 82%,
+      transparent 100%
+    );
+  }
+
+  :scope::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: 5.5rem;
+    background:
+      radial-gradient(
+        ellipse 130% 85% at 50% 100%,
+        oklch(from var(--color-cold-base) l c h / 0.075) 0%,
+        oklch(from var(--color-cold-base) l c h / 0.028) 38%,
+        transparent 72%
+      ),
+      linear-gradient(
+        to top,
+        oklch(from var(--color-cold-base) l c h / 0.045) 0%,
+        transparent 100%
+      );
+    pointer-events: none;
+  }
+
+  .stack-credits {
+    position: relative;
+    z-index: 1;
+    inline-size: min(100%, var(--width-bento, var(--width-content)));
     margin-inline: auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    font-size: var(--text-sm);
-  }
-
-  .brand {
+    justify-content: center;
+    gap: 0.35rem 0.55rem;
+    font-size: 11px;
+    line-height: 1.55;
     color: var(--color-faint);
+    text-align: center;
   }
 
-  .socials {
-    display: flex;
-    gap: var(--space-5);
+  .stack-credits-sep {
     color: var(--color-muted);
-  }
-
-  .socials a {
-    transition: color var(--duration-fast) var(--ease-out);
-  }
-
-  .socials a:hover {
-    color: var(--color-accent);
   }
 }
 
@@ -119,10 +159,4 @@
     }
   }
 
-  @scope (.site-footer) {
-    .inner {
-      flex-direction: column;
-      text-align: center;
-    }
-  }
 }
