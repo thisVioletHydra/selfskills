@@ -492,7 +492,7 @@
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-pill);
     background: var(--color-glass);
-    color: var(--color-accent);
+    color: var(--color-text);
     font: inherit;
     font-size: 0.8125rem;
     line-height: var(--leading-tight);
@@ -501,6 +501,7 @@
     transform: none;
     transition:
       color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
       background var(--duration-fast) var(--ease-out);
   }
 
@@ -510,7 +511,7 @@
     bottom: calc(100% + 0.4rem);
     z-index: 2;
     padding: 0.2rem 0.45rem;
-    border: 1px solid color-mix(in oklch, var(--color-accent) 35%, transparent);
+    border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-pill);
     background: color-mix(in oklch, var(--color-bg-deep) 55%, transparent);
     color: var(--color-accent);
@@ -542,7 +543,7 @@
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-pill);
     background: var(--color-glass);
-    color: var(--color-accent);
+    color: var(--color-text);
     font: inherit;
     font-size: 0.8125rem;
     line-height: var(--leading-tight);
@@ -551,11 +552,13 @@
     backdrop-filter: blur(10px);
     transition:
       color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
       background var(--duration-fast) var(--ease-out);
   }
 
   .api-db-trigger:hover {
-    background: color-mix(in oklch, var(--color-glass) 80%, var(--color-accent-mist));
+    border-color: var(--color-line);
+    color: var(--color-text);
   }
 
   .api-db-trigger:focus-visible {
@@ -1300,17 +1303,15 @@
 
 @media (hover: hover) {
   @scope (.cosmos-stage) {
-    .motion-chip:hover {
-      color: var(--color-accent);
+    .motion-chip:hover,
+    .api-db-trigger:hover {
+      color: var(--color-text);
+      border-color: var(--color-line);
     }
 
     .flash-chip:hover {
       color: var(--color-accent);
       border-color: color-mix(in oklch, var(--color-accent) 45%, transparent);
-    }
-
-    .api-db-trigger:hover {
-      color: var(--color-accent);
     }
   }
 }
