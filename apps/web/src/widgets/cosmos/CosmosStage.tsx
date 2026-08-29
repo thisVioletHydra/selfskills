@@ -6,12 +6,11 @@ import { CORE_PLANET, ORBIT_PLANETS } from '#web/entities/planet/planets';
 import { localizePlanet } from '#web/entities/planet/localizePlanet';
 import { PlanetModal } from '#web/features/planet-modal/PlanetModal';
 import { AMBIENT_REGISTRY } from '#web/widgets/cosmos/ambient/registry';
-import { HintsResetButton } from '#web/widgets/cosmos/chrome/HintsResetButton';
+import { ApiDbProbe } from '#web/widgets/cosmos/chrome/ApiDbProbe';
 import { MotionChip } from '#web/widgets/cosmos/chrome/MotionChip';
 import { useCosmosHints } from '#web/widgets/cosmos/chrome/useCosmosHints';
 import { ACTIVE_PRESET } from '#web/widgets/cosmos/config/presets';
 import { readCosmosMotionMode, writeCosmosMotionMode } from '#web/widgets/cosmos/lib/motion-state';
-import { subscribeCosmosHintReset } from '#web/widgets/cosmos/lib/hint-state';
 import { useBouncePhysics } from '#web/widgets/cosmos/physics/useBouncePhysics';
 import { usePlanetThrow } from '#web/widgets/cosmos/physics/usePlanetThrow';
 import { useLocale } from '#web/shared/i18n/locale-context';
@@ -42,14 +41,7 @@ export function CosmosStage() {
   const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
   const [motionMode, setMotionMode] = useState<CosmosMotionMode>(() => readCosmosMotionMode());
 
-  const {
-    teaseActive,
-    showTapPlanetHint,
-    showThrowPlanetHint,
-    dismissTapHint,
-    dismissThrowHint,
-    markTeaseDone,
-  } = useCosmosHints();
+  const { teaseActive, markTeaseDone } = useCosmosHints();
 
   const interactionId = draggingId ?? hoveredId;
   const { bodiesRef } = useBouncePhysics(
@@ -72,7 +64,6 @@ export function CosmosStage() {
 
   const openPlanet = (planet: Planet) => {
     markInteracted();
-    dismissTapHint();
     setActivePlanet(planet);
   };
 
@@ -86,16 +77,9 @@ export function CosmosStage() {
     onOpen: openPlanet,
     onThrow: () => {
       markInteracted();
-      dismissThrowHint();
       demoFlingDoneRef.current = true;
     },
   });
-
-  useEffect(() => {
-    return subscribeCosmosHintReset(() => {
-      demoFlingDoneRef.current = false;
-    });
-  }, []);
 
   useEffect(() => {
     if (!teaseActive || motionMode !== 'auto' || demoFlingDoneRef.current) {
@@ -147,7 +131,7 @@ export function CosmosStage() {
         {renderAmbient(overlayIds, motionMode)}
         <div className="glow" aria-hidden="true" />
 
-        <HintsResetButton label={t('hintsReset')} />
+        <ApiDbProbe />
 
         <div className="chrome-left">
           <MotionChip
@@ -174,8 +158,8 @@ export function CosmosStage() {
           const isActive = interactionId === planet.id;
           const isDragging = draggingId === planet.id;
           const teaseAlt = index % 2 === 1 ? ' tease-alt' : '';
-          const showPlanetPull = showThrowPlanetHint && planet.id === PULL_HINT_PLANET_ID;
-          const showPlanetTap = showTapPlanetHint && planet.id === TAP_HINT_PLANET_ID;
+          const showPlanetPull = planet.id === PULL_HINT_PLANET_ID;
+          const showPlanetTap = planet.id === TAP_HINT_PLANET_ID;
 
           return (
             <button
