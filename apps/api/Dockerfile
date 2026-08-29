@@ -17,12 +17,19 @@ RUN pnpm install --filter api... --frozen-lockfile
 COPY apps/api apps/api
 COPY packages/oxlint-rules packages/oxlint-rules
 
+# 1) generate in workspace (for nest build types/runtime during compile)
+# 2) build nest
+# 3) pnpm deploy copies prod deps — @prisma/client postinstall drops a STUB
+#    because prisma/ is not in /out yet
+# 4) copy schema + dist, then generate AGAIN inside /out (real client)
 RUN pnpm --filter api exec prisma generate \
   && pnpm --filter api build \
   && pnpm --filter api deploy --prod --legacy /out \
   && cp -R apps/api/prisma /out/prisma \
   && cp -R apps/api/dist /out/dist \
-  && cd /out && ./node_modules/.bin/prisma generate
+  && cd /out \
+  && ./node_modules/.bin/prisma generate \
+  && test -n "$(find node_modules -path '*/.prisma/client/index.js' | head -1)"
 
 FROM node:24-alpine AS runner
 WORKDIR /app
@@ -37,4 +44,5 @@ COPY --from=build --chown=app:app /out ./
 USER app
 EXPOSE 3000
 
+# Belt: generate once more at boot in case layer quirks; then migrate + nest
 CMD ["sh", "-c", "./node_modules/.bin/prisma generate && ./node_modules/.bin/prisma migrate deploy && node dist/src/main.js"]
