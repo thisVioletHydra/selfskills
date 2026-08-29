@@ -19,7 +19,7 @@ COPY packages/oxlint-rules packages/oxlint-rules
 
 RUN pnpm --filter api exec prisma generate \
   && pnpm --filter api build \
-  && pnpm --filter api deploy --prod /out \
+  && pnpm --filter api deploy --prod --legacy /out \
   && cp -R apps/api/prisma /out/prisma \
   && cp -R apps/api/dist /out/dist
 
