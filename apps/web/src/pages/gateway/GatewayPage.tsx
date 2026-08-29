@@ -11,7 +11,7 @@ export function GatewayPage({ busy = false, onRetry, onHome }: GatewayPageProps)
     <FaultPage
       code={502}
       title="Шлюз сбежал"
-      text="Сервер не отвечает. Страница тут ни при чём — просто шлюз молчит."
+      text="Сервер не отвечает."
       busy={busy}
       onRetry={onRetry}
       onHome={onHome}
