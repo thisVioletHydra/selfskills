@@ -21,10 +21,10 @@ const ABOUT_IO: IntersectionObserverInit = {
   rootMargin: '0px 0px -18% 0px',
 };
 
-/** Peek under cosmos should already unlock the first reveal. */
+/** Peek under cosmos should unlock reveal. Observe the section — not a child that may be opacity-gated. */
 const MAIN_IO: IntersectionObserverInit = {
   threshold: 0,
-  rootMargin: '0px 0px -2% 0px',
+  rootMargin: '0px 0px -8% 0px',
 };
 
 function prefersReducedMotion() {
@@ -77,8 +77,7 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
       return;
     }
 
-    const mainNode = section.querySelector('.bento-main');
-    if (mainNode !== null && isElementInViewport(mainNode, 5)) {
+    if (isElementInViewport(section, 8)) {
       setRevealed(true);
     }
   }, [enabled, reducedMotion, revealed, sectionRef]);
@@ -95,11 +94,10 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
 
     const observers: IntersectionObserver[] = [];
 
-    const mainNode = section.querySelector('.bento-main');
-    if (mainNode !== null && !revealed) {
+    if (!revealed) {
       observers.push(
         observeOnce(
-          mainNode,
+          section,
           () => {
             setRevealed(true);
           },

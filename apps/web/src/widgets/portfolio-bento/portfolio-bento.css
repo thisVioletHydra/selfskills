@@ -73,7 +73,9 @@
   }
 
   :scope.is-awaiting-reveal > .bento-shell {
-    visibility: hidden;
+    /* opacity — ок для IO; visibility:hidden ломает IntersectionObserver */
+    opacity: 0;
+    pointer-events: none;
   }
 
   .bento {
@@ -157,6 +159,7 @@
 
   .bento-portrait {
     inline-size: 100%;
+    max-inline-size: 17.5rem;
     aspect-ratio: 1 / 1.15;
     border-radius: calc(var(--bento-radius) - 0.35rem);
     background:
@@ -874,14 +877,14 @@
   }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1024px) {
   @scope (.portfolio-bento) {
     .bento {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(13rem, 15.25rem) minmax(0, 1fr);
     }
 
-    .bento-sidebar {
-      position: static;
+    .bento-portrait {
+      max-inline-size: none;
     }
 
     .bento-stats {
@@ -893,7 +896,31 @@
       border-inline-start: 0;
     }
 
-    .bento-split,
+    .bento-split {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  @scope (.portfolio-bento) {
+    .bento {
+      grid-template-columns: 1fr;
+    }
+
+    .bento-sidebar {
+      position: static;
+    }
+
+    .bento-card--sidebar {
+      gap: 1rem;
+    }
+
+    .bento-portrait {
+      max-inline-size: 10.5rem;
+      justify-self: start;
+    }
+
     .bento-projects {
       grid-template-columns: 1fr;
     }
@@ -904,6 +931,10 @@
   @scope (.portfolio-bento) {
     .bento-stats {
       grid-template-columns: 1fr 1fr;
+    }
+
+    .bento-portrait {
+      max-inline-size: 9.25rem;
     }
 
     .bento-software {
