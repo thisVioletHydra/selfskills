@@ -103,10 +103,23 @@ cp apps/api/.env.example apps/api/.env
 - Контент профиля/резюме: БД + сиды `*.locale.*.ts`
 - Планеты: `planets.ts` (ru) + `planets.locale.en.ts`
 
-## Деплой
+## Деплой (prod)
 
-- **GitHub Pages** — только статика web (workflow `.github/workflows/pages.yml`). Нужен remote GraphQL: secret `VITE_GRAPHQL_URL`.
-- **VPS** — `infra/docker-compose.prod.yml` + `infra/VPS.md` (слабый VPS: образ лучше собирать на ноуте).
+```
+GitHub Pages (web)  →  Railway (Nest API)  →  Neon (Postgres)
+```
+
+| Слой | Где |
+|------|-----|
+| Frontend | GitHub Pages — workflow `.github/workflows/pages.yml` |
+| Backend | **Railway** — сервис `selfskills-api`, URL `https://selfskills-api-production.up.railway.app` |
+| DB | **Neon** — `DATABASE_URL` unpooled (без `-pooler`) в Variables Railway |
+
+GitHub Actions secret: `VITE_GRAPHQL_URL=https://selfskills-api-production.up.railway.app/graphql`  
+Keepalive (не усыпить Railway): `.github/workflows/keepalive.yml`
+
+Dockerfile API: `apps/api/Dockerfile` (context = корень монорепы).  
+`infra/docker-compose.prod.yml` / `infra/VPS.md` — запасной сценарий, **сейчас не используется**.
 
 ## Стек
 

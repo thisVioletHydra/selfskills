@@ -1,6 +1,6 @@
 # infra
 
-Локальный Postgres и prod-compose для VPS.
+Локальный Postgres (`pnpm db`). Prod сейчас **не здесь**: API на Railway, БД на Neon — см. корневой README и `.cursor/rules/hosting.mdc`.
 
 ## Локально (Colima / Docker)
 
@@ -18,6 +18,6 @@ Compose: `infra/docker-compose.yml`
 
 Дальше из корня: migrate + seed + `pnpm back` / `pnpm front` — см. корневой `README.md`.
 
-## VPS
+## VPS (не используется)
 
-См. [VPS.md](./VPS.md) и `docker-compose.prod.yml`.
+Запасной сценарий: [VPS.md](./VPS.md) + `docker-compose.prod.yml`. Сейчас в проде не крутим.

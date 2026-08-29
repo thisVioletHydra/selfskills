@@ -31,3 +31,4 @@ coverage/
 *.local
 .turbo/
 apps/web/src/generated/
+.neon

@@ -1,0 +1,28 @@
+---
+description: Prod hosting — Railway API + Neon DB + GitHub Pages (не Render/VPS)
+alwaysApply: true
+---
+
+# Хостинг (prod)
+
+Факт, не обсуждать альтернативы без явной просьбы:
+
+| Слой | Где |
+|------|-----|
+| Frontend | GitHub Pages (`thisviolethydra.github.io/selfskills`) |
+| Backend (Nest GraphQL) | **Railway** — `https://selfskills-api-production.up.railway.app` |
+| Postgres | **Neon** (unpooled `DATABASE_URL` в Railway + локальный `apps/api/.env`) |
+
+## Запрещено по умолчанию
+
+- Не предлагать и не настраивать **Render**, Koyeb, Fly, новый VPS под этот API.
+- Не создавать `render.yaml` / Render Blueprint.
+- Не класть API на нидерландский/личный VPS пользователя.
+
+## Env
+
+- Railway: `DATABASE_URL` (Neon unpooled), `CORS_ORIGIN=https://thisviolethydra.github.io`
+- GitHub Actions secret: `VITE_GRAPHQL_URL=https://selfskills-api-production.up.railway.app/graphql`
+- Keepalive: `.github/workflows/keepalive.yml` пингует этот URL
+
+Локально Postgres может быть через `pnpm db` — это только dev, не prod.
