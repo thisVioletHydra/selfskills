@@ -60,14 +60,16 @@ export function ProfilePage() {
   }, [data]);
 
   if (error !== null) {
+    const retryLoad = () => {
+      setError(null);
+      setData(null);
+      setAttempt((current) => current + 1);
+    };
+
     return (
       <GatewayPage
-        onRetry={() => {
-          setAttempt((current) => current + 1);
-        }}
-        onHome={() => {
-          setAttempt((current) => current + 1);
-        }}
+        onRetry={retryLoad}
+        onHome={retryLoad}
       />
     );
   }

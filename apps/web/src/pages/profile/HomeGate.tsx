@@ -42,10 +42,8 @@ export function HomeGate() {
           setRetryKey((current) => current + 1);
         }}
         onHome={async () => {
-          const ok = await pingBackend();
-          if (ok) {
-            setGate('up');
-          }
+          setGate('pending');
+          setRetryKey((current) => current + 1);
         }}
       />
     ),

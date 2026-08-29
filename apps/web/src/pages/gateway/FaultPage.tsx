@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { pingBackend } from '#web/shared/api/ping-api';
 import {
   isRequestGateOpen,
   remainingRequestGateMs,
@@ -13,7 +12,6 @@ import '#web/pages/gateway/gateway-page.css';
 type FaultCode = 404 | 502;
 
 const CLICK_COOLDOWN_MS = 1000;
-const RETRY_CHECK_MS = 500;
 
 type FaultPageProps = {
   code: FaultCode;
@@ -73,17 +71,12 @@ export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: 
 
     retryLock.current = true;
     void runCooling(CLICK_COOLDOWN_MS);
-
-    const [alive] = await Promise.all([
-      Promise.all([pingBackend(), sleep(RETRY_CHECK_MS)]).then(([ok]) => ok),
-      sleep(CLICK_COOLDOWN_MS),
-    ]);
-
+    await sleep(CLICK_COOLDOWN_MS);
     retryLock.current = false;
 
-    if (alive) {
-      onRetry();
-    }
+    // Always hand off — parent re-pings / refetches. Gating on ping made Retry a no-op
+    // while a hard reload already hit a warm API.
+    onRetry();
   }, [locked, onRetry, runCooling]);
 
   const handleHome = useCallback(async () => {
@@ -105,19 +98,11 @@ export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: 
         return;
       }
 
-      if (code === 404) {
-        globalThis.location.assign(import.meta.env.BASE_URL);
-        return;
-      }
-
-      const alive = await pingBackend();
-      if (alive) {
-        globalThis.location.assign(import.meta.env.BASE_URL);
-      }
+      globalThis.location.assign(import.meta.env.BASE_URL);
     } finally {
       homeLock.current = false;
     }
-  }, [locked, code, onHome, runCooling]);
+  }, [locked, onHome, runCooling]);
 
   const cooling = coolingMs > 0;
 
