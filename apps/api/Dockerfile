@@ -37,4 +37,4 @@ COPY --from=build --chown=app:app /out ./
 USER app
 EXPOSE 3000
 
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/src/main.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma generate && ./node_modules/.bin/prisma migrate deploy && node dist/src/main.js"]
