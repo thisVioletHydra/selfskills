@@ -134,4 +134,11 @@
       --color-star: color-mix(in srgb, var(--color-cold-base) 35%, transparent);
     }
   }
+
+  /* Tablet portrait: taller peek so «вниз» sits above fixed status chips */
+  @media (width >= 700px) and (width <= 1100px) and (orientation: portrait) {
+    :root {
+      --space-peek: clamp(5.75rem, 5rem + 3svh, 7.5rem);
+    }
+  }
 }
