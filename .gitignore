@@ -19,12 +19,15 @@ dist/
 npm-debug.log*
 pnpm-debug.log*
 
-# os / editor
+# os / editor / agent tooling (local only — not for public repo)
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+.cursor/
+.agents/
+skills-lock.json
 
 # misc
 coverage/
