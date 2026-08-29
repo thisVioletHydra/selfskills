@@ -146,7 +146,7 @@ export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: 
                 aria-valuemin={0}
                 aria-valuemax={coolingMs}
                 aria-valuenow={0}
-                aria-label="Проверяем бэк"
+                aria-label="Проверяем сервер"
               >
                 <span
                   key={barTick}
@@ -155,7 +155,7 @@ export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: 
                 />
               </span>
             ) : null}
-            <span className="retry-label">Попробуй ещё раз</span>
+            <span className="retry-label">Повторить</span>
           </button>
         ) : null}
         <button

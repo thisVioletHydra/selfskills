@@ -11,7 +11,7 @@ export const planetsLocale: Record<string, PlanetCopy> = {
   typescript: {
     reading: 'typescript',
     summary: 'Typed JS — types at development time, not runtime.',
-    experience: 'Plus: fewer prod bugs. Minus: occasional type gymnastics. In production — yes, I want it.',
+    experience: 'Plus: fewer production bugs. Minus: types can get overly complex. In production — yes, I want it.',
   },
   node: {
     reading: 'node',
@@ -32,7 +32,7 @@ export const planetsLocale: Record<string, PlanetCopy> = {
   vite: {
     reading: 'vite',
     summary: 'Next-gen bundler / dev server.',
-    experience: 'Default for frontend. Fast HMR, simple config, no Webpack suffering.',
+    experience: 'Default for frontend. Fast HMR, simple configuration — without a heavy Webpack pipeline.',
   },
   nest: {
     reading: 'nest',
@@ -47,7 +47,7 @@ export const planetsLocale: Record<string, PlanetCopy> = {
   graphql: {
     reading: 'graphql',
     summary: 'API query language — the client takes only the fields it needs.',
-    experience: 'Schemas, resolvers, typing. Not a silver bullet, but fine for product APIs.',
+    experience: 'Schemas, resolvers, typing. Not a universal fit, but solid for product APIs.',
   },
   postcss: {
     reading: 'postcss',
@@ -82,12 +82,12 @@ export const planetsLocale: Record<string, PlanetCopy> = {
   tsdown: {
     reading: 'tsdown',
     summary: 'Build TypeScript libraries / packages on a modern pipeline.',
-    experience: 'For internal packages and libs — faster and simpler than classic tsc + bundler zoo.',
+    experience: 'For internal packages and libraries — faster and simpler than classic tsc plus separate bundlers.',
   },
   eslint: {
     reading: 'eslint',
     summary: 'Linter for JS/TS — rules and autofixes.',
-    experience: 'Team configs, flat config, antifou stack. Without a linter the repo rots fast.',
+    experience: 'Team configs, flat config, shared presets. Without a linter, repository quality slips fast.',
   },
   nginx: {
     reading: 'nginx',

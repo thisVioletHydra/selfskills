@@ -9,7 +9,7 @@ export function NotFoundPage({ onHome }: NotFoundPageProps) {
     <FaultPage
       code={404}
       title="Страницы нет"
-      text="Такого маршрута нет. Опечатка в URL, старый букмарк или кто-то скинул фигню."
+      text="Такого адреса нет. Возможно, опечатка в ссылке или устаревшая закладка."
       onHome={onHome}
     />
   );
