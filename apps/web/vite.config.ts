@@ -72,5 +72,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // lightningcss drops spaces in filter lists → `blur(16px)saturate(1.15)` is invalid
+    cssMinify: 'esbuild',
   },
 });
