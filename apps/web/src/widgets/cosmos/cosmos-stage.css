@@ -700,6 +700,7 @@
   .planet.dragging {
     cursor: grabbing;
     z-index: 12;
+    touch-action: none;
   }
 
   .planet.dragging img {

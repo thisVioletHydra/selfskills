@@ -182,7 +182,7 @@ export function CosmosStage() {
               }}
               onPointerMove={(event) => throwHandlers.onPointerMove(planet, event)}
               onPointerUp={(event) => throwHandlers.onPointerUp(planet, event)}
-              onPointerCancel={() => throwHandlers.onPointerCancel(planet)}
+              onPointerCancel={(event) => throwHandlers.onPointerCancel(planet, event)}
               aria-label={t('planetTapAria', { name: planet.name })}
               title={t('planetTapTitle')}
             >

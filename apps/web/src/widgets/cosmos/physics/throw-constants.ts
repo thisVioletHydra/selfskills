@@ -1,6 +1,7 @@
 /** Shared throw ceiling — bounce clamp and flick map use the same cap. */
 export const MAX_THROW_SPEED = 520;
-export const MIN_THROW_SPEED = 30;
+/** Floor impulse for the softest real flick (above place threshold). */
+export const MIN_THROW_SPEED = 36;
 
 export function clampThrowSpeed(velocityX: number, velocityY: number) {
   const speed = Math.hypot(velocityX, velocityY);

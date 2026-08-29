@@ -8,11 +8,9 @@ import {
   releasePointer,
 } from '#web/widgets/cosmos/guards/pointer-session';
 import {
-  computeReleaseVelocity,
+  createDragAccelerationTracker,
   TAP_THRESHOLD_PX,
-  trimSamples,
-  type PointSample,
-} from '#web/widgets/cosmos/physics/flick-velocity';
+} from '#web/widgets/cosmos/physics/drag-acceleration';
 import { paintPlanetPosition } from '#web/widgets/cosmos/physics/useBouncePhysics';
 import { useRef } from 'react';
 
@@ -35,6 +33,14 @@ function stagePoint(stage: HTMLElement, clientX: number, clientY: number) {
   };
 }
 
+function lockPlanetTouch(target: HTMLElement) {
+  target.style.touchAction = 'none';
+}
+
+function unlockPlanetTouch(target: HTMLElement) {
+  target.style.touchAction = 'pan-y';
+}
+
 export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const {
     stageRef,
@@ -46,9 +52,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     onThrow,
   } = options;
 
-  const samplesRef = useRef<PointSample[]>([]);
-  const dragStartRef = useRef({ pointX: 0, pointY: 0 });
-  const didDragRef = useRef(false);
+  const trackerRef = useRef(createDragAccelerationTracker());
   /** Sync session id — Android can fire up before React re-renders draggingId state. */
   const draggingIdRef = useRef<string | null>(null);
 
@@ -61,24 +65,42 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
   };
 
+  const applyRelease = (planet: Planet, release: { velocityX: number; velocityY: number; didDrag: boolean }) => {
+    const body = getBody(planet.id);
+    if (body === null || body === undefined || !release.didDrag) {
+      return;
+    }
+
+    body.velocityX = release.velocityX;
+    body.velocityY = release.velocityY;
+    body.stuckAnchorX = body.pointX;
+    body.stuckAnchorY = body.pointY;
+    body.stuckSeconds = 0;
+
+    if (release.velocityX !== 0 || release.velocityY !== 0) {
+      onThrow?.();
+    }
+  };
+
   const onPointerDown = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
     const stage = stageRef.current;
     if (stage === null || stage === undefined) {
       return;
     }
 
-    capturePointer(event.currentTarget, event.pointerId);
+    const target = event.currentTarget;
+    lockPlanetTouch(target);
+    capturePointer(target, event.pointerId);
 
     const point = stagePoint(stage, event.clientX, event.clientY);
     const body = getBody(planet.id);
 
     if (body === null || body === undefined) {
+      unlockPlanetTouch(target);
       return;
     }
 
-    didDragRef.current = false;
-    dragStartRef.current = point;
-    samplesRef.current = [{ pointX: point.pointX, pointY: point.pointY, t: performance.now() }];
+    trackerRef.current.start(point);
 
     body.pointX = point.pointX;
     body.pointY = point.pointY;
@@ -112,14 +134,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     body.velocityY = 0;
     paintBody(planet.id, point.pointX, point.pointY);
 
-    const now = performance.now();
-    samplesRef.current.push({ pointX: point.pointX, pointY: point.pointY, t: now });
-    trimSamples(samplesRef.current, now);
-
-    const drift = Math.hypot(point.pointX - dragStartRef.current.pointX, point.pointY - dragStartRef.current.pointY);
-    if (drift > TAP_THRESHOLD_PX) {
-      didDragRef.current = true;
-    }
+    trackerRef.current.move(point);
   };
 
   const onPointerUp = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -127,44 +142,36 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
       return;
     }
 
-    releasePointer(event.currentTarget, event.pointerId);
+    const target = event.currentTarget;
+    releasePointer(target, event.pointerId);
+    unlockPlanetTouch(target);
 
-    const body = getBody(planet.id);
-    if (body !== null && body !== undefined) {
-      if (didDragRef.current) {
-        const release = computeReleaseVelocity(samplesRef.current, dragStartRef.current);
-        body.velocityX = release.velocityX;
-        body.velocityY = release.velocityY;
-        body.stuckAnchorX = body.pointX;
-        body.stuckAnchorY = body.pointY;
-        body.stuckSeconds = 0;
-
-        if (release.velocityX !== 0 || release.velocityY !== 0) {
-          onThrow?.();
-        }
-      }
-    }
+    const release = trackerRef.current.end();
+    applyRelease(planet, release);
 
     draggingIdRef.current = null;
     setDraggingId(null);
-    samplesRef.current = [];
 
-    if (!didDragRef.current) {
+    if (!release.didDrag) {
       // Kill the synthetic click that Android would otherwise dump on the new modal backdrop.
       event.preventDefault();
       onOpen(planet);
     }
   };
 
-  const onPointerCancel = (planet: Planet) => {
+  const onPointerCancel = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
     if (!isActivePointerSession(draggingIdRef.current, planet.id)) {
       return;
     }
 
+    const target = event.currentTarget;
+    unlockPlanetTouch(target);
+
+    const release = trackerRef.current.cancel();
+    applyRelease(planet, release);
+
     draggingIdRef.current = null;
     setDraggingId(null);
-    samplesRef.current = [];
-    didDragRef.current = false;
   };
 
   const onPointerEnter = (planet: Planet) => {
@@ -186,3 +193,5 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     onPointerCancel,
   };
 }
+
+export { TAP_THRESHOLD_PX };
