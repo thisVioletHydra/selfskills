@@ -115,7 +115,7 @@
     block-size: 100%;
     inline-size: 100%;
     background: var(--glitch-hot);
-    animation: fault-cooldown-wipe 1s linear forwards;
+    animation: fault-cooldown-wipe var(--fault-cool-ms, 1s) linear forwards;
   }
 
   .retry-label {
