@@ -21,6 +21,8 @@ export function getLineIndent(sourceCode, lineNumber) {
 }
 
 /**
+ * Parameter-list `(` / `)` only — not the `)` inside a return type like `: () => void`.
+ *
  * @param {import('eslint').SourceCode} sourceCode
  * @param {import('estree').FunctionDeclaration | import('estree').FunctionExpression | import('estree').ArrowFunctionExpression} node
  */
@@ -30,23 +32,29 @@ export function getFunctionParameterParens(sourceCode, node) {
     return null;
   }
 
+  let depth = 0;
   let rightParen = null;
-  if (node.body) {
-    const bodyStart = sourceCode.getFirstToken(node.body);
-    if (bodyStart) {
-      rightParen = sourceCode.getTokenBefore(bodyStart, isClosingParenToken);
+
+  for (
+    let token = leftParen;
+    token !== null && token !== undefined;
+    token = sourceCode.getTokenAfter(token)
+  ) {
+    if (isOpeningParenToken(token)) {
+      depth += 1;
+      continue;
     }
-  }
 
-  if (!rightParen && node.params.length > 0) {
-    rightParen = sourceCode.getTokenAfter(
-      node.params.at(-1),
-      isClosingParenToken,
-    );
-  }
+    if (!isClosingParenToken(token)) {
+      continue;
+    }
 
-  if (!rightParen) {
-    rightParen = sourceCode.getTokenAfter(leftParen, isClosingParenToken);
+    depth -= 1;
+
+    if (depth === 0) {
+      rightParen = token;
+      break;
+    }
   }
 
   if (!rightParen) {
