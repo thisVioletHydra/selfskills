@@ -22,25 +22,24 @@ const ABOUT_IO: IntersectionObserverInit = {
 };
 
 /**
- * Reveal when the portfolio section climbs into the upper part of the viewport.
- * Peek strip at the bottom must not count — root is shrunk from below.
- * Observe the section itself (not tall `.bento-main`): ratio on a huge node never reaches a min threshold.
+ * Reveal once the portfolio climbs out of the bottom peek strip.
+ * Do not wait for mid-viewport — that leaves a long stretch of invisible cards.
  */
 const MAIN_IO: IntersectionObserverInit = {
   threshold: 0,
-  rootMargin: '0px 0px -38% 0px',
+  rootMargin: '0px 0px -10% 0px',
 };
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Section top has left the bottom peek zone and entered the main viewport. */
+/** Section has moved up past the peek cue — safe to show the bento shell. */
 function isSectionReadyToReveal(node: Element) {
   const rect = node.getBoundingClientRect();
   const viewHeight = window.innerHeight || document.documentElement.clientHeight;
 
-  return rect.top < viewHeight * 0.62;
+  return rect.top < viewHeight * 0.9;
 }
 
 function observeOnce(
