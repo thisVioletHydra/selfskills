@@ -60,7 +60,7 @@
     --space-10: calc(var(--space-unit) * 18);
     --space-section-y: clamp(3.25rem, 2.4rem + 3.5vi, 4.5rem);
     --space-section-x: clamp(1rem, 0.55rem + 2vi, 1.5rem);
-    --space-peek: clamp(10.5rem, 8.25rem + 7dvh, 14rem);
+    --space-peek: clamp(10.5rem, 8.25rem + 7svh, 14rem);
 
     /* Type — fluid via vi */
     --font-sans: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
@@ -95,7 +95,7 @@
     --radius-md: 0.75rem;
     --radius-pill: 1e3px;
     --header-h: 4rem;
-    --hero-min-h: clamp(42.5rem, 38rem + 12dvh, 45rem);
+    --hero-min-h: clamp(42.5rem, 38rem + 12svh, 45rem);
 
     /* Elevation */
     --z-header: 100;

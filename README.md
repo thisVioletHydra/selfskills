@@ -111,11 +111,16 @@ GitHub Pages (web)  →  Railway (Nest API)  →  Neon (Postgres)
 
 | Слой | Где |
 |------|-----|
-| Frontend | GitHub Pages — workflow `.github/workflows/pages.yml` |
+| Frontend | GitHub Pages — авто на push `main`, `.github/workflows/pages.yml` |
 | Backend | **Railway** — сервис `selfskills-api`, URL `https://selfskills-api-production.up.railway.app` |
 | DB | **Neon** — `DATABASE_URL` unpooled (без `-pooler`) в Variables Railway |
 
-GitHub Actions secret: `VITE_GRAPHQL_URL=https://selfskills-api-production.up.railway.app/graphql`  
+**Политика:** `git push` деплоит только фронт. API и seed — вручную через Actions → Run workflow:
+
+- **Deploy API** — `.github/workflows/deploy-api.yml` (Railway Automatic Deploys **выключены**)
+- **Seed DB** — `.github/workflows/seed-db.yml`
+
+Secrets: `RAILWAY_TOKEN`, `DATABASE_URL`, `VITE_GRAPHQL_URL`  
 Keepalive (не усыпить Railway): `.github/workflows/keepalive.yml`
 
 Dockerfile API: `apps/api/Dockerfile` (context = корень монорепы).  

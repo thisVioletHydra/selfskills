@@ -13,6 +13,23 @@ alwaysApply: true
 | Backend (Nest GraphQL) | **Railway** — `https://selfskills-api-production.up.railway.app` |
 | Postgres | **Neon** (unpooled `DATABASE_URL` в Railway + локальный `apps/api/.env`) |
 
+## Деплой
+
+- **Railway Automatic Deploys — OFF** (в настройках сервиса `selfskills-api`).
+- `git push` в `main` **не** деплоит API и **не** сидит БД.
+- Frontend (Pages) — **авто** на push в `main` (`.github/workflows/pages.yml`).
+- API и seed — **только вручную** через GitHub Actions → **Run workflow**:
+  - **Deploy API** — `.github/workflows/deploy-api.yml`
+  - **Seed DB** — `.github/workflows/seed-db.yml`
+
+## GitHub Actions secrets
+
+| Secret | Назначение |
+|--------|------------|
+| `RAILWAY_TOKEN` | Redeploy API (`deploy-api.yml`) |
+| `DATABASE_URL` | Prisma seed против Neon prod (`seed-db.yml`) |
+| `VITE_GRAPHQL_URL` | Build фронта для Pages (`pages.yml`) |
+
 ## Запрещено по умолчанию
 
 - Не предлагать и не настраивать **Render**, Koyeb, Fly, новый VPS под этот API.

@@ -18,7 +18,7 @@ export type CosmosHintItem = {
   hiding: boolean;
 };
 
-type Translate = (key: 'hintTap' | 'hintThrow') => string;
+type Translate = (key: 'hintTap') => string;
 
 type HidingMap = Record<CosmosHintKey, boolean>;
 
@@ -34,12 +34,6 @@ function buildHintCopy(t: Translate): Omit<CosmosHintItem, 'visible' | 'hiding'>
       text: t('hintTap'),
       mark: '◎',
       markClass: 'mark',
-    },
-    {
-      key: 'throwDismissed',
-      text: t('hintThrow'),
-      mark: '↗',
-      markClass: 'mark throw',
     },
   ];
 }

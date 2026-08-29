@@ -32,3 +32,4 @@ coverage/
 .turbo/
 apps/web/src/generated/
 .neon
+.tmp/

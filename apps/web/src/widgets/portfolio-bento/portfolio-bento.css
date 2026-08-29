@@ -50,9 +50,30 @@
     transform: translateX(-50%) translateY(-0.45rem);
   }
 
-  .bento-shell {
-    inline-size: min(100%, var(--width-bento));
-    margin-inline: auto;
+  .bento-skeleton-bridge {
+    position: relative;
+    z-index: 3;
+  }
+
+  :scope.is-awaiting-reveal {
+    min-block-size: min(70svh, 42rem);
+  }
+
+  :scope.is-awaiting-reveal .bento-skeleton-bridge {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    padding-block: inherit;
+    padding-inline: inherit;
+    background: var(--color-bg-deep);
+  }
+
+  :scope.is-awaiting-reveal .bento-scroll-hint {
+    z-index: 5;
+  }
+
+  :scope.is-awaiting-reveal > .bento-shell {
+    visibility: hidden;
   }
 
   .bento {

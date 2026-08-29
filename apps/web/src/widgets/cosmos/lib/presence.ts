@@ -7,8 +7,12 @@ type PresenceListener = (presence: CosmosPresence) => void;
 
 const listeners = new Set<PresenceListener>();
 
+/** Chrome Android URL-bar / IO flaps — require stable leave before inView=false. */
+const LEAVE_HYSTERESIS_MS = 450;
+
 let observed: Element | null = null;
 let io: IntersectionObserver | null = null;
+let leaveTimer = 0;
 let presence: CosmosPresence = {
   inView: true,
   pageVisible: true,
@@ -18,6 +22,18 @@ function notify() {
   for (const listener of listeners) {
     listener(presence);
   }
+}
+
+function setInView(next: boolean) {
+  if (presence.inView === next) {
+    return;
+  }
+
+  presence = {
+    ...presence,
+    inView: next,
+  };
+  notify();
 }
 
 function onVisibility() {
@@ -32,6 +48,11 @@ function teardownObserver() {
   if (io !== null && io !== undefined) {
     io.disconnect();
     io = null;
+  }
+
+  if (leaveTimer !== 0) {
+    window.clearTimeout(leaveTimer);
+    leaveTimer = 0;
   }
 
   document.removeEventListener('visibilitychange', onVisibility);
@@ -52,13 +73,34 @@ function ensureAttached(target: Element) {
 
   io = new IntersectionObserver(
     ([entry]) => {
-      presence = {
-        ...presence,
-        inView: entry.isIntersecting && entry.intersectionRatio > 0,
-      };
-      notify();
+      if (entry === undefined) {
+        return;
+      }
+
+      const visible = entry.isIntersecting && entry.intersectionRatio > 0;
+
+      if (visible) {
+        if (leaveTimer !== 0) {
+          window.clearTimeout(leaveTimer);
+          leaveTimer = 0;
+        }
+
+        setInView(true);
+
+        return;
+      }
+
+      if (!presence.inView || leaveTimer !== 0) {
+        return;
+      }
+
+      leaveTimer = window.setTimeout(() => {
+        leaveTimer = 0;
+        setInView(false);
+      }, LEAVE_HYSTERESIS_MS);
     },
-    { threshold: [0, 0.05], rootMargin: '0px' },
+    // Tall rootMargin: toolbar show/hide must not flap the hero while still on screen.
+    { threshold: [0, 0.01], rootMargin: '40% 0px 40% 0px' },
   );
   io.observe(target);
   document.addEventListener('visibilitychange', onVisibility);

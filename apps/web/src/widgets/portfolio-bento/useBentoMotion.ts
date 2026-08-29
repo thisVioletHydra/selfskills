@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 
 type UseBentoMotionOptions = {
   enabled: boolean;
@@ -21,19 +21,28 @@ const ABOUT_IO: IntersectionObserverInit = {
   rootMargin: '0px 0px -18% 0px',
 };
 
+/** Peek under cosmos should already unlock the first reveal. */
 const MAIN_IO: IntersectionObserverInit = {
-  threshold: 0.08,
-  rootMargin: '0px 0px -10% 0px',
+  threshold: 0,
+  rootMargin: '0px 0px -2% 0px',
 };
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+function isElementInViewport(node: Element, rootMarginBottomPercent = 5) {
+  const rect = node.getBoundingClientRect();
+  const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+  const bottomCut = viewHeight * (rootMarginBottomPercent / 100);
+
+  return rect.top < viewHeight - bottomCut && rect.bottom > 0;
+}
+
 function observeOnce(
   node: Element,
   onEnter: () => void,
-  options: IntersectionObserverInit
+  options: IntersectionObserverInit,
 ): IntersectionObserver {
   const observer = new IntersectionObserver(([entry]) => {
     if (entry?.isIntersecting !== true) {
@@ -58,6 +67,22 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
   const [softwareActive, setSoftwareActive] = useState(false);
   const [aboutUnlocked, setAboutUnlocked] = useState(false);
 
+  useLayoutEffect(() => {
+    if (!enabled || reducedMotion || revealed) {
+      return;
+    }
+
+    const section = sectionRef.current;
+    if (section === null || section === undefined) {
+      return;
+    }
+
+    const mainNode = section.querySelector('.bento-main');
+    if (mainNode !== null && isElementInViewport(mainNode, 5)) {
+      setRevealed(true);
+    }
+  }, [enabled, reducedMotion, revealed, sectionRef]);
+
   useEffect(() => {
     if (!enabled || reducedMotion) {
       return;
@@ -71,11 +96,15 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
     const observers: IntersectionObserver[] = [];
 
     const mainNode = section.querySelector('.bento-main');
-    if (mainNode !== null) {
+    if (mainNode !== null && !revealed) {
       observers.push(
-        observeOnce(mainNode, () => {
-          setRevealed(true);
-        }, MAIN_IO),
+        observeOnce(
+          mainNode,
+          () => {
+            setRevealed(true);
+          },
+          MAIN_IO,
+        ),
       );
     }
 
@@ -99,7 +128,7 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
         observer.disconnect();
       }
     };
-  }, [enabled, reducedMotion, sectionRef]);
+  }, [enabled, reducedMotion, revealed, sectionRef]);
 
   useEffect(() => {
     if (!enabled || reducedMotion || !skillsActive || softwareActive) {

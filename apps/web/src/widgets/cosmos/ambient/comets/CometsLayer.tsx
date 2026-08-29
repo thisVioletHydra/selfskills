@@ -24,9 +24,10 @@ type CometProps = {
   flight: CometFlight;
   onDone: (id: number) => void;
   frozen: boolean;
+  sparkCount: number;
 };
 
-function Comet({ flight, onDone, frozen }: CometProps) {
+function Comet({ flight, onDone, frozen, sparkCount }: CometProps) {
   const latchRef = useRef(createOnceLatch());
 
   const finish = useCallback(() => {
@@ -86,7 +87,7 @@ function Comet({ flight, onDone, frozen }: CometProps) {
       }}
     >
       <span className="comet-head" />
-      {Array.from({ length: COMETS_CONFIG.sparkCount }, (_, index) => {
+      {Array.from({ length: sparkCount }, (_, index) => {
         const side = index % 2 === 0 ? 1 : -1;
         const sparkStyle = {
           '--i': index,
@@ -113,22 +114,45 @@ function Comet({ flight, onDone, frozen }: CometProps) {
 export function CometsLayer({ motionMode }: AmbientContext) {
   const { inView, pageVisible } = useCosmosPresence();
   const [flights, setFlights] = useState<CometFlight[]>([]);
+  const [compact, setCompact] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(width < 768px)').matches,
+  );
   const frozen = isMotionFrozen(motionMode);
   const enabled = canRunAmbient({ frozen, inView, pageVisible });
+  const maxFlights = compact ? COMETS_CONFIG.maxFlightsCompact : COMETS_CONFIG.maxFlights;
+  const sparkCount = compact ? COMETS_CONFIG.sparkCountCompact : COMETS_CONFIG.sparkCount;
+  const nextDelay = compact ? COMETS_CONFIG.nextDelayCompact : COMETS_CONFIG.nextDelay;
+
+  useEffect(() => {
+    const media = window.matchMedia('(width < 768px)');
+    const sync = () => {
+      setCompact(media.matches);
+    };
+
+    sync();
+    media.addEventListener('change', sync);
+
+    return () => {
+      media.removeEventListener('change', sync);
+    };
+  }, []);
 
   const removeFlight = useCallback((id: number) => {
     setFlights((current) => current.filter((flight) => flight.id !== id));
   }, []);
 
-  const appendWave = useCallback((wave: CometFlight[]) => {
-    setFlights((current) => appendCapped(current, wave, COMETS_CONFIG.maxFlights));
-  }, []);
+  const appendWave = useCallback(
+    (wave: CometFlight[]) => {
+      setFlights((current) => appendCapped(current, wave, maxFlights));
+    },
+    [maxFlights],
+  );
 
   useAmbientScheduler({
     enabled,
     timerId: COMETS_CONFIG.ambientId,
     firstDelay: COMETS_CONFIG.firstDelay,
-    nextDelay: COMETS_CONFIG.nextDelay,
+    nextDelay,
     onTick: () => {
       appendWave(createCometWave());
     },
@@ -137,7 +161,13 @@ export function CometsLayer({ motionMode }: AmbientContext) {
   return (
     <>
       {flights.map((flight) => (
-        <Comet key={flight.id} flight={flight} frozen={frozen} onDone={removeFlight} />
+        <Comet
+          key={flight.id}
+          flight={flight}
+          frozen={frozen}
+          sparkCount={sparkCount}
+          onDone={removeFlight}
+        />
       ))}
     </>
   );

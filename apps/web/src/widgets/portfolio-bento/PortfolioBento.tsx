@@ -21,18 +21,18 @@ type PortfolioBentoProps = {
   loading?: boolean;
 };
 
-function BentoSkeleton() {
+function BentoSkeletonBridge() {
   return (
-    <section className="portfolio-bento is-loading" id="portfolio" aria-busy="true">
+    <div className="bento-skeleton-bridge" aria-hidden="true">
       <div className="bento-shell">
         <div className="bento">
-          <aside className="bento-sidebar" aria-hidden="true">
+          <aside className="bento-sidebar">
             <div className="bento-card skel skel-portrait" />
             <div className="skel skel-line skel-line--lg" />
             <div className="skel skel-line" />
             <div className="skel skel-copy" />
           </aside>
-          <div className="bento-main" aria-hidden="true">
+          <div className="bento-main">
             <div className="bento-card skel skel-stats" />
             <div className="bento-card skel skel-card" />
             <div className="bento-card skel skel-card skel-card--sm" />
@@ -43,6 +43,14 @@ function BentoSkeleton() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function BentoSkeleton() {
+  return (
+    <section className="portfolio-bento is-loading" id="portfolio" aria-busy="true">
+      <BentoSkeletonBridge />
     </section>
   );
 }
@@ -73,7 +81,7 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
 
   const sectionClassName = [
     'portfolio-bento',
-    revealed ? 'is-revealed' : '',
+    revealed ? 'is-revealed' : 'is-awaiting-reveal',
     experienceActive ? 'is-experience-active' : '',
     educationActive ? 'is-education-active' : '',
     aboutActive ? 'is-about-active' : '',
@@ -116,6 +124,8 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
 
   return (
     <section ref={sectionRef} className={sectionClassName} id="portfolio">
+      {!revealed ? <BentoSkeletonBridge /> : null}
+
       <div className="bento-scroll-hint" aria-hidden={revealed}>
         <span className="bento-scroll-hint-label">{t('scroll')}</span>
         <svg className="bento-scroll-hint-icon" viewBox="0 0 24 24" aria-hidden="true">

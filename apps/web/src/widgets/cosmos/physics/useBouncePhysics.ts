@@ -22,18 +22,39 @@ const WALL_PADDING = 16;
 const WALL_DAMPING = 0.9;
 const RESTITUTION = 0.78;
 const STAR_Y_RATIO = 0.42;
+const STAR_Y_RATIO_COMPACT = 0.34;
 const SUBSTEPS = 3;
+const SUBSTEPS_COMPACT = 2;
 const POSITION_ITERS = 2;
+const POSITION_ITERS_COMPACT = 1;
 const BALL_SCALE = 1.08;
+const BALL_SCALE_COMPACT = 0.92;
 const STAR_COLLISION_SCALE = 1.15;
 const STUCK_SPEED_THRESHOLD = 10;
 const STUCK_DRIFT_PX = 20;
 const STUCK_SECONDS = 10;
 const NUDGE_SPEED = 38;
 const MIN_BOUNCE_SPEED = 24;
+const COMPACT_WIDTH_PX = 768;
 
-function ballRadius(size: number) {
-  return (size / 2) * BALL_SCALE;
+function isCompactWidth(width: number) {
+  return width > 0 && width < COMPACT_WIDTH_PX;
+}
+
+function ballRadius(size: number, compact: boolean) {
+  return (size / 2) * (compact ? BALL_SCALE_COMPACT : BALL_SCALE);
+}
+
+function starYRatio(compact: boolean) {
+  return compact ? STAR_Y_RATIO_COMPACT : STAR_Y_RATIO;
+}
+
+function orbitPlanetsForWidth(width: number) {
+  if (!isCompactWidth(width)) {
+    return ORBIT_PLANETS;
+  }
+
+  return ORBIT_PLANETS.filter((_, index) => index % 2 === 0);
 }
 
 function starCollisionRadius(starSize: number) {
@@ -55,7 +76,7 @@ export function planetTransform(pointX: number, pointY: number) {
   return `translate3d(${pointX}px, ${pointY}px, 0) translate(-50%, -50%)`;
 }
 
-export { clampThrowSpeed };
+export { clampThrowSpeed, orbitPlanetsForWidth, COMPACT_WIDTH_PX };
 
 export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
   for (const body of bodies) {
@@ -87,13 +108,21 @@ function ensureMinSpeed(body: BounceBody, minSpeed: number) {
   body.velocityY = Math.sin(angle) * minSpeed;
 }
 
-function createBodies(width: number, height: number, starRadius: number): BounceBody[] {
+function createBodies(
+  width: number,
+  height: number,
+  starRadius: number,
+  floorInset: number,
+): BounceBody[] {
+  const compact = isCompactWidth(width);
+  const playHeight = Math.max(height - floorInset, height * 0.45);
   const centerX = width / 2;
-  const centerY = height * STAR_Y_RATIO;
+  const centerY = playHeight * starYRatio(compact);
+  const planets = orbitPlanetsForWidth(width);
 
-  return ORBIT_PLANETS.map((planet, index) => {
-    const radius = ballRadius(planet.size);
-    const angle = (index / ORBIT_PLANETS.length) * Math.PI * 2 + 0.4;
+  return planets.map((planet, index) => {
+    const radius = ballRadius(planet.size, compact);
+    const angle = (index / planets.length) * Math.PI * 2 + 0.4;
     const dist = starRadius + radius + 48 + (index % 5) * 38 + Math.floor(index / 5) * 28;
 
     let velocityX = (Math.random() - 0.5) * 65;
@@ -105,7 +134,7 @@ function createBodies(width: number, height: number, starRadius: number): Bounce
     const pointX = centerX + Math.cos(angle) * dist;
     const pointY = centerY + Math.sin(angle) * dist;
 
-    return {
+    const body: BounceBody = {
       id: planet.id,
       pointX,
       pointY,
@@ -116,6 +145,10 @@ function createBodies(width: number, height: number, starRadius: number): Bounce
       stuckAnchorY: pointY,
       stuckSeconds: 0,
     };
+
+    clampBodyToStage(body, width, height, floorInset);
+
+    return body;
   });
 }
 
@@ -180,11 +213,66 @@ function updateStuckState(
   }
 }
 
-function bounceWalls(body: BounceBody, width: number, height: number) {
+function clampBodyToStage(body: BounceBody, width: number, height: number, floorInset: number) {
+  const playHeight = Math.max(height - floorInset, height * 0.45);
   const minX = WALL_PADDING + body.radius;
   const maxX = width - WALL_PADDING - body.radius;
   const minY = WALL_PADDING + body.radius;
-  const maxY = height - WALL_PADDING - body.radius;
+  const maxY = playHeight - WALL_PADDING - body.radius;
+
+  body.pointX = Math.min(Math.max(body.pointX, minX), maxX);
+  body.pointY = Math.min(Math.max(body.pointY, minY), maxY);
+  body.stuckAnchorX = Math.min(Math.max(body.stuckAnchorX, minX), maxX);
+  body.stuckAnchorY = Math.min(Math.max(body.stuckAnchorY, minY), maxY);
+}
+
+function scaleBodiesToSize(
+  bodies: BounceBody[],
+  prevWidth: number,
+  prevHeight: number,
+  nextWidth: number,
+  nextHeight: number,
+  starRadius: number,
+  floorInset: number,
+) {
+  if (prevWidth <= 0 || prevHeight <= 0 || nextWidth <= 0 || nextHeight <= 0) {
+    return;
+  }
+
+  const compact = isCompactWidth(nextWidth);
+  const scaleX = nextWidth / prevWidth;
+  const scaleY = nextHeight / prevHeight;
+  const playHeight = Math.max(nextHeight - floorInset, nextHeight * 0.45);
+  const starX = nextWidth / 2;
+  const starY = playHeight * starYRatio(compact);
+
+  for (const body of bodies) {
+    body.pointX *= scaleX;
+    body.pointY *= scaleY;
+    body.stuckAnchorX *= scaleX;
+    body.stuckAnchorY *= scaleY;
+    clampBodyToStage(body, nextWidth, nextHeight, floorInset);
+
+    const deltaX = body.pointX - starX;
+    const deltaY = body.pointY - starY;
+    const dist = Math.hypot(deltaX, deltaY);
+    const minDist = starRadius + body.radius + 4;
+
+    if (dist > 0 && dist < minDist) {
+      const push = minDist / dist;
+      body.pointX = starX + deltaX * push;
+      body.pointY = starY + deltaY * push;
+      clampBodyToStage(body, nextWidth, nextHeight, floorInset);
+    }
+  }
+}
+
+function bounceWalls(body: BounceBody, width: number, height: number, floorInset: number) {
+  const playHeight = Math.max(height - floorInset, height * 0.45);
+  const minX = WALL_PADDING + body.radius;
+  const maxX = width - WALL_PADDING - body.radius;
+  const minY = WALL_PADDING + body.radius;
+  const maxY = playHeight - WALL_PADDING - body.radius;
 
   if (body.pointX < minX) {
     body.pointX = minX;
@@ -336,7 +424,9 @@ function solveCollisions(
   starX: number,
   starY: number,
   starRadius: number,
-  pausedId: string | null
+  pausedId: string | null,
+  floorInset: number,
+  positionIters: number,
 ) {
   const star: CircleBody = {
     pointX: starX,
@@ -346,11 +436,11 @@ function solveCollisions(
     radius: starRadius,
   };
 
-  for (let iter = 0; iter < POSITION_ITERS; iter++) {
+  for (let iter = 0; iter < positionIters; iter++) {
     for (const body of bodies) {
       const bodyStatic = body.id === pausedId;
       if (bodyStatic === false) {
-        bounceWalls(body, width, height);
+        bounceWalls(body, width, height, floorInset);
       }
       resolveCircles(body, star, bodyStatic, true);
     }
@@ -380,13 +470,18 @@ function step(
   height: number,
   starRadius: number,
   pausedId: string | null,
-  dt: number
+  dt: number,
+  floorInset: number,
 ) {
+  const compact = isCompactWidth(width);
+  const playHeight = Math.max(height - floorInset, height * 0.45);
   const starX = width / 2;
-  const starY = height * STAR_Y_RATIO;
-  const subDt = dt / SUBSTEPS;
+  const starY = playHeight * starYRatio(compact);
+  const substeps = compact ? SUBSTEPS_COMPACT : SUBSTEPS;
+  const positionIters = compact ? POSITION_ITERS_COMPACT : POSITION_ITERS;
+  const subDt = dt / substeps;
 
-  for (let sub = 0; sub < SUBSTEPS; sub++) {
+  for (let sub = 0; sub < substeps; sub++) {
     for (const body of bodies) {
       if (body.id === pausedId) {
         continue;
@@ -400,7 +495,17 @@ function step(
       body.pointY += body.velocityY * subDt;
     }
 
-    solveCollisions(bodies, width, height, starX, starY, starRadius, pausedId);
+    solveCollisions(
+      bodies,
+      width,
+      height,
+      starX,
+      starY,
+      starRadius,
+      pausedId,
+      floorInset,
+      positionIters,
+    );
   }
 }
 
@@ -415,6 +520,7 @@ export function useBouncePhysics(
   const interactionRef = useRef(interactionId);
   const motionModeRef = useRef(motionMode);
   const sizeRef = useRef({ width: 0, height: 0 });
+  const floorInsetRef = useRef(0);
   const syncRunningRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -437,11 +543,35 @@ export function useBouncePhysics(
     const starRadius = starCollisionRadius(starSize);
     const PAUSE_DELAY_MS = 1000;
 
+    const measureFloorInset = (height: number) => {
+      const copy = stage.querySelector('.copy');
+      if (!(copy instanceof HTMLElement)) {
+        floorInsetRef.current = isCompactWidth(stage.clientWidth) ? height * 0.38 : 0;
+
+        return floorInsetRef.current;
+      }
+
+      const stageRect = stage.getBoundingClientRect();
+      const copyRect = copy.getBoundingClientRect();
+      const raw = stageRect.bottom - copyRect.top + 10;
+      floorInsetRef.current = Math.min(Math.max(raw, 0), height * 0.55);
+
+      return floorInsetRef.current;
+    };
+
     const measure = () => {
       const { width, height } = stage.getBoundingClientRect();
       sizeRef.current = { width, height };
+      measureFloorInset(height);
 
       return sizeRef.current;
+    };
+
+    const spawnBodies = (width: number, height: number) => {
+      const floorInset = measureFloorInset(height);
+      const initial = createBodies(width, height, starRadius, floorInset);
+      bodiesRef.current = initial;
+      paintPlanets(initial, planetElsRef.current);
     };
 
     const init = () => {
@@ -450,17 +580,113 @@ export function useBouncePhysics(
         return;
       }
 
-      const initial = createBodies(width, height, starRadius);
-      bodiesRef.current = initial;
-      paintPlanets(initial, planetElsRef.current);
+      spawnBodies(width, height);
     };
 
     init();
 
+    // Copy lays out after first paint — remeasure floor so planets stay above text.
+    let floorSyncRaf = window.requestAnimationFrame(() => {
+      floorSyncRaf = 0;
+      const { width, height } = sizeRef.current;
+      if (width === 0 || height === 0) {
+        return;
+      }
+
+      const floorInset = measureFloorInset(height);
+      for (const body of bodiesRef.current) {
+        clampBodyToStage(body, width, height, floorInset);
+      }
+      paintPlanets(bodiesRef.current, planetElsRef.current);
+    });
+
+    let resizeTimer = 0;
+    const RESIZE_DEBOUNCE_MS = 180;
+    /** Ignore chrome URL-bar height jitter; only real width changes reflow bodies. */
+    const WIDTH_SCALE_EPS_PX = 2;
+
+    const applyResize = () => {
+      const prevWidth = sizeRef.current.width;
+      const prevHeight = sizeRef.current.height;
+      const { width, height } = stage.getBoundingClientRect();
+      if (width === 0 || height === 0) {
+        return;
+      }
+
+      sizeRef.current = { width, height };
+      const floorInset = measureFloorInset(height);
+
+      if (bodiesRef.current.length === 0) {
+        spawnBodies(width, height);
+
+        return;
+      }
+
+      const crossedCompact =
+        isCompactWidth(prevWidth) !== isCompactWidth(width) && prevWidth > 0;
+
+      if (crossedCompact) {
+        spawnBodies(width, height);
+
+        return;
+      }
+
+      const widthDelta = Math.abs(prevWidth - width);
+      const heightChanged = Math.abs(prevHeight - height) > 0.5;
+
+      if (widthDelta < WIDTH_SCALE_EPS_PX) {
+        if (heightChanged) {
+          for (const body of bodiesRef.current) {
+            clampBodyToStage(body, width, height, floorInset);
+          }
+          paintPlanets(bodiesRef.current, planetElsRef.current);
+        }
+
+        return;
+      }
+
+      if (prevWidth <= 0 || prevHeight <= 0) {
+        return;
+      }
+
+      scaleBodiesToSize(
+        bodiesRef.current,
+        prevWidth,
+        prevHeight,
+        width,
+        height,
+        starRadius,
+        floorInset,
+      );
+      paintPlanets(bodiesRef.current, planetElsRef.current);
+    };
+
+    const onResize = () => {
+      if (resizeTimer !== 0) {
+        window.clearTimeout(resizeTimer);
+      }
+
+      resizeTimer = window.setTimeout(() => {
+        resizeTimer = 0;
+        applyResize();
+      }, RESIZE_DEBOUNCE_MS);
+    };
+
+    window.addEventListener('resize', onResize);
+
     if (reducedMotion) {
       root.classList.add('paused');
 
-      return;
+      return () => {
+        if (floorSyncRaf !== 0) {
+          window.cancelAnimationFrame(floorSyncRaf);
+        }
+        if (resizeTimer !== 0) {
+          window.clearTimeout(resizeTimer);
+        }
+        window.removeEventListener('resize', onResize);
+        root.classList.remove('paused');
+      };
     }
 
     let raf = 0;
@@ -472,22 +698,37 @@ export function useBouncePhysics(
 
     const shouldRun = () => motionModeRef.current === 'auto' && inView && pageVisible;
 
+    /** Hard stop (user pause / tab hidden) — freeze CSS ambient too. */
+    const shouldHardStop = () =>
+      motionModeRef.current === 'paused' || !pageVisible;
+
     const setPausedClass = (paused: boolean) => {
       root.classList.toggle('paused', paused);
     };
 
-    const stopLoop = () => {
+    const stopLoop = (freezeAmbient: boolean) => {
       loopActive = false;
       if (raf !== 0) {
         cancelAnimationFrame(raf);
         raf = 0;
       }
-      setPausedClass(true);
+      if (freezeAmbient) {
+        setPausedClass(true);
+      }
     };
 
     const tick = (now: number) => {
-      if (!shouldRun()) {
-        stopLoop();
+      if (shouldHardStop()) {
+        stopLoop(true);
+
+        return;
+      }
+
+      // Soft leave (scroll away): keep RAF alive until pauseTimer; do NOT freeze ambient
+      // every IO flap — Android Chrome flaps intersection when the URL bar moves.
+      if (!inView) {
+        last = now;
+        raf = requestAnimationFrame(tick);
 
         return;
       }
@@ -497,7 +738,15 @@ export function useBouncePhysics(
 
       const { width, height } = sizeRef.current;
       if (width > 0 && height > 0 && bodiesRef.current.length > 0) {
-        step(bodiesRef.current, width, height, starRadius, interactionRef.current, dt);
+        step(
+          bodiesRef.current,
+          width,
+          height,
+          starRadius,
+          interactionRef.current,
+          dt,
+          floorInsetRef.current,
+        );
         paintPlanets(bodiesRef.current, planetElsRef.current);
       }
 
@@ -531,24 +780,22 @@ export function useBouncePhysics(
         pauseTimer = 0;
       }
 
-      // User pause: freeze now. Off-screen / hidden tab: delay before freeze.
-      if (motionModeRef.current === 'paused' || !loopActive) {
-        stopLoop();
+      if (shouldHardStop() || !loopActive) {
+        stopLoop(true);
 
         return;
       }
 
+      // Off-screen: delay before killing RAF (matches ambient gate intent).
       pauseTimer = window.setTimeout(() => {
         pauseTimer = 0;
-        stopLoop();
+        if (!shouldRun()) {
+          stopLoop(false);
+        }
       }, PAUSE_DELAY_MS);
     };
 
     syncRunningRef.current = syncRunning;
-
-    const onResize = () => {
-      init();
-    };
 
     const unsubscribePresence = subscribeCosmosPresence(root, (next) => {
       inView = next.inView;
@@ -556,13 +803,18 @@ export function useBouncePhysics(
       syncRunning();
     });
 
-    window.addEventListener('resize', onResize);
     syncRunning();
 
     return () => {
       syncRunningRef.current = () => {};
+      if (floorSyncRaf !== 0) {
+        window.cancelAnimationFrame(floorSyncRaf);
+      }
       if (pauseTimer !== 0) {
         window.clearTimeout(pauseTimer);
+      }
+      if (resizeTimer !== 0) {
+        window.clearTimeout(resizeTimer);
       }
       loopActive = false;
       cancelAnimationFrame(raf);
