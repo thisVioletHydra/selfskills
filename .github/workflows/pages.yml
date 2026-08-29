@@ -29,15 +29,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Require GraphQL URL for Pages
-        env:
-          VITE_GRAPHQL_URL: ${{ secrets.VITE_GRAPHQL_URL }}
-        run: |
-          if [ -z "$VITE_GRAPHQL_URL" ]; then
-            echo "Set repo secret VITE_GRAPHQL_URL to your Nest GraphQL endpoint (e.g. https://api.example.com/graphql)" >&2
-            exit 1
-          fi
-
       - name: Build web for GitHub Pages
         run: pnpm --filter web build
         env:
