@@ -8,6 +8,7 @@ import { messages } from '#web/shared/i18n/messages';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { LocaleToggle } from '#web/shared/ui/LocaleToggle';
 import { SiteFooter } from '#web/shared/ui/SiteFooter';
+import { ApiDbProbe } from '#web/widgets/cosmos/chrome/ApiDbProbe';
 import { StatusChips } from '#web/widgets/cosmos/chrome/StatusChips';
 import { CosmosStage } from '#web/widgets/cosmos/CosmosStage';
 import { PortfolioBento } from '#web/widgets/portfolio-bento/PortfolioBento';
@@ -82,6 +83,7 @@ export function ProfilePage() {
       </main>
       <SiteFooter />
       <StatusChips />
+      <ApiDbProbe />
       <LocaleToggle />
     </>
   );

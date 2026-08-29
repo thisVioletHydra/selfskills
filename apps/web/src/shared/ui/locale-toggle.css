@@ -1,6 +1,6 @@
 .locale-toggle {
   position: fixed;
-  inset-block-end: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  inset-block-start: calc(1.1rem + env(safe-area-inset-top, 0px));
   inset-inline-end: max(1rem, var(--space-section-x));
   z-index: 9;
   display: inline-flex;

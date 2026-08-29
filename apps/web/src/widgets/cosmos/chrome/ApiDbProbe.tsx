@@ -4,6 +4,8 @@ import { pingBackend } from '#web/shared/api/ping-api';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { useEffect, useId, useRef, useState } from 'react';
 
+import '#web/widgets/cosmos/chrome/api-db-probe.css';
+
 type ProbeStatus = 'idle' | 'loading' | 'ok' | 'error';
 
 type ProbeResult = {
@@ -90,11 +92,13 @@ export function ApiDbProbe() {
     }
   };
 
+  const lampClass = result.status === 'idle' ? '' : `is-${result.status}`;
+
   return (
     <div className="api-db-probe" ref={rootRef}>
       <button
         type="button"
-        className="api-db-trigger"
+        className={`api-db-trigger ${lampClass}`.trim()}
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={t('apiDbAria')}
@@ -103,6 +107,7 @@ export function ApiDbProbe() {
           setOpen((current) => !current);
         }}
       >
+        <span className="api-db-lamp" aria-hidden="true" />
         <span className="label">{t('apiDbButton')}</span>
       </button>
 

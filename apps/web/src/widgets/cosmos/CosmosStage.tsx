@@ -6,7 +6,6 @@ import { CORE_PLANET, ORBIT_PLANETS } from '#web/entities/planet/planets';
 import { localizePlanet } from '#web/entities/planet/localizePlanet';
 import { PlanetModal } from '#web/features/planet-modal/PlanetModal';
 import { AMBIENT_REGISTRY } from '#web/widgets/cosmos/ambient/registry';
-import { ApiDbProbe } from '#web/widgets/cosmos/chrome/ApiDbProbe';
 import { MotionChip } from '#web/widgets/cosmos/chrome/MotionChip';
 import { useCosmosHints } from '#web/widgets/cosmos/chrome/useCosmosHints';
 import { ACTIVE_PRESET } from '#web/widgets/cosmos/config/presets';
@@ -129,8 +128,6 @@ export function CosmosStage() {
         </div>
         {renderAmbient(overlayIds, motionMode)}
         <div className="glow" aria-hidden="true" />
-
-        <ApiDbProbe />
 
         <div className="chrome-left">
           <MotionChip
