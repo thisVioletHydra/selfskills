@@ -62,12 +62,8 @@ function starYRatio(compact: boolean) {
   return compact ? STAR_Y_RATIO_COMPACT : STAR_Y_RATIO;
 }
 
-function orbitPlanetsForWidth(width: number) {
-  if (!isCompactWidth(width)) {
-    return ORBIT_PLANETS;
-  }
-
-  return ORBIT_PLANETS.filter((_, index) => index % 2 === 0);
+function orbitPlanetsForWidth(_width: number) {
+  return ORBIT_PLANETS;
 }
 
 function starCollisionRadius(starSize: number) {

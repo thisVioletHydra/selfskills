@@ -2,7 +2,7 @@ import type { Planet } from '#web/entities/planet/planets';
 import type { AmbientId } from '#web/widgets/cosmos/ambient/types';
 import type { CosmosMotionMode } from '#web/widgets/cosmos/lib/motion-state';
 
-import { CORE_PLANET } from '#web/entities/planet/planets';
+import { CORE_PLANET, ORBIT_PLANETS } from '#web/entities/planet/planets';
 import { localizePlanet } from '#web/entities/planet/localizePlanet';
 import { PlanetModal } from '#web/features/planet-modal/PlanetModal';
 import { AMBIENT_REGISTRY } from '#web/widgets/cosmos/ambient/registry';
@@ -12,11 +12,7 @@ import { useCosmosHints } from '#web/widgets/cosmos/chrome/useCosmosHints';
 import { ACTIVE_PRESET } from '#web/widgets/cosmos/config/presets';
 import { readCosmosMotionMode, writeCosmosMotionMode } from '#web/widgets/cosmos/lib/motion-state';
 import { subscribeCosmosHintReset } from '#web/widgets/cosmos/lib/hint-state';
-import {
-  COMPACT_WIDTH_PX,
-  orbitPlanetsForWidth,
-  useBouncePhysics,
-} from '#web/widgets/cosmos/physics/useBouncePhysics';
+import { useBouncePhysics } from '#web/widgets/cosmos/physics/useBouncePhysics';
 import { usePlanetThrow } from '#web/widgets/cosmos/physics/usePlanetThrow';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { useEffect, useRef, useState } from 'react';
@@ -25,7 +21,8 @@ import '#web/widgets/cosmos/cosmos-stage.css';
 
 const STAR_MODULES = new Set<AmbientId>(['starfield', 'pulseStars', 'comets']);
 const DEMO_FLING_DELAY_MS = 1200;
-const DEMO_PLANET_INDEX = 0;
+const PULL_HINT_PLANET_ID = 'typescript';
+const TAP_HINT_PLANET_ID = 'docker';
 
 function renderAmbient(ids: readonly AmbientId[], motionMode: CosmosMotionMode) {
   return ids.map((id) => {
@@ -44,26 +41,15 @@ export function CosmosStage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
   const [motionMode, setMotionMode] = useState<CosmosMotionMode>(() => readCosmosMotionMode());
-  const [orbitPlanets, setOrbitPlanets] = useState(() =>
-    orbitPlanetsForWidth(typeof window === 'undefined' ? COMPACT_WIDTH_PX : window.innerWidth),
-  );
 
-  useEffect(() => {
-    const media = window.matchMedia(`(width < ${COMPACT_WIDTH_PX}px)`);
-    const sync = () => {
-      setOrbitPlanets(orbitPlanetsForWidth(window.innerWidth));
-    };
-
-    sync();
-    media.addEventListener('change', sync);
-
-    return () => {
-      media.removeEventListener('change', sync);
-    };
-  }, []);
-
-  const { hints, teaseActive, dismissTapHint, dismissThrowHint, finishHide, markTeaseDone } =
-    useCosmosHints(t);
+  const {
+    teaseActive,
+    showTapPlanetHint,
+    showThrowPlanetHint,
+    dismissTapHint,
+    dismissThrowHint,
+    markTeaseDone,
+  } = useCosmosHints();
 
   const interactionId = draggingId ?? hoveredId;
   const { bodiesRef } = useBouncePhysics(
@@ -126,7 +112,8 @@ export function CosmosStage() {
         return;
       }
 
-      const demoPlanet = orbitPlanets[DEMO_PLANET_INDEX] ?? orbitPlanets[0];
+      const demoPlanet = ORBIT_PLANETS.find((planet) => planet.id === PULL_HINT_PLANET_ID)
+        ?? ORBIT_PLANETS[0];
       if (demoPlanet === undefined) {
         return;
       }
@@ -144,13 +131,10 @@ export function CosmosStage() {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [bodiesRef, motionMode, orbitPlanets, teaseActive]);
+  }, [bodiesRef, motionMode, teaseActive]);
 
   const stageClassName = teaseActive ? 'stage hinting' : 'stage';
-  const hintsVisible = hints.some((hint) => hint.visible || hint.hiding);
   const isPaused = motionMode === 'paused';
-  const showPullHint = teaseActive;
-  const pullPlanetId = orbitPlanets[DEMO_PLANET_INDEX]?.id ?? orbitPlanets[0]?.id;
   const starIds = ACTIVE_PRESET.modules.filter((id) => STAR_MODULES.has(id));
   const overlayIds = ACTIVE_PRESET.modules.filter((id) => !STAR_MODULES.has(id));
 
@@ -166,43 +150,19 @@ export function CosmosStage() {
         <HintsResetButton label={t('hintsReset')} />
 
         <div className="chrome-left">
-          <div className="motion-chip-stack">
-            <MotionChip
-              isPaused={isPaused}
-              onToggle={toggleMotion}
-              playLabel={t('play')}
-              pauseLabel={t('pause')}
-              ariaPlay={t('orbitPlay')}
-              ariaPause={t('orbitPause')}
-            />
-            <span className="app-version" aria-hidden="true">
-              {`ver:${__APP_GIT_SHA__}`}
-            </span>
-          </div>
+          <MotionChip
+            isPaused={isPaused}
+            onToggle={toggleMotion}
+            playLabel={t('play')}
+            pauseLabel={t('pause')}
+            ariaPlay={t('orbitPlay')}
+            ariaPause={t('orbitPause')}
+          />
         </div>
 
-        {hintsVisible && (
-          <div className="hints" aria-label={t('hintsAria')}>
-            {hints.map((hint) =>
-              hint.visible ? (
-                <p
-                  key={hint.key}
-                  className={`hint${hint.hiding ? ' out' : ''}`}
-                  onAnimationEnd={(event) => {
-                    if (event.animationName === 'hint-fade-out' && hint.hiding) {
-                      finishHide(hint.key);
-                    }
-                  }}
-                >
-                  <span className={hint.markClass} aria-hidden="true">
-                    {hint.mark}
-                  </span>
-                  {hint.text}
-                </p>
-              ) : null,
-            )}
-          </div>
-        )}
+        <div className="hints" aria-hidden="true">
+          <p className="app-version-chip">{`ver:${__APP_GIT_SHA__}`}</p>
+        </div>
 
         <div className="star" aria-hidden="true">
           <div className="corona outer" />
@@ -210,11 +170,12 @@ export function CosmosStage() {
           <div className="corona core" />
         </div>
 
-        {orbitPlanets.map((planet, index) => {
+        {ORBIT_PLANETS.map((planet, index) => {
           const isActive = interactionId === planet.id;
           const isDragging = draggingId === planet.id;
           const teaseAlt = index % 2 === 1 ? ' tease-alt' : '';
-          const showPlanetPull = showPullHint && planet.id === pullPlanetId;
+          const showPlanetPull = showThrowPlanetHint && planet.id === PULL_HINT_PLANET_ID;
+          const showPlanetTap = showTapPlanetHint && planet.id === TAP_HINT_PLANET_ID;
 
           return (
             <button
@@ -243,6 +204,11 @@ export function CosmosStage() {
               {showPlanetPull ? (
                 <span className="planet-pull-hint" aria-hidden="true">
                   {t('hintPull')}
+                </span>
+              ) : null}
+              {showPlanetTap ? (
+                <span className="planet-pull-hint" aria-hidden="true">
+                  {t('hintTap')}
                 </span>
               ) : null}
               <img src={planet.icon} alt="" draggable={false} />

@@ -60,7 +60,7 @@
     --space-10: calc(var(--space-unit) * 18);
     --space-section-y: clamp(3.25rem, 2.4rem + 3.5vi, 4.5rem);
     --space-section-x: clamp(1rem, 0.55rem + 2vi, 1.5rem);
-    --space-peek: clamp(10.5rem, 8.25rem + 7svh, 14rem);
+    --space-peek: clamp(4.25rem, 3.5rem + 2.5svh, 5.5rem);
 
     /* Type — fluid via vi */
     --font-sans: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;

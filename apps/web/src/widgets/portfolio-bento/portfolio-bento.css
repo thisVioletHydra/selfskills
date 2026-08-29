@@ -50,21 +50,9 @@
     transform: translateX(-50%) translateY(-0.45rem);
   }
 
-  .bento-skeleton-bridge {
-    position: relative;
-    z-index: 3;
-  }
-
-  :scope.is-awaiting-reveal {
-    min-block-size: min(70svh, 42rem);
-  }
-
-  :scope.is-awaiting-reveal .bento-skeleton-bridge {
-    position: absolute;
-    inset: 0;
-    z-index: 4;
-    padding-block: inherit;
-    padding-inline: inherit;
+  :scope.is-peek-only {
+    min-block-size: var(--space-peek);
+    padding-block: clamp(0.75rem, 0.5rem + 1dvh, 1.25rem) 0;
     background: var(--color-bg-deep);
   }
 
@@ -76,6 +64,11 @@
     /* opacity — ок для IO; visibility:hidden ломает IntersectionObserver */
     opacity: 0;
     pointer-events: none;
+  }
+
+  .bento-shell {
+    max-inline-size: var(--width-bento);
+    margin-inline: auto;
   }
 
   .bento {

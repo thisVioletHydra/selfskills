@@ -5,20 +5,9 @@ import {
   subscribeCosmosHintReset,
   writeCosmosHintState,
 } from '#web/widgets/cosmos/lib/hint-state';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export type CosmosHintKey = 'tapDismissed' | 'throwDismissed';
-
-export type CosmosHintItem = {
-  key: CosmosHintKey;
-  text: string;
-  mark: string;
-  markClass: string;
-  visible: boolean;
-  hiding: boolean;
-};
-
-type Translate = (key: 'hintTap') => string;
 
 type HidingMap = Record<CosmosHintKey, boolean>;
 
@@ -27,21 +16,10 @@ const INITIAL_HIDING: HidingMap = {
   throwDismissed: false,
 };
 
-function buildHintCopy(t: Translate): Omit<CosmosHintItem, 'visible' | 'hiding'>[] {
-  return [
-    {
-      key: 'tapDismissed',
-      text: t('hintTap'),
-      mark: '◎',
-      markClass: 'mark',
-    },
-  ];
-}
-
-export function useCosmosHints(t: Translate) {
+/** Planet-local hints only — top bar shows build sha instead of tip chips. */
+export function useCosmosHints() {
   const [hintState, setHintState] = useState<CosmosHintState>(readCosmosHintState);
   const [hiding, setHiding] = useState<HidingMap>(INITIAL_HIDING);
-  const hintCopy = useMemo(() => buildHintCopy(t), [t]);
 
   useEffect(() => {
     return subscribeCosmosHintReset(() => {
@@ -66,27 +44,17 @@ export function useCosmosHints(t: Translate) {
       }
 
       setHiding((current) => ({ ...current, [key]: true }));
+      writeCosmosHintState({ [key]: true });
+      setHintState((current) => ({ ...current, [key]: true }));
+      setHiding((current) => ({ ...current, [key]: false }));
     },
     [hintState, hiding],
   );
 
-  const finishHide = useCallback((key: CosmosHintKey) => {
-    writeCosmosHintState({ [key]: true });
-    setHintState((current) => ({ ...current, [key]: true }));
-    setHiding((current) => ({ ...current, [key]: false }));
-  }, []);
-
-  const hints: CosmosHintItem[] = hintCopy.map((item) => ({
-    ...item,
-    visible: !hintState[item.key],
-    hiding: hiding[item.key],
-  }));
-
   return {
-    hints,
     teaseActive: !hintState.teaseDone,
-    dismiss,
-    finishHide,
+    showTapPlanetHint: !hintState.tapDismissed,
+    showThrowPlanetHint: !hintState.throwDismissed,
     markTeaseDone,
     dismissTapHint: () => dismiss('tapDismissed'),
     dismissThrowHint: () => dismiss('throwDismissed'),

@@ -26,13 +26,6 @@
     overflow: clip;
   }
 
-  @media (width >= 1100px) {
-    .stage {
-      max-inline-size: 72rem;
-      margin-inline: auto;
-    }
-  }
-
   .stars {
     position: absolute;
     inset: 0;
@@ -464,6 +457,22 @@
     letter-spacing: 0.06em;
     color: var(--color-muted);
     opacity: 0.28;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .app-version-chip {
+    margin: 0;
+    padding: 0.28rem 0.55rem;
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-pill);
+    background: color-mix(in oklch, var(--color-bg-deep) 45%, transparent);
+    color: var(--color-muted);
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    opacity: 0.72;
+    backdrop-filter: blur(8px);
     pointer-events: none;
     user-select: none;
   }
@@ -1108,14 +1117,6 @@
       inset-block-end: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
       inline-size: calc(100% - var(--space-8));
       z-index: 7;
-      padding-block: 0.55rem 0.75rem;
-      border-radius: 1rem;
-      background: linear-gradient(
-        180deg,
-        transparent 0%,
-        rgb(8 10 18 / 0.55) 22%,
-        rgb(8 10 18 / 0.78) 100%
-      );
       text-shadow: 0 1px 14px rgb(0 0 0 / 0.9);
     }
 

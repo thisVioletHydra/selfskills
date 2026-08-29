@@ -21,36 +21,34 @@ type PortfolioBentoProps = {
   loading?: boolean;
 };
 
-function BentoSkeletonBridge() {
+function BentoScrollHint({ revealed = false }: { revealed?: boolean }) {
+  const { t } = useLocale();
+
   return (
-    <div className="bento-skeleton-bridge" aria-hidden="true">
-      <div className="bento-shell">
-        <div className="bento">
-          <aside className="bento-sidebar">
-            <div className="bento-card skel skel-portrait" />
-            <div className="skel skel-line skel-line--lg" />
-            <div className="skel skel-line" />
-            <div className="skel skel-copy" />
-          </aside>
-          <div className="bento-main">
-            <div className="bento-card skel skel-stats" />
-            <div className="bento-card skel skel-card" />
-            <div className="bento-card skel skel-card skel-card--sm" />
-            <div className="bento-split">
-              <div className="bento-card skel skel-card" />
-              <div className="bento-card skel skel-card" />
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="bento-scroll-hint" aria-hidden={revealed}>
+      <span className="bento-scroll-hint-label">{t('scroll')}</span>
+      <svg className="bento-scroll-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M12 5v12m0 0 4.5-4.5M12 17l-4.5-4.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </div>
   );
 }
 
-function BentoSkeleton() {
+function BentoPeekOnly({ busy = false }: { busy?: boolean }) {
   return (
-    <section className="portfolio-bento is-loading" id="portfolio" aria-busy="true">
-      <BentoSkeletonBridge />
+    <section
+      className="portfolio-bento is-peek-only"
+      id="portfolio"
+      aria-busy={busy || undefined}
+    >
+      <BentoScrollHint />
     </section>
   );
 }
@@ -72,7 +70,7 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
   });
 
   if (loading || profile === null || resume === null) {
-    return <BentoSkeleton />;
+    return <BentoPeekOnly busy />;
   }
 
   const portraitStyle = {
@@ -124,21 +122,7 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
 
   return (
     <section ref={sectionRef} className={sectionClassName} id="portfolio">
-      {!revealed ? <BentoSkeletonBridge /> : null}
-
-      <div className="bento-scroll-hint" aria-hidden={revealed}>
-        <span className="bento-scroll-hint-label">{t('scroll')}</span>
-        <svg className="bento-scroll-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M12 5v12m0 0 4.5-4.5M12 17l-4.5-4.5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
+      <BentoScrollHint revealed={revealed} />
 
       <div className="bento-shell">
         <div className="bento">
