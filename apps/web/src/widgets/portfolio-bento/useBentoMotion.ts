@@ -21,38 +21,35 @@ const ABOUT_IO: IntersectionObserverInit = {
   rootMargin: '0px 0px -18% 0px',
 };
 
-/** Real scroll into bento — not the peek strip under cosmos (that killed «листай»). */
+/**
+ * Reveal when the portfolio section climbs into the upper part of the viewport.
+ * Peek strip at the bottom must not count — root is shrunk from below.
+ * Observe the section itself (not tall `.bento-main`): ratio on a huge node never reaches a min threshold.
+ */
 const MAIN_IO: IntersectionObserverInit = {
-  threshold: [0, 0.1, 0.18, 0.28],
-  rootMargin: '0px 0px -14% 0px',
+  threshold: 0,
+  rootMargin: '0px 0px -38% 0px',
 };
-
-const MAIN_REVEAL_RATIO = 0.12;
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** True only when enough of the node sits in the viewport — peek strip alone is not enough. */
-function isMainReadyToReveal(node: Element) {
+/** Section top has left the bottom peek zone and entered the main viewport. */
+function isSectionReadyToReveal(node: Element) {
   const rect = node.getBoundingClientRect();
   const viewHeight = window.innerHeight || document.documentElement.clientHeight;
 
-  return rect.top < viewHeight * 0.7 && rect.bottom > viewHeight * 0.22;
+  return rect.top < viewHeight * 0.62;
 }
 
 function observeOnce(
   node: Element,
   onEnter: () => void,
   options: IntersectionObserverInit,
-  minRatio = 0,
 ): IntersectionObserver {
   const observer = new IntersectionObserver(([entry]) => {
     if (entry?.isIntersecting !== true) {
-      return;
-    }
-
-    if (minRatio > 0 && entry.intersectionRatio < minRatio) {
       return;
     }
 
@@ -84,8 +81,7 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
       return;
     }
 
-    const mainNode = section.querySelector('.bento-main');
-    if (mainNode !== null && isMainReadyToReveal(mainNode)) {
+    if (isSectionReadyToReveal(section)) {
       setRevealed(true);
     }
   }, [enabled, reducedMotion, revealed, sectionRef]);
@@ -102,16 +98,14 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
 
     const observers: IntersectionObserver[] = [];
 
-    const mainNode = section.querySelector('.bento-main');
-    if (mainNode !== null && !revealed) {
+    if (!revealed) {
       observers.push(
         observeOnce(
-          mainNode,
+          section,
           () => {
             setRevealed(true);
           },
           MAIN_IO,
-          MAIN_REVEAL_RATIO,
         ),
       );
     }
