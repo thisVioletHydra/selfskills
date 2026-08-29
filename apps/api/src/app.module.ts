@@ -7,12 +7,14 @@ import { PrismaModule } from '#api/prisma/prisma.module';
 import { ProfileModule } from '#api/profile/profile.module';
 import { ResumeModule } from '#api/resume/resume.module';
 
+import process from 'node:process';
+
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      graphiql: true,
+      graphiql: process.env.NODE_ENV !== 'production',
     }),
     PrismaModule,
     ProfileModule,

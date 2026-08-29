@@ -43,6 +43,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-selfskills}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-selfskills}?schema=public
       PORT: ${API_PORT:-3000}
       NODE_OPTIONS: --max-old-space-size=192
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
     ports:
       - '${API_HOST_PORT:-3000}:3000'
     mem_limit: 384m

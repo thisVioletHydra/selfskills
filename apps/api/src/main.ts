@@ -14,7 +14,9 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
-  app.enableCors({ origin: true });
+  // CORS_ORIGIN="https://user.github.io,https://example.com"; без переменной — любой origin (dev)
+  const corsOrigin = process.env.CORS_ORIGIN;
+  app.enableCors({ origin: corsOrigin === undefined || corsOrigin === '' ? true : corsOrigin.split(',') });
   await app.listen(Number(process.env.PORT ?? 3000), '0.0.0.0');
 }
 void bootstrap();
