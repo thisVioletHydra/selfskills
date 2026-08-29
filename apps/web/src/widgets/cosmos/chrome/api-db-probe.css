@@ -77,8 +77,8 @@
 }
 
 .api-db-action:hover:not(:disabled) {
-  border-color: var(--color-line);
-  color: var(--color-accent);
+  border-color: color-mix(in oklch, var(--color-cold-base) 24%, var(--color-line));
+  color: var(--color-text);
 }
 
 .api-db-action:disabled {
@@ -127,7 +127,7 @@
 
 @media (hover: hover) {
   .api-db-trigger:hover {
-    color: var(--color-accent);
-    border-color: color-mix(in oklch, var(--color-accent) 45%, transparent);
+    color: var(--color-text);
+    border-color: color-mix(in oklch, var(--color-cold-base) 24%, var(--color-line));
   }
 }

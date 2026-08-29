@@ -109,7 +109,7 @@
 
 @media (hover: hover) {
   .status-chip-btn:hover {
-    color: var(--color-accent);
-    border-color: color-mix(in oklch, var(--color-accent) 45%, transparent);
+    color: var(--color-text);
+    border-color: color-mix(in oklch, var(--color-cold-base) 24%, var(--color-line));
   }
 }

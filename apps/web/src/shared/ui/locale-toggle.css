@@ -31,6 +31,12 @@
   color: var(--color-text);
 }
 
+@media (hover: hover) {
+  .locale-toggle:hover {
+    border-color: color-mix(in oklch, var(--color-cold-base) 24%, var(--color-line));
+  }
+}
+
 .locale-toggle button.is-active {
   background: color-mix(in oklch, var(--color-bg-lift) 72%, transparent);
   color: var(--color-text);
