@@ -1,16 +1,16 @@
-import type { OrbitHintState } from '#web/shared/lib/orbit-hint-state';
+import type { CosmosHintState } from '#web/widgets/cosmos/lib/hint-state';
 
 import {
-  readOrbitHintState,
-  subscribeOrbitHintReset,
-  writeOrbitHintState,
-} from '#web/shared/lib/orbit-hint-state';
+  readCosmosHintState,
+  subscribeCosmosHintReset,
+  writeCosmosHintState,
+} from '#web/widgets/cosmos/lib/hint-state';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-export type OrbitHintKey = 'tapDismissed' | 'throwDismissed';
+export type CosmosHintKey = 'tapDismissed' | 'throwDismissed';
 
-export type OrbitHintItem = {
-  key: OrbitHintKey;
+export type CosmosHintItem = {
+  key: CosmosHintKey;
   text: string;
   mark: string;
   markClass: string;
@@ -20,14 +20,14 @@ export type OrbitHintItem = {
 
 type Translate = (key: 'hintTap' | 'hintThrow') => string;
 
-type HidingMap = Record<OrbitHintKey, boolean>;
+type HidingMap = Record<CosmosHintKey, boolean>;
 
 const INITIAL_HIDING: HidingMap = {
   tapDismissed: false,
   throwDismissed: false,
 };
 
-function buildHintCopy(t: Translate): Omit<OrbitHintItem, 'visible' | 'hiding'>[] {
+function buildHintCopy(t: Translate): Omit<CosmosHintItem, 'visible' | 'hiding'>[] {
   return [
     {
       key: 'tapDismissed',
@@ -44,14 +44,14 @@ function buildHintCopy(t: Translate): Omit<OrbitHintItem, 'visible' | 'hiding'>[
   ];
 }
 
-export function useOrbitHints(t: Translate) {
-  const [hintState, setHintState] = useState<OrbitHintState>(readOrbitHintState);
+export function useCosmosHints(t: Translate) {
+  const [hintState, setHintState] = useState<CosmosHintState>(readCosmosHintState);
   const [hiding, setHiding] = useState<HidingMap>(INITIAL_HIDING);
   const hintCopy = useMemo(() => buildHintCopy(t), [t]);
 
   useEffect(() => {
-    return subscribeOrbitHintReset(() => {
-      setHintState(readOrbitHintState());
+    return subscribeCosmosHintReset(() => {
+      setHintState(readCosmosHintState());
       setHiding(INITIAL_HIDING);
     });
   }, []);
@@ -61,12 +61,12 @@ export function useOrbitHints(t: Translate) {
       return;
     }
 
-    writeOrbitHintState({ teaseDone: true });
+    writeCosmosHintState({ teaseDone: true });
     setHintState((current) => ({ ...current, teaseDone: true }));
   }, [hintState.teaseDone]);
 
   const dismiss = useCallback(
-    (key: OrbitHintKey) => {
+    (key: CosmosHintKey) => {
       if (hintState[key] || hiding[key]) {
         return;
       }
@@ -76,13 +76,13 @@ export function useOrbitHints(t: Translate) {
     [hintState, hiding],
   );
 
-  const finishHide = useCallback((key: OrbitHintKey) => {
-    writeOrbitHintState({ [key]: true });
+  const finishHide = useCallback((key: CosmosHintKey) => {
+    writeCosmosHintState({ [key]: true });
     setHintState((current) => ({ ...current, [key]: true }));
     setHiding((current) => ({ ...current, [key]: false }));
   }, []);
 
-  const hints: OrbitHintItem[] = hintCopy.map((item) => ({
+  const hints: CosmosHintItem[] = hintCopy.map((item) => ({
     ...item,
     visible: !hintState[item.key],
     hiding: hiding[item.key],

@@ -1,15 +1,16 @@
 import type { RefObject } from 'react';
 
 import { ORBIT_PLANETS } from '#web/entities/planet/planets';
-import { subscribeOrbitPresence } from '#web/shared/lib/orbit-presence';
+import { subscribeCosmosPresence } from '#web/widgets/cosmos/lib/presence';
+import { clampThrowSpeed, MAX_THROW_SPEED } from '#web/widgets/cosmos/physics/throw-constants';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 
 export type BounceBody = {
   id: string;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
+  pointX: number;
+  pointY: number;
+  velocityX: number;
+  velocityY: number;
   radius: number;
   stuckAnchorX: number;
   stuckAnchorY: number;
@@ -17,7 +18,6 @@ export type BounceBody = {
 };
 
 const MAX_SPEED = 52;
-const MAX_THROW_SPEED = 320;
 const WALL_PADDING = 16;
 const WALL_DAMPING = 0.9;
 const RESTITUTION = 0.78;
@@ -40,24 +40,22 @@ function starCollisionRadius(starSize: number) {
   return (starSize / 2) * STAR_COLLISION_SCALE;
 }
 
-function clampSpeed(vx: number, vy: number, maxSpeed = MAX_SPEED) {
-  const speed = Math.hypot(vx, vy);
+function clampSpeed(velocityX: number, velocityY: number, maxSpeed = MAX_SPEED) {
+  const speed = Math.hypot(velocityX, velocityY);
   if (speed <= maxSpeed || speed === 0) {
-    return { vx, vy };
+    return { velocityX, velocityY };
   }
 
   const scale = maxSpeed / speed;
 
-  return { vx: vx * scale, vy: vy * scale };
+  return { velocityX: velocityX * scale, velocityY: velocityY * scale };
 }
 
-export function clampThrowSpeed(vx: number, vy: number) {
-  return clampSpeed(vx, vy, MAX_THROW_SPEED);
+export function planetTransform(pointX: number, pointY: number) {
+  return `translate3d(${pointX}px, ${pointY}px, 0) translate(-50%, -50%)`;
 }
 
-export function planetTransform(x: number, y: number) {
-  return `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
-}
+export { clampThrowSpeed };
 
 export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
   for (const body of bodies) {
@@ -66,85 +64,85 @@ export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLEle
       continue;
     }
 
-    el.style.transform = planetTransform(body.x, body.y);
+    el.style.transform = planetTransform(body.pointX, body.pointY);
   }
 }
 
 function ensureMinSpeed(body: BounceBody, minSpeed: number) {
-  const speed = Math.hypot(body.vx, body.vy);
+  const speed = Math.hypot(body.velocityX, body.velocityY);
   if (speed >= minSpeed) {
     return;
   }
 
   if (speed > 0.01) {
     const scale = minSpeed / speed;
-    body.vx *= scale;
-    body.vy *= scale;
+    body.velocityX *= scale;
+    body.velocityY *= scale;
 
     return;
   }
 
   const angle = Math.random() * Math.PI * 2;
-  body.vx = Math.cos(angle) * minSpeed;
-  body.vy = Math.sin(angle) * minSpeed;
+  body.velocityX = Math.cos(angle) * minSpeed;
+  body.velocityY = Math.sin(angle) * minSpeed;
 }
 
 function createBodies(width: number, height: number, starRadius: number): BounceBody[] {
-  const cx = width / 2;
-  const cy = height * STAR_Y_RATIO;
+  const centerX = width / 2;
+  const centerY = height * STAR_Y_RATIO;
 
   return ORBIT_PLANETS.map((planet, index) => {
     const radius = ballRadius(planet.size);
     const angle = (index / ORBIT_PLANETS.length) * Math.PI * 2 + 0.4;
     const dist = starRadius + radius + 48 + (index % 5) * 38 + Math.floor(index / 5) * 28;
 
-    let vx = (Math.random() - 0.5) * 65;
-    let vy = (Math.random() - 0.5) * 65;
-    const clamped = clampSpeed(vx, vy);
-    vx = clamped.vx;
-    vy = clamped.vy;
+    let velocityX = (Math.random() - 0.5) * 65;
+    let velocityY = (Math.random() - 0.5) * 65;
+    const clamped = clampSpeed(velocityX, velocityY);
+    velocityX = clamped.velocityX;
+    velocityY = clamped.velocityY;
 
-    const x = cx + Math.cos(angle) * dist;
-    const y = cy + Math.sin(angle) * dist;
+    const pointX = centerX + Math.cos(angle) * dist;
+    const pointY = centerY + Math.sin(angle) * dist;
 
     return {
       id: planet.id,
-      x,
-      y,
-      vx,
-      vy,
+      pointX,
+      pointY,
+      velocityX,
+      velocityY,
       radius,
-      stuckAnchorX: x,
-      stuckAnchorY: y,
+      stuckAnchorX: pointX,
+      stuckAnchorY: pointY,
       stuckSeconds: 0,
     };
   });
 }
 
 function nudgeUnstuck(body: BounceBody, starX: number, starY: number, starRadius: number) {
-  const dx = body.x - starX;
-  const dy = body.y - starY;
-  const dist = Math.hypot(dx, dy);
+  const deltaX = body.pointX - starX;
+  const deltaY = body.pointY - starY;
+  const dist = Math.hypot(deltaX, deltaY);
   const safeOrbit = starRadius + body.radius + 48;
 
   if (dist < safeOrbit) {
-    const nx = dist > 1 ? dx / dist : Math.cos(Math.random() * Math.PI * 2);
-    const ny = dist > 1 ? dy / dist : Math.sin(Math.random() * Math.PI * 2);
-    body.vx = nx * NUDGE_SPEED;
-    body.vy = ny * NUDGE_SPEED;
+    const normalX = dist > 1 ? deltaX / dist : Math.cos(Math.random() * Math.PI * 2);
+    const normalY = dist > 1 ? deltaY / dist : Math.sin(Math.random() * Math.PI * 2);
+    body.velocityX = normalX * NUDGE_SPEED;
+    body.velocityY = normalY * NUDGE_SPEED;
   } else {
-    const nx = dist > 1 ? dx / dist : 0;
-    const ny = dist > 1 ? dy / dist : 0;
-    const tangentX = -ny;
-    const tangentY = nx;
+    const normalX = dist > 1 ? deltaX / dist : 0;
+    const normalY = dist > 1 ? deltaY / dist : 0;
+    const tangentX = -normalY;
+    const tangentY = normalX;
     const side = Math.random() > 0.5 ? 1 : -1;
-    body.vx = tangentX * side * NUDGE_SPEED;
-    body.vy = tangentY * side * NUDGE_SPEED;
+    body.velocityX = tangentX * side * NUDGE_SPEED;
+    body.velocityY = tangentY * side * NUDGE_SPEED;
   }
 
-  const speed = clampSpeed(body.vx, body.vy);
-  body.vx = speed.vx;
-  body.vy = speed.vy;
+  const speed = clampSpeed(body.velocityX, body.velocityY);
+  body.velocityX = speed.velocityX;
+  body.velocityY = speed.velocityY;
 }
 
 function updateStuckState(
@@ -153,32 +151,32 @@ function updateStuckState(
   starY: number,
   starRadius: number,
   dt: number,
-  pausedId: string | null,
+  pausedId: string | null
 ) {
   if (body.id === pausedId) {
     body.stuckSeconds = 0;
-    body.stuckAnchorX = body.x;
-    body.stuckAnchorY = body.y;
+    body.stuckAnchorX = body.pointX;
+    body.stuckAnchorY = body.pointY;
 
     return;
   }
 
-  const speed = Math.hypot(body.vx, body.vy);
-  const drift = Math.hypot(body.x - body.stuckAnchorX, body.y - body.stuckAnchorY);
+  const speed = Math.hypot(body.velocityX, body.velocityY);
+  const drift = Math.hypot(body.pointX - body.stuckAnchorX, body.pointY - body.stuckAnchorY);
 
   if (speed < STUCK_SPEED_THRESHOLD && drift < STUCK_DRIFT_PX) {
     body.stuckSeconds += dt;
   } else {
     body.stuckSeconds = 0;
-    body.stuckAnchorX = body.x;
-    body.stuckAnchorY = body.y;
+    body.stuckAnchorX = body.pointX;
+    body.stuckAnchorY = body.pointY;
   }
 
   if (body.stuckSeconds >= STUCK_SECONDS) {
     nudgeUnstuck(body, starX, starY, starRadius);
     body.stuckSeconds = 0;
-    body.stuckAnchorX = body.x;
-    body.stuckAnchorY = body.y;
+    body.stuckAnchorX = body.pointX;
+    body.stuckAnchorY = body.pointY;
   }
 }
 
@@ -188,128 +186,134 @@ function bounceWalls(body: BounceBody, width: number, height: number) {
   const minY = WALL_PADDING + body.radius;
   const maxY = height - WALL_PADDING - body.radius;
 
-  if (body.x < minX) {
-    body.x = minX;
-    body.vx = Math.abs(body.vx) * WALL_DAMPING;
+  if (body.pointX < minX) {
+    body.pointX = minX;
+    body.velocityX = Math.abs(body.velocityX) * WALL_DAMPING;
     ensureMinSpeed(body, MIN_BOUNCE_SPEED * 0.7);
-  } else if (body.x > maxX) {
-    body.x = maxX;
-    body.vx = -Math.abs(body.vx) * WALL_DAMPING;
+  } else if (body.pointX > maxX) {
+    body.pointX = maxX;
+    body.velocityX = -Math.abs(body.velocityX) * WALL_DAMPING;
     ensureMinSpeed(body, MIN_BOUNCE_SPEED * 0.7);
   }
 
-  if (body.y < minY) {
-    body.y = minY;
-    body.vy = Math.abs(body.vy) * WALL_DAMPING;
+  if (body.pointY < minY) {
+    body.pointY = minY;
+    body.velocityY = Math.abs(body.velocityY) * WALL_DAMPING;
     ensureMinSpeed(body, MIN_BOUNCE_SPEED * 0.7);
-  } else if (body.y > maxY) {
-    body.y = maxY;
-    body.vy = -Math.abs(body.vy) * WALL_DAMPING;
+  } else if (body.pointY > maxY) {
+    body.pointY = maxY;
+    body.velocityY = -Math.abs(body.velocityY) * WALL_DAMPING;
     ensureMinSpeed(body, MIN_BOUNCE_SPEED * 0.7);
   }
 }
 
 type CircleBody = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
+  pointX: number;
+  pointY: number;
+  velocityX: number;
+  velocityY: number;
   radius: number;
 };
 
 function separateCircles(
-  a: CircleBody,
-  b: CircleBody,
-  aStatic: boolean,
-  bStatic: boolean,
-  nx: number,
-  ny: number,
-  overlap: number,
+  bodyA: CircleBody,
+  bodyB: CircleBody,
+  bodyAStatic: boolean,
+  bodyBStatic: boolean,
+  normalX: number,
+  normalY: number,
+  overlap: number
 ) {
-  if (aStatic && bStatic) {
+  if (bodyAStatic && bodyBStatic) {
     return;
   }
 
-  if (aStatic) {
-    b.x = a.x + nx * (a.radius + b.radius);
-    b.y = a.y + ny * (a.radius + b.radius);
-
-    return;
-  }
-
-  if (bStatic) {
-    a.x = b.x - nx * (a.radius + b.radius);
-    a.y = b.y - ny * (a.radius + b.radius);
+  if (bodyAStatic) {
+    bodyB.pointX = bodyA.pointX + normalX * (bodyA.radius + bodyB.radius);
+    bodyB.pointY = bodyA.pointY + normalY * (bodyA.radius + bodyB.radius);
 
     return;
   }
 
-  a.x -= nx * overlap * 0.5;
-  a.y -= ny * overlap * 0.5;
-  b.x += nx * overlap * 0.5;
-  b.y += ny * overlap * 0.5;
+  if (bodyBStatic) {
+    bodyA.pointX = bodyB.pointX - normalX * (bodyA.radius + bodyB.radius);
+    bodyA.pointY = bodyB.pointY - normalY * (bodyA.radius + bodyB.radius);
+
+    return;
+  }
+
+  bodyA.pointX -= normalX * overlap * 0.5;
+  bodyA.pointY -= normalY * overlap * 0.5;
+  bodyB.pointX += normalX * overlap * 0.5;
+  bodyB.pointY += normalY * overlap * 0.5;
 }
 
 function applyImpulse(
-  a: CircleBody,
-  b: CircleBody,
-  nx: number,
-  ny: number,
-  aStatic: boolean,
-  bStatic: boolean,
+  bodyA: CircleBody,
+  bodyB: CircleBody,
+  normalX: number,
+  normalY: number,
+  bodyAStatic: boolean,
+  bodyBStatic: boolean
 ) {
-  if (aStatic && bStatic) {
+  if (bodyAStatic && bodyBStatic) {
     return;
   }
 
-  if (aStatic) {
-    const dot = b.vx * nx + b.vy * ny;
+  if (bodyAStatic) {
+    const dot = bodyB.velocityX * normalX + bodyB.velocityY * normalY;
     if (dot < 0) {
-      b.vx -= (1 + RESTITUTION) * dot * nx;
-      b.vy -= (1 + RESTITUTION) * dot * ny;
-      ensureMinSpeed(b as BounceBody, MIN_BOUNCE_SPEED);
+      bodyB.velocityX -= (1 + RESTITUTION) * dot * normalX;
+      bodyB.velocityY -= (1 + RESTITUTION) * dot * normalY;
+      ensureMinSpeed(bodyB as BounceBody, MIN_BOUNCE_SPEED);
     }
 
     return;
   }
 
-  if (bStatic) {
-    const dot = a.vx * nx + a.vy * ny;
+  if (bodyBStatic) {
+    const dot = bodyA.velocityX * normalX + bodyA.velocityY * normalY;
     if (dot > 0) {
-      a.vx -= (1 + RESTITUTION) * dot * nx;
-      a.vy -= (1 + RESTITUTION) * dot * ny;
-      ensureMinSpeed(a as BounceBody, MIN_BOUNCE_SPEED);
+      bodyA.velocityX -= (1 + RESTITUTION) * dot * normalX;
+      bodyA.velocityY -= (1 + RESTITUTION) * dot * normalY;
+      ensureMinSpeed(bodyA as BounceBody, MIN_BOUNCE_SPEED);
     }
 
     return;
   }
 
-  const relVelNormal = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+  const relVelNormal = (bodyB.velocityX - bodyA.velocityX) * normalX
+    + (bodyB.velocityY - bodyA.velocityY) * normalY;
 
   if (relVelNormal >= 0) {
     return;
   }
 
   const impulse = -(1 + RESTITUTION) * relVelNormal * 0.5;
-  a.vx -= impulse * nx;
-  a.vy -= impulse * ny;
-  b.vx += impulse * nx;
-  b.vy += impulse * ny;
+  bodyA.velocityX -= impulse * normalX;
+  bodyA.velocityY -= impulse * normalY;
+  bodyB.velocityX += impulse * normalX;
+  bodyB.velocityY += impulse * normalY;
 
-  ensureMinSpeed(a as BounceBody, MIN_BOUNCE_SPEED * 0.85);
-  ensureMinSpeed(b as BounceBody, MIN_BOUNCE_SPEED * 0.85);
+  ensureMinSpeed(bodyA as BounceBody, MIN_BOUNCE_SPEED * 0.85);
+  ensureMinSpeed(bodyB as BounceBody, MIN_BOUNCE_SPEED * 0.85);
 }
 
-function resolveCircles(a: CircleBody, b: CircleBody, aStatic: boolean, bStatic: boolean) {
-  let dx = b.x - a.x;
-  let dy = b.y - a.y;
-  let dist = Math.hypot(dx, dy);
-  const minDist = a.radius + b.radius;
+function resolveCircles(
+  bodyA: CircleBody,
+  bodyB: CircleBody,
+  bodyAStatic: boolean,
+  bodyBStatic: boolean
+) {
+  let deltaX = bodyB.pointX - bodyA.pointX;
+  let deltaY = bodyB.pointY - bodyA.pointY;
+  let dist = Math.hypot(deltaX, deltaY);
+  const minDist = bodyA.radius + bodyB.radius;
 
   if (dist === 0) {
     const angle = Math.random() * Math.PI * 2;
-    dx = Math.cos(angle);
-    dy = Math.sin(angle);
+    deltaX = Math.cos(angle);
+    deltaY = Math.sin(angle);
     dist = 1;
   }
 
@@ -317,12 +321,12 @@ function resolveCircles(a: CircleBody, b: CircleBody, aStatic: boolean, bStatic:
     return;
   }
 
-  const nx = dx / dist;
-  const ny = dy / dist;
+  const normalX = deltaX / dist;
+  const normalY = deltaY / dist;
   const overlap = minDist - dist + 0.35;
 
-  separateCircles(a, b, aStatic, bStatic, nx, ny, overlap);
-  applyImpulse(a, b, nx, ny, aStatic, bStatic);
+  separateCircles(bodyA, bodyB, bodyAStatic, bodyBStatic, normalX, normalY, overlap);
+  applyImpulse(bodyA, bodyB, normalX, normalY, bodyAStatic, bodyBStatic);
 }
 
 function solveCollisions(
@@ -332,20 +336,20 @@ function solveCollisions(
   starX: number,
   starY: number,
   starRadius: number,
-  pausedId: string | null,
+  pausedId: string | null
 ) {
   const star: CircleBody = {
-    x: starX,
-    y: starY,
-    vx: 0,
-    vy: 0,
+    pointX: starX,
+    pointY: starY,
+    velocityX: 0,
+    velocityY: 0,
     radius: starRadius,
   };
 
   for (let iter = 0; iter < POSITION_ITERS; iter++) {
     for (const body of bodies) {
       const bodyStatic = body.id === pausedId;
-      if (!bodyStatic) {
+      if (bodyStatic === false) {
         bounceWalls(body, width, height);
       }
       resolveCircles(body, star, bodyStatic, true);
@@ -353,9 +357,9 @@ function solveCollisions(
 
     for (let i = 0; i < bodies.length; i++) {
       for (let j = i + 1; j < bodies.length; j++) {
-        const a = bodies[i];
-        const b = bodies[j];
-        resolveCircles(a, b, a.id === pausedId, b.id === pausedId);
+        const bodyA = bodies[i];
+        const bodyB = bodies[j];
+        resolveCircles(bodyA, bodyB, bodyA.id === pausedId, bodyB.id === pausedId);
       }
     }
   }
@@ -364,9 +368,9 @@ function solveCollisions(
     if (body.id === pausedId) {
       continue;
     }
-    const speed = clampSpeed(body.vx, body.vy, MAX_THROW_SPEED);
-    body.vx = speed.vx;
-    body.vy = speed.vy;
+    const speed = clampSpeed(body.velocityX, body.velocityY, MAX_THROW_SPEED);
+    body.velocityX = speed.velocityX;
+    body.velocityY = speed.velocityY;
   }
 }
 
@@ -376,7 +380,7 @@ function step(
   height: number,
   starRadius: number,
   pausedId: string | null,
-  dt: number,
+  dt: number
 ) {
   const starX = width / 2;
   const starY = height * STAR_Y_RATIO;
@@ -392,8 +396,8 @@ function step(
         updateStuckState(body, starX, starY, starRadius, dt, pausedId);
       }
 
-      body.x += body.vx * subDt;
-      body.y += body.vy * subDt;
+      body.pointX += body.velocityX * subDt;
+      body.pointY += body.velocityY * subDt;
     }
 
     solveCollisions(bodies, width, height, starX, starY, starRadius, pausedId);
@@ -405,7 +409,7 @@ export function useBouncePhysics(
   planetElsRef: RefObject<Map<string, HTMLElement | null>>,
   starSize: number,
   interactionId: string | null,
-  motionMode: 'auto' | 'paused' = 'auto',
+  motionMode: 'auto' | 'paused' = 'auto'
 ) {
   const bodiesRef = useRef<BounceBody[]>([]);
   const interactionRef = useRef(interactionId);
@@ -428,7 +432,7 @@ export function useBouncePhysics(
       return;
     }
 
-    const root = stage.closest('.orbit-hero') ?? stage;
+    const root = stage.closest('.cosmos-stage') ?? stage;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const starRadius = starCollisionRadius(starSize);
     const PAUSE_DELAY_MS = 1000;
@@ -546,7 +550,7 @@ export function useBouncePhysics(
       init();
     };
 
-    const unsubscribePresence = subscribeOrbitPresence(root, (next) => {
+    const unsubscribePresence = subscribeCosmosPresence(root, (next) => {
       inView = next.inView;
       pageVisible = next.pageVisible;
       syncRunning();

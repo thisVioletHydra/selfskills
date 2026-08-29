@@ -2,7 +2,7 @@ export type SleepSignal = AbortSignal | undefined;
 
 /**
  * Awaitable delay. Для моков / «подожди N мс».
- * Не для ambient spawn — там timer-kit (id + cancel + interval/jitter).
+ * Не для ambient spawn — там widgets/cosmos/lib/timer-kit (id + cancel + interval/jitter).
  */
 export function sleep(ms: number, signal?: SleepSignal): Promise<void> {
   if (signal !== null && signal !== undefined && signal.aborted === true) {

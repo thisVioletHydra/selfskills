@@ -1,33 +1,44 @@
 import type { Planet } from '#web/entities/planet/planets';
-import type { OrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
+import type { AmbientId } from '#web/widgets/cosmos/ambient/types';
+import type { CosmosMotionMode } from '#web/widgets/cosmos/lib/motion-state';
 
 import { CORE_PLANET, ORBIT_PLANETS } from '#web/entities/planet/planets';
 import { localizePlanet } from '#web/entities/planet/localizePlanet';
 import { PlanetModal } from '#web/features/planet-modal/PlanetModal';
-import { resetOrbitHintState } from '#web/shared/lib/orbit-hint-state';
-import { readOrbitMotionMode, writeOrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
+import { AMBIENT_REGISTRY } from '#web/widgets/cosmos/ambient/registry';
+import { HintsResetButton } from '#web/widgets/cosmos/chrome/HintsResetButton';
+import { MotionChip } from '#web/widgets/cosmos/chrome/MotionChip';
+import { useCosmosHints } from '#web/widgets/cosmos/chrome/useCosmosHints';
+import { ACTIVE_PRESET } from '#web/widgets/cosmos/config/presets';
+import { readCosmosMotionMode, writeCosmosMotionMode } from '#web/widgets/cosmos/lib/motion-state';
+import { useBouncePhysics } from '#web/widgets/cosmos/physics/useBouncePhysics';
+import { usePlanetThrow } from '#web/widgets/cosmos/physics/usePlanetThrow';
 import { useLocale } from '#web/shared/i18n/locale-context';
-import { OrbitComets } from '#web/widgets/orbit-hero/OrbitComet';
-import { OrbitHaze } from '#web/widgets/orbit-hero/OrbitHaze';
-import { OrbitPulseStars } from '#web/widgets/orbit-hero/OrbitPulseStars';
-import { useBouncePhysics } from '#web/widgets/orbit-hero/useBouncePhysics';
-import { useOrbitHints } from '#web/widgets/orbit-hero/useOrbitHints';
-import { usePlanetThrow } from '#web/widgets/orbit-hero/usePlanetThrow';
 import { useRef, useState } from 'react';
 
-import '#web/widgets/orbit-hero/orbit-hero.css';
+import '#web/widgets/cosmos/cosmos-stage.css';
 
-export function OrbitHero() {
+const STAR_MODULES = new Set<AmbientId>(['starfield', 'pulseStars', 'comets']);
+
+function renderAmbient(ids: readonly AmbientId[], motionMode: CosmosMotionMode) {
+  return ids.map((id) => {
+    const { Layer } = AMBIENT_REGISTRY[id];
+
+    return <Layer key={id} motionMode={motionMode} />;
+  });
+}
+
+export function CosmosStage() {
   const { t, locale } = useLocale();
   const stageRef = useRef<HTMLDivElement>(null);
   const planetElsRef = useRef(new Map<string, HTMLElement | null>());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
-  const [motionMode, setMotionMode] = useState<OrbitMotionMode>(() => readOrbitMotionMode());
+  const [motionMode, setMotionMode] = useState<CosmosMotionMode>(() => readCosmosMotionMode());
 
   const { hints, teaseActive, dismissTapHint, dismissThrowHint, finishHide, markTeaseDone } =
-    useOrbitHints(t);
+    useCosmosHints(t);
 
   const interactionId = draggingId ?? hoveredId;
   const { bodiesRef } = useBouncePhysics(
@@ -39,8 +50,8 @@ export function OrbitHero() {
   );
 
   const toggleMotion = () => {
-    const next: OrbitMotionMode = motionMode === 'auto' ? 'paused' : 'auto';
-    writeOrbitMotionMode(next);
+    const next: CosmosMotionMode = motionMode === 'auto' ? 'paused' : 'auto';
+    writeCosmosMotionMode(next);
     setMotionMode(next);
   };
 
@@ -71,71 +82,32 @@ export function OrbitHero() {
   const stageClassName = teaseActive ? 'stage hinting' : 'stage';
   const hintsVisible = hints.some((hint) => hint.visible || hint.hiding);
   const isPaused = motionMode === 'paused';
+  const starIds = ACTIVE_PRESET.modules.filter((id) => STAR_MODULES.has(id));
+  const overlayIds = ACTIVE_PRESET.modules.filter((id) => !STAR_MODULES.has(id));
 
   return (
-    <section className="orbit-hero" id="hero">
+    <section className="cosmos-stage" id="cosmos">
       <div className={stageClassName} ref={stageRef}>
         <div className="stars" aria-hidden="true">
-          <div className="stars-far" />
-          <div className="stars-mid" />
-          <div className="stars-near" />
-          <OrbitPulseStars />
-          <OrbitComets motionMode={motionMode} />
+          {renderAmbient(starIds, motionMode)}
         </div>
-        <OrbitHaze motionMode={motionMode} />
+        {renderAmbient(overlayIds, motionMode)}
         <div className="glow" aria-hidden="true" />
 
-        <button
-          type="button"
-          className="hints-reset"
-          onClick={() => resetOrbitHintState()}
-          aria-label={t('hintsReset')}
-          title={t('hintsReset')}
-        >
-          <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
-            <path
-              d="M3.2 3.2a5.6 5.6 0 0 1 9.1 1.3M12.8 12.8a5.6 5.6 0 0 1-9.1-1.3"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M12.8 2.4v3.2h-3.2M3.2 13.6v-3.2h3.2"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        <HintsResetButton label={t('hintsReset')} />
 
-        <button
-          type="button"
-          className="motion-chip"
-          onClick={toggleMotion}
-          aria-pressed={isPaused}
-          aria-label={isPaused ? t('orbitPlay') : t('orbitPause')}
-          title={isPaused ? t('play') : t('pause')}
-        >
-          {isPaused ? (
-            <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M4.2 2.4v11.2L13.2 8 4.2 2.4Z" fill="currentColor" />
-            </svg>
-          ) : (
-            <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
-              <rect x="3.2" y="2.8" width="3.2" height="10.4" rx="0.6" fill="currentColor" />
-              <rect x="9.6" y="2.8" width="3.2" height="10.4" rx="0.6" fill="currentColor" />
-            </svg>
-          )}
-          <span className="label">{isPaused ? t('play') : t('pause')}</span>
-        </button>
+        <MotionChip
+          isPaused={isPaused}
+          onToggle={toggleMotion}
+          playLabel={t('play')}
+          pauseLabel={t('pause')}
+          ariaPlay={t('orbitPlay')}
+          ariaPause={t('orbitPause')}
+        />
 
         {hintsVisible && (
           <div className="hints" aria-label={t('hintsAria')}>
-            {hints.map(
-              (hint) =>
+            {hints.map((hint) =>
               hint.visible ? (
                 <p
                   key={hint.key}

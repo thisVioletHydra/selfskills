@@ -1,15 +1,15 @@
-export type OrbitPresence = {
+export type CosmosPresence = {
   inView: boolean;
   pageVisible: boolean;
 };
 
-type PresenceListener = (presence: OrbitPresence) => void;
+type PresenceListener = (presence: CosmosPresence) => void;
 
 const listeners = new Set<PresenceListener>();
 
 let observed: Element | null = null;
 let io: IntersectionObserver | null = null;
-let presence: OrbitPresence = {
+let presence: CosmosPresence = {
   inView: true,
   pageVisible: true,
 };
@@ -64,8 +64,8 @@ function ensureAttached(target: Element) {
   document.addEventListener('visibilitychange', onVisibility);
 }
 
-/** One IO + visibilitychange for every orbit subscriber on the same target. */
-export function subscribeOrbitPresence(target: Element, listener: PresenceListener) {
+/** One IO + visibilitychange for every cosmos subscriber on the same target. */
+export function subscribeCosmosPresence(target: Element, listener: PresenceListener) {
   ensureAttached(target);
   listeners.add(listener);
   listener(presence);

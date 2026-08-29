@@ -1,8 +1,5 @@
-import { rollKarmicDice } from '#web/shared/lib/karmic-dice';
-import { rand } from '#web/shared/lib/orbit-rand';
-import { subscribeWindowEvent } from '#web/shared/lib/subscribe-window-event';
-
-export const ORBIT_COMET_TRIGGER_EVENT = 'orbit-comet-trigger';
+import { rollKarmicDice } from '#web/widgets/cosmos/lib/karmic-dice';
+import { rand } from '#web/widgets/cosmos/lib/rand';
 
 export type CometFlight = {
   id: number;
@@ -81,18 +78,10 @@ export function createCometWave(forcedCount?: 1 | 2): CometFlight[] {
 
   return Array.from(
     { length: count },
-    (_, index) => createCometFlight(index === 0 ? 0 : rand(0.35, 1.1))
+    (_, index) => createCometFlight(index === 0 ? 0 : rand(0.35, 1.1)),
   );
 }
 
 export function cometFlightLifetimeMs(flight: CometFlight) {
   return (flight.delay + flight.duration) * 1000 + 200;
-}
-
-export function triggerOrbitComet() {
-  window.dispatchEvent(new CustomEvent(ORBIT_COMET_TRIGGER_EVENT));
-}
-
-export function subscribeOrbitCometTrigger(listener: () => void) {
-  return subscribeWindowEvent(ORBIT_COMET_TRIGGER_EVENT, listener);
 }

@@ -1,4 +1,4 @@
-@scope (.orbit-hero) {
+@scope (.cosmos-stage) {
   :scope {
     position: relative;
     /* leave a peek of About so scroll is obvious */
@@ -1016,7 +1016,7 @@
 }
 
 @media (width < 1101px) {
-  @scope (.orbit-hero) {
+  @scope (.cosmos-stage) {
     .copy {
       inset-inline: var(--space-5);
       inset-block-end: calc(var(--space-7) + env(safe-area-inset-bottom, 0px));
@@ -1026,7 +1026,7 @@
 }
 
 @media (width < 768px) {
-  @scope (.orbit-hero) {
+  @scope (.cosmos-stage) {
     .copy {
       inset-inline: var(--space-4);
       inset-block-end: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
@@ -1041,7 +1041,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  @scope (.orbit-hero) {
+  @scope (.cosmos-stage) {
     .planet {
       will-change: auto;
     }
@@ -1076,7 +1076,7 @@
   }
 }
 
-@scope (.orbit-hero.paused) {
+@scope (.cosmos-stage.paused) {
   :is(
     .corona,
     .stage.hinting .planet img,
@@ -1097,7 +1097,7 @@
 }
 
 @media (hover: hover) {
-  @scope (.orbit-hero) {
+  @scope (.cosmos-stage) {
     .motion-chip:hover,
     .flash-chip:hover {
       color: var(--color-accent);

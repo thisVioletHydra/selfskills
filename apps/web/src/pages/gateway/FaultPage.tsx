@@ -60,13 +60,13 @@ export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: 
       }
 
       if (code === 404) {
-        globalThis.location.assign('/');
+        globalThis.location.assign(import.meta.env.BASE_URL);
         return;
       }
 
       const alive = await pingBackend();
       if (alive) {
-        globalThis.location.assign('/');
+        globalThis.location.assign(import.meta.env.BASE_URL);
       }
     } finally {
       homeLock.current = false;

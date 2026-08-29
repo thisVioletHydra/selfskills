@@ -66,20 +66,17 @@ function isSingleLineExpression(node) {
  * @param {import('eslint').AST.Token} leftParen
  * @param {import('eslint').AST.Token} rightParen
  */
-function hasMultilineIntent(sourceCode, node, leftParen, rightParen) {
+function hasMultilineIntent(sourceCode, node, leftParen) {
   const firstArg = node.arguments[0];
   const firstArgToken = sourceCode.getFirstToken(firstArg);
   if (!firstArgToken) {
     return false;
   }
 
+  // Only the first argument starting on its own line after `(` counts as
+  // column intent. A single multiline callback (`.map((item) => …)`) with
+  // `)` on the next line is normal — do not expand that into a column call.
   if (!isTokenOnSameLine(sourceCode, leftParen, firstArgToken)) {
-    return true;
-  }
-
-  const lastArgument = node.arguments.at(-1);
-  const lastToken = lastArgument ? sourceCode.getLastToken(lastArgument) : null;
-  if (lastToken && !isTokenOnSameLine(sourceCode, lastToken, rightParen)) {
     return true;
   }
 
@@ -181,12 +178,7 @@ export default {
       }
 
       const { leftParen, rightParen } = parens;
-      const multilineIntent = hasMultilineIntent(
-        sourceCode,
-        node,
-        leftParen,
-        rightParen,
-      );
+      const multilineIntent = hasMultilineIntent(sourceCode, node, leftParen);
 
       if (!multilineIntent) {
         collapseInlineCall(node, leftParen, rightParen);

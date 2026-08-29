@@ -83,10 +83,12 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
     .filter(Boolean)
     .join(' ');
 
-  const skillRows = resume.skills.slice(0, 6).map((name, index) => ({
-    name,
-    level: SKILL_LEVELS[index] ?? 70,
-  }));
+  const skillRows = resume.skills
+    .slice(0, 6)
+    .map((name, index) => ({
+      name,
+      level: SKILL_LEVELS[index] ?? 70,
+    }));
 
   const softwarePlanets = PLANETS.filter((planet) => planet.isCore !== true).slice(0, 9);
 

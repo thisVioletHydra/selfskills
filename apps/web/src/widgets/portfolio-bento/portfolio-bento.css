@@ -75,11 +75,6 @@
   @media (prefers-reduced-motion: no-preference) {
     .bento-card:not(.bento-chain-card):hover {
       border-color: color-mix(in oklch, var(--color-cold-base) 24%, var(--color-line));
-      transform: translateY(-2px);
-      transition:
-        border-color 0.25s var(--ease-out),
-        transform 0.25s var(--ease-out),
-        background-color 0.25s var(--ease-out);
     }
 
     :scope.is-experience-active #experience.bento-chain-card:hover,
@@ -87,7 +82,7 @@
     :scope.is-skills-active #skills.bento-chain-card:hover,
     :scope.is-software-active #software.bento-chain-card:hover,
     :scope.is-about-active #about.bento-chain-card:hover {
-      transform: translate3d(0, -2px, 0);
+      border-color: color-mix(in oklch, var(--color-cold-base) 24%, var(--color-line));
     }
   }
 

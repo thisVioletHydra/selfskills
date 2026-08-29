@@ -35,6 +35,10 @@ jobs:
           GITHUB_PAGES: 'true'
           VITE_GRAPHQL_URL: ${{ secrets.VITE_GRAPHQL_URL }}
 
+      # SPA fallback: Pages отдаёт 404.html на неизвестные пути — пусть это будет наше приложение
+      - name: Add SPA 404 fallback
+        run: cp apps/web/dist/index.html apps/web/dist/404.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist

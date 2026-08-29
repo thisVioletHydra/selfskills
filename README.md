@@ -37,7 +37,7 @@ GraphQL: `http://localhost:3000/graphql`
 src/
   app/              Bootstrap, стили
   pages/            HomeGate, ProfilePage, gateway (404/502)
-  widgets/          OrbitHero, PortfolioBento
+  widgets/          CosmosStage, PortfolioBento
   features/         PlanetModal
   entities/         profile, resume, planet
   shared/           api (GraphQL), i18n, ui
