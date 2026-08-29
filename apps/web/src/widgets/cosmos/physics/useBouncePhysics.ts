@@ -81,6 +81,14 @@ function clampSpeed(velocityX: number, velocityY: number, maxSpeed = MAX_SPEED) 
   return { velocityX: velocityX * scale, velocityY: velocityY * scale };
 }
 
+/** Layout left/top so Android hit-tests match the visual (transform-only breaks taps). */
+export function paintPlanetPosition(el: HTMLElement, pointX: number, pointY: number) {
+  el.style.left = `${pointX}px`;
+  el.style.top = `${pointY}px`;
+  el.style.transform = 'translate(-50%, -50%)';
+}
+
+/** @deprecated Prefer paintPlanetPosition — kept for any transform-only callers. */
 export function planetTransform(pointX: number, pointY: number) {
   return `translate3d(${pointX}px, ${pointY}px, 0) translate(-50%, -50%)`;
 }
@@ -94,7 +102,7 @@ export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLEle
       continue;
     }
 
-    el.style.transform = planetTransform(body.pointX, body.pointY);
+    paintPlanetPosition(el, body.pointX, body.pointY);
   }
 }
 

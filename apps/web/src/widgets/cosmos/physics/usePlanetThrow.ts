@@ -13,7 +13,7 @@ import {
   trimSamples,
   type PointSample,
 } from '#web/widgets/cosmos/physics/flick-velocity';
-import { planetTransform } from '#web/widgets/cosmos/physics/useBouncePhysics';
+import { paintPlanetPosition } from '#web/widgets/cosmos/physics/useBouncePhysics';
 import { useRef } from 'react';
 
 type UsePlanetThrowOptions = {
@@ -57,7 +57,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const paintBody = (id: string, pointX: number, pointY: number) => {
     const el = planetElsRef.current.get(id);
     if (el !== null && el !== undefined) {
-      el.style.transform = planetTransform(pointX, pointY);
+      paintPlanetPosition(el, pointX, pointY);
     }
   };
 

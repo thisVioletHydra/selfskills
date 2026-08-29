@@ -435,7 +435,7 @@
     position: absolute;
     top: 1.1rem;
     left: max(1rem, var(--space-section-x));
-    z-index: 8;
+    z-index: 20;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
@@ -527,7 +527,7 @@
     position: absolute;
     top: 1.1rem;
     right: max(1rem, var(--space-section-x));
-    z-index: 8;
+    z-index: 20;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -778,15 +778,14 @@
     padding: 0;
     border: none;
     background: transparent;
-    transform: translate3d(-50%, -50%, 0);
+    transform: translate(-50%, -50%);
     cursor: grab;
-    z-index: 4;
-    will-change: transform;
+    z-index: 10;
+    will-change: left, top;
     border-radius: 50%;
     touch-action: none;
     user-select: none;
     backface-visibility: hidden;
-    contain: layout style;
   }
 
   .planet img {
@@ -811,7 +810,7 @@
 
   .planet.dragging {
     cursor: grabbing;
-    z-index: 8;
+    z-index: 12;
   }
 
   .planet.dragging img {
@@ -831,7 +830,7 @@
     background: transparent;
     transform: translate(-50%, -50%);
     cursor: pointer;
-    z-index: 5;
+    z-index: 11;
   }
 
   .supernova::after {
@@ -853,7 +852,7 @@
 
   .copy {
     position: absolute;
-    z-index: 6;
+    z-index: 2;
     inset-inline: var(--space-6);
     inset-block-end: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
     margin-inline: auto;
@@ -862,6 +861,10 @@
     text-align: center;
     pointer-events: none;
     overflow-wrap: anywhere;
+  }
+
+  .copy * {
+    pointer-events: none;
   }
 
   .tag {
@@ -1204,7 +1207,7 @@
       inset-inline: var(--space-4);
       inset-block-end: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
       inline-size: calc(100% - var(--space-8));
-      z-index: 7;
+      z-index: 2;
       text-shadow: 0 1px 14px rgb(0 0 0 / 0.9);
     }
 
