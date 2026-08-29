@@ -41,6 +41,9 @@ function unlockPlanetTouch(target: HTMLElement) {
   target.style.touchAction = 'pan-y';
 }
 
+/** After a throw, ignore hover-pause so the planet doesn't catch its own cursor. */
+const THROW_HOVER_IMMUNE_MS = 1500;
+
 export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const {
     stageRef,
@@ -55,8 +58,24 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const trackerRef = useRef(createDragAccelerationTracker());
   /** Sync session id — Android can fire up before React re-renders draggingId state. */
   const draggingIdRef = useRef<string | null>(null);
+  /** planetId → performance.now() until hover may pause again */
+  const hoverImmuneUntilRef = useRef(new Map<string, number>());
 
   const getBody = (id: string) => bodiesRef.current.find((body) => body.id === id);
+
+  const isHoverImmune = (id: string) => {
+    const until = hoverImmuneUntilRef.current.get(id);
+    if (until === undefined) {
+      return false;
+    }
+
+    if (performance.now() >= until) {
+      hoverImmuneUntilRef.current.delete(id);
+      return false;
+    }
+
+    return true;
+  };
 
   const paintBody = (id: string, pointX: number, pointY: number) => {
     const el = planetElsRef.current.get(id);
@@ -78,6 +97,8 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     body.stuckSeconds = 0;
 
     if (release.velocityX !== 0 || release.velocityY !== 0) {
+      hoverImmuneUntilRef.current.set(planet.id, performance.now() + THROW_HOVER_IMMUNE_MS);
+      setHoveredId((current) => (current === planet.id ? null : current));
       onThrow?.();
     }
   };
@@ -175,9 +196,11 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   };
 
   const onPointerEnter = (planet: Planet) => {
-    if (draggingIdRef.current === null) {
-      setHoveredId(planet.id);
+    if (draggingIdRef.current !== null || isHoverImmune(planet.id)) {
+      return;
     }
+
+    setHoveredId(planet.id);
   };
 
   const onPointerLeave = (planet: Planet) => {
