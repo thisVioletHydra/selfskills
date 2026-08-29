@@ -24,6 +24,8 @@
     height: 100%;
     isolation: isolate;
     overflow: clip;
+    /* Empty stage area still scrolls the page; planets use touch-action: none */
+    touch-action: pan-y;
   }
 
   .stars {
@@ -665,8 +667,8 @@
     z-index: 10;
     will-change: left, top;
     border-radius: 50%;
-    /* pan-y: page can scroll on tablet; drag/flick still works via pointer events */
-    touch-action: pan-y;
+    /* none: Android commits scroll on pan-y at gesture start and cancels the drag */
+    touch-action: none;
     user-select: none;
     backface-visibility: hidden;
     /* Until physics paints left/top, hit-box sits at origin and steals upper taps on Android. */
@@ -675,6 +677,14 @@
 
   .planet[data-positioned='1'] {
     pointer-events: auto;
+  }
+
+  /* Fatter finger target — planets move and the icon is only ~72% of the box */
+  .planet::before {
+    content: '';
+    position: absolute;
+    inset: -22%;
+    border-radius: 50%;
   }
 
   .planet img {

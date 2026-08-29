@@ -177,8 +177,8 @@ export function CosmosStage() {
               onPointerEnter={() => throwHandlers.onPointerEnter(planet)}
               onPointerLeave={() => throwHandlers.onPointerLeave(planet)}
               onPointerDown={(event) => {
-                markInteracted();
                 throwHandlers.onPointerDown(planet, event);
+                markInteracted();
               }}
               onPointerMove={(event) => throwHandlers.onPointerMove(planet, event)}
               onPointerUp={(event) => throwHandlers.onPointerUp(planet, event)}

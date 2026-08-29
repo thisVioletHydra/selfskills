@@ -58,6 +58,8 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const trackerRef = useRef(createDragAccelerationTracker());
   /** Sync session id — Android can fire up before React re-renders draggingId state. */
   const draggingIdRef = useRef<string | null>(null);
+  /** Active pointer for this drag — ignore other fingers / ghost moves. */
+  const activePointerIdRef = useRef<number | null>(null);
   /** planetId → performance.now() until hover may pause again */
   const hoverImmuneUntilRef = useRef(new Map<string, number>());
 
@@ -75,6 +77,13 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
 
     return true;
+  };
+
+  const isDragPointer = (planetId: string, pointerId: number) => {
+    return (
+      isActivePointerSession(draggingIdRef.current, planetId)
+      && activePointerIdRef.current === pointerId
+    );
   };
 
   const paintBody = (id: string, pointX: number, pointY: number) => {
@@ -103,13 +112,31 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
   };
 
+  const clearDragSession = () => {
+    draggingIdRef.current = null;
+    activePointerIdRef.current = null;
+    setDraggingId(null);
+  };
+
   const onPointerDown = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
     const stage = stageRef.current;
     if (stage === null || stage === undefined) {
       return;
     }
 
+    // Only primary finger; ignore multi-touch while already dragging something else.
+    if (event.isPrimary !== true) {
+      return;
+    }
+
+    if (draggingIdRef.current !== null) {
+      return;
+    }
+
     const target = event.currentTarget;
+    // Must run before the browser commits a pan — CSS touch-action: none is the real fix;
+    // preventDefault blocks the compatibility mouse path on Android WebView.
+    event.preventDefault();
     lockPlanetTouch(target);
     capturePointer(target, event.pointerId);
 
@@ -118,6 +145,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
 
     if (body === null || body === undefined) {
       unlockPlanetTouch(target);
+      releasePointer(target, event.pointerId);
       return;
     }
 
@@ -133,12 +161,13 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     paintBody(planet.id, point.pointX, point.pointY);
 
     draggingIdRef.current = planet.id;
+    activePointerIdRef.current = event.pointerId;
     setDraggingId(planet.id);
     setHoveredId(null);
   };
 
   const onPointerMove = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isActivePointerSession(draggingIdRef.current, planet.id)) {
+    if (!isDragPointer(planet.id, event.pointerId)) {
       return;
     }
 
@@ -147,6 +176,8 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     if (stage === null || stage === undefined || body === null || body === undefined) {
       return;
     }
+
+    event.preventDefault();
 
     const point = stagePoint(stage, event.clientX, event.clientY);
     body.pointX = point.pointX;
@@ -159,7 +190,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   };
 
   const onPointerUp = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isActivePointerSession(draggingIdRef.current, planet.id)) {
+    if (!isDragPointer(planet.id, event.pointerId)) {
       return;
     }
 
@@ -170,8 +201,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     const release = trackerRef.current.end();
     applyRelease(planet, release);
 
-    draggingIdRef.current = null;
-    setDraggingId(null);
+    clearDragSession();
 
     if (!release.didDrag) {
       // Kill the synthetic click that Android would otherwise dump on the new modal backdrop.
@@ -181,7 +211,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   };
 
   const onPointerCancel = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isActivePointerSession(draggingIdRef.current, planet.id)) {
+    if (!isDragPointer(planet.id, event.pointerId)) {
       return;
     }
 
@@ -191,8 +221,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     const release = trackerRef.current.cancel();
     applyRelease(planet, release);
 
-    draggingIdRef.current = null;
-    setDraggingId(null);
+    clearDragSession();
   };
 
   const onPointerEnter = (planet: Planet) => {
