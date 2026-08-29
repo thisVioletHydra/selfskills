@@ -26,6 +26,13 @@
     overflow: clip;
   }
 
+  @media (width >= 1100px) {
+    .stage {
+      max-inline-size: 72rem;
+      margin-inline: auto;
+    }
+  }
+
   .stars {
     position: absolute;
     inset: 0;
@@ -495,10 +502,10 @@
     bottom: calc(100% + 0.4rem);
     z-index: 2;
     padding: 0.2rem 0.45rem;
-    border: 1px solid var(--color-glass-border);
+    border: 1px solid color-mix(in oklch, var(--color-accent) 35%, transparent);
     border-radius: var(--radius-pill);
-    background: var(--color-glass);
-    color: var(--color-muted);
+    background: color-mix(in oklch, var(--color-bg-deep) 55%, transparent);
+    color: var(--color-accent);
     font-size: 0.6875rem;
     line-height: 1.2;
     letter-spacing: 0.02em;
@@ -1079,9 +1086,9 @@
 @media (width < 768px) {
   @scope (.cosmos-stage) {
     :scope {
-      inline-size: 100dvw;
-      max-inline-size: 100dvw;
-      margin-inline: calc(50% - 50dvw);
+      inline-size: 100%;
+      max-inline-size: 100%;
+      margin-inline: 0;
       box-sizing: border-box;
       padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
     }
