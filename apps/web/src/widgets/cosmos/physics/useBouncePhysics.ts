@@ -24,7 +24,7 @@ const RESTITUTION = 0.78;
 const STAR_Y_RATIO = 0.42;
 const STAR_Y_RATIO_COMPACT = 0.34;
 const SUBSTEPS = 3;
-const SUBSTEPS_COMPACT = 2;
+const SUBSTEPS_COMPACT = 1;
 const POSITION_ITERS = 2;
 const POSITION_ITERS_COMPACT = 1;
 const BALL_SCALE = 1.08;
@@ -62,7 +62,12 @@ function starYRatio(compact: boolean) {
   return compact ? STAR_Y_RATIO_COMPACT : STAR_Y_RATIO;
 }
 
-function orbitPlanetsForWidth(_width: number) {
+function orbitPlanetsForWidth(width: number) {
+  // Half the flock on phones — 20×N² collisions cook the GPU for no UX gain.
+  if (isCompactWidth(width)) {
+    return ORBIT_PLANETS.filter((_, index) => index % 2 === 0);
+  }
+
   return ORBIT_PLANETS;
 }
 
@@ -83,6 +88,19 @@ function clampSpeed(velocityX: number, velocityY: number, maxSpeed = MAX_SPEED) 
 
 /** Layout left/top so Android hit-tests match the visual (transform-only breaks taps). */
 export function paintPlanetPosition(el: HTMLElement, pointX: number, pointY: number) {
+  const prevX = Number(el.dataset.px ?? Number.NaN);
+  const prevY = Number(el.dataset.py ?? Number.NaN);
+  if (
+    Number.isFinite(prevX)
+    && Number.isFinite(prevY)
+    && Math.abs(prevX - pointX) < 0.45
+    && Math.abs(prevY - pointY) < 0.45
+  ) {
+    return;
+  }
+
+  el.dataset.px = String(pointX);
+  el.dataset.py = String(pointY);
   el.style.left = `${pointX}px`;
   el.style.top = `${pointY}px`;
   el.style.transform = 'translate(-50%, -50%)';
@@ -784,13 +802,51 @@ export function useBouncePhysics(
     let last = performance.now();
     let inView = true;
     let pageVisible = document.visibilityState === 'visible';
+    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    /** Phones: 20Hz sim — 30Hz still cooked the device (see perf-1 logs ~29fps hot). */
+    const frameBudgetMs = () => {
+      const compact = isCompactWidth(sizeRef.current.width);
+      if (coarsePointer || compact) {
+        return 1000 / 20;
+      }
+
+      return 1000 / 60;
+    };
+    const IDLE_PAUSE_MS = coarsePointer ? 1800 : 8000;
+    let idlePaused = false;
+    let idleTimer = 0;
+
+    const bumpInteraction = () => {
+      if (idleTimer !== 0) {
+        window.clearTimeout(idleTimer);
+        idleTimer = 0;
+      }
+
+      if (idlePaused) {
+        idlePaused = false;
+        syncRunningRef.current();
+      }
+
+      idleTimer = window.setTimeout(() => {
+        idleTimer = 0;
+        idlePaused = true;
+        syncRunningRef.current();
+      }, IDLE_PAUSE_MS);
+    };
 
     const shouldRun = () =>
-      motionModeRef.current === 'auto' && inView && pageVisible && !suspendRef.current;
+      motionModeRef.current === 'auto'
+      && inView
+      && pageVisible
+      && !suspendRef.current
+      && !idlePaused;
 
-    /** Hard stop (user pause / tab hidden / modal) — freeze CSS ambient too. */
+    /** Hard stop (user pause / tab hidden / modal / idle) — freeze CSS ambient too. */
     const shouldHardStop = () =>
-      motionModeRef.current === 'paused' || !pageVisible || suspendRef.current;
+      motionModeRef.current === 'paused'
+      || !pageVisible
+      || suspendRef.current
+      || idlePaused;
 
     const setPausedClass = (paused: boolean) => {
       root.classList.toggle('paused', paused);
@@ -823,7 +879,15 @@ export function useBouncePhysics(
         return;
       }
 
-      const dt = Math.min((now - last) / 1000, 0.032);
+      const budget = frameBudgetMs();
+      const elapsed = now - last;
+      if (elapsed < budget - 1) {
+        raf = requestAnimationFrame(tick);
+
+        return;
+      }
+
+      const dt = Math.min(elapsed / 1000, 0.05);
       last = now;
 
       const { width, height } = sizeRef.current;
@@ -851,6 +915,7 @@ export function useBouncePhysics(
       loopActive = true;
       setPausedClass(false);
       last = performance.now();
+      bumpInteraction();
       raf = requestAnimationFrame(tick);
     };
 
@@ -887,6 +952,12 @@ export function useBouncePhysics(
 
     syncRunningRef.current = syncRunning;
 
+    const onStagePointer = () => {
+      bumpInteraction();
+    };
+    stage.addEventListener('pointerdown', onStagePointer, { passive: true });
+    stage.addEventListener('pointermove', onStagePointer, { passive: true });
+
     const unsubscribePresence = subscribeCosmosPresence(root, (next) => {
       inView = next.inView;
       pageVisible = next.pageVisible;
@@ -894,9 +965,15 @@ export function useBouncePhysics(
     });
 
     syncRunning();
+    bumpInteraction();
 
     return () => {
       syncRunningRef.current = () => {};
+      stage.removeEventListener('pointerdown', onStagePointer);
+      stage.removeEventListener('pointermove', onStagePointer);
+      if (idleTimer !== 0) {
+        window.clearTimeout(idleTimer);
+      }
       if (floorSyncRaf !== 0) {
         window.cancelAnimationFrame(floorSyncRaf);
       }

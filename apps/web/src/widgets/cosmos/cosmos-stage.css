@@ -666,7 +666,7 @@
     transform: translate(-50%, -50%);
     cursor: grab;
     z-index: 10;
-    will-change: left, top;
+    will-change: auto;
     border-radius: 50%;
     /* none: Android commits scroll on pan-y at gesture start and cancels the drag */
     touch-action: none;
@@ -712,6 +712,7 @@
     cursor: grabbing;
     z-index: 12;
     touch-action: none;
+    will-change: left, top;
   }
 
   .planet.dragging img {
@@ -1197,6 +1198,27 @@
 
   .planet {
     will-change: auto;
+  }
+}
+
+/* Phones: kill infinite ambient GPU work — physics alone already taxes the device */
+@media (pointer: coarse) {
+  @scope (.cosmos-stage) {
+    :is(.haze, .pulse-star, .corona, .comet, .spark) {
+      animation: none !important;
+    }
+
+    .planet img {
+      filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+      transition: none;
+    }
+
+    .planet:hover img,
+    .planet.paused img,
+    .planet.dragging img {
+      transform: none;
+      filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+    }
   }
 }
 
