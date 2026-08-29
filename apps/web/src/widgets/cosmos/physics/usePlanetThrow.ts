@@ -20,7 +20,6 @@ type UsePlanetThrowOptions = {
   stageRef: RefObject<HTMLElement | null>;
   bodiesRef: RefObject<BounceBody[]>;
   planetElsRef: RefObject<Map<string, HTMLElement | null>>;
-  draggingId: string | null;
   setDraggingId: Dispatch<SetStateAction<string | null>>;
   setHoveredId: Dispatch<SetStateAction<string | null>>;
   onOpen: (planet: Planet) => void;
@@ -41,7 +40,6 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     stageRef,
     bodiesRef,
     planetElsRef,
-    draggingId,
     setDraggingId,
     setHoveredId,
     onOpen,
@@ -51,6 +49,8 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const samplesRef = useRef<PointSample[]>([]);
   const dragStartRef = useRef({ pointX: 0, pointY: 0 });
   const didDragRef = useRef(false);
+  /** Sync session id — Android can fire up before React re-renders draggingId state. */
+  const draggingIdRef = useRef<string | null>(null);
 
   const getBody = (id: string) => bodiesRef.current.find((body) => body.id === id);
 
@@ -89,12 +89,13 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     body.stuckAnchorY = point.pointY;
     paintBody(planet.id, point.pointX, point.pointY);
 
+    draggingIdRef.current = planet.id;
     setDraggingId(planet.id);
     setHoveredId(null);
   };
 
   const onPointerMove = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isActivePointerSession(draggingId, planet.id)) {
+    if (!isActivePointerSession(draggingIdRef.current, planet.id)) {
       return;
     }
 
@@ -122,7 +123,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   };
 
   const onPointerUp = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isActivePointerSession(draggingId, planet.id)) {
+    if (!isActivePointerSession(draggingIdRef.current, planet.id)) {
       return;
     }
 
@@ -144,26 +145,30 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
       }
     }
 
+    draggingIdRef.current = null;
     setDraggingId(null);
     samplesRef.current = [];
 
     if (!didDragRef.current) {
+      // Kill the synthetic click that Android would otherwise dump on the new modal backdrop.
+      event.preventDefault();
       onOpen(planet);
     }
   };
 
   const onPointerCancel = (planet: Planet) => {
-    if (!isActivePointerSession(draggingId, planet.id)) {
+    if (!isActivePointerSession(draggingIdRef.current, planet.id)) {
       return;
     }
 
+    draggingIdRef.current = null;
     setDraggingId(null);
     samplesRef.current = [];
     didDragRef.current = false;
   };
 
   const onPointerEnter = (planet: Planet) => {
-    if (draggingId === null || draggingId === undefined || draggingId === '') {
+    if (draggingIdRef.current === null) {
       setHoveredId(planet.id);
     }
   };

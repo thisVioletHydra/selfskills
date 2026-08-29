@@ -86,6 +86,7 @@ export function paintPlanetPosition(el: HTMLElement, pointX: number, pointY: num
   el.style.left = `${pointX}px`;
   el.style.top = `${pointY}px`;
   el.style.transform = 'translate(-50%, -50%)';
+  el.dataset.positioned = '1';
 }
 
 /** @deprecated Prefer paintPlanetPosition — kept for any transform-only callers. */

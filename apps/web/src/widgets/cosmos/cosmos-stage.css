@@ -789,6 +789,12 @@
     touch-action: none;
     user-select: none;
     backface-visibility: hidden;
+    /* Until physics paints left/top, hit-box sits at origin and steals upper taps on Android. */
+    pointer-events: none;
+  }
+
+  .planet[data-positioned='1'] {
+    pointer-events: auto;
   }
 
   .planet img {

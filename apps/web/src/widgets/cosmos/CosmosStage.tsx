@@ -71,7 +71,6 @@ export function CosmosStage() {
     stageRef,
     bodiesRef,
     planetElsRef,
-    draggingId,
     setDraggingId,
     setHoveredId,
     onOpen: openPlanet,
@@ -203,7 +202,11 @@ export function CosmosStage() {
         <button
           type="button"
           className="supernova"
-          onClick={() => openPlanet(CORE_PLANET)}
+          onPointerUp={(event) => {
+            // Same Android path as planets: open on pointerup, kill synthetic click on modal.
+            event.preventDefault();
+            openPlanet(CORE_PLANET);
+          }}
           aria-label={t('supernovaAria', { name: CORE_PLANET.name })}
           title={t('supernovaTap')}
         >
