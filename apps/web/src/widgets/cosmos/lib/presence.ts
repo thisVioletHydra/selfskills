@@ -36,12 +36,25 @@ function setInView(next: boolean) {
   notify();
 }
 
-function onVisibility() {
+function setPageVisible(next: boolean) {
+  if (presence.pageVisible === next) {
+    return;
+  }
+
   presence = {
     ...presence,
-    pageVisible: document.visibilityState === 'visible',
+    pageVisible: next,
   };
   notify();
+}
+
+function onVisibility() {
+  setPageVisible(document.visibilityState === 'visible');
+}
+
+/** BFCache / tab resume — force visible without waiting for a flaky visibilitychange. */
+function onPageShow() {
+  setPageVisible(true);
 }
 
 function teardownObserver() {
@@ -56,6 +69,7 @@ function teardownObserver() {
   }
 
   document.removeEventListener('visibilitychange', onVisibility);
+  window.removeEventListener('pageshow', onPageShow);
   observed = null;
 }
 
@@ -104,6 +118,7 @@ function ensureAttached(target: Element) {
   );
   io.observe(target);
   document.addEventListener('visibilitychange', onVisibility);
+  window.addEventListener('pageshow', onPageShow);
 }
 
 /** One IO + visibilitychange for every cosmos subscriber on the same target. */

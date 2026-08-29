@@ -8,6 +8,7 @@ import { messages } from '#web/shared/i18n/messages';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { LocaleToggle } from '#web/shared/ui/LocaleToggle';
 import { SiteFooter } from '#web/shared/ui/SiteFooter';
+import { StatusChips } from '#web/widgets/cosmos/chrome/StatusChips';
 import { CosmosStage } from '#web/widgets/cosmos/CosmosStage';
 import { PortfolioBento } from '#web/widgets/portfolio-bento/PortfolioBento';
 import { useEffect, useState } from 'react';
@@ -80,6 +81,7 @@ export function ProfilePage() {
         <PortfolioBento profile={loading ? null : data.profile} resume={loading ? null : data.resume} loading={loading} />
       </main>
       <SiteFooter />
+      <StatusChips />
       <LocaleToggle />
     </>
   );

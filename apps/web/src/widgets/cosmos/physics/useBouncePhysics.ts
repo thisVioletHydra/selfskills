@@ -36,9 +36,22 @@ const STUCK_SECONDS = 10;
 const NUDGE_SPEED = 38;
 const MIN_BOUNCE_SPEED = 24;
 const COMPACT_WIDTH_PX = 768;
+/** Ignore Chrome collapse / zero layout frames — never scale from these. */
+const MIN_LAYOUT_PX = 48;
+const WALL_PADDING_COMPACT = 6;
+/** Insane scale after bfcache/toolbar = clamp-only. */
+const MAX_SCALE_JUMP = 2.5;
 
 function isCompactWidth(width: number) {
   return width > 0 && width < COMPACT_WIDTH_PX;
+}
+
+function wallPadding(compact: boolean) {
+  return compact ? WALL_PADDING_COMPACT : WALL_PADDING;
+}
+
+function isUsableLayout(width: number, height: number) {
+  return width >= MIN_LAYOUT_PX && height >= MIN_LAYOUT_PX;
 }
 
 function ballRadius(size: number, compact: boolean) {
@@ -115,15 +128,23 @@ function createBodies(
   floorInset: number,
 ): BounceBody[] {
   const compact = isCompactWidth(width);
-  const playHeight = Math.max(height - floorInset, height * 0.45);
+  const pad = wallPadding(compact);
   const centerX = width / 2;
-  const centerY = playHeight * starYRatio(compact);
+  const centerY = height * starYRatio(compact);
   const planets = orbitPlanetsForWidth(width);
 
   return planets.map((planet, index) => {
     const radius = ballRadius(planet.size, compact);
-    const angle = (index / planets.length) * Math.PI * 2 + 0.4;
-    const dist = starRadius + radius + 48 + (index % 5) * 38 + Math.floor(index / 5) * 28;
+    const angle = (index / planets.length) * Math.PI * 2 + 0.35;
+
+    // Ellipse almost to stage edges (mobile: full width, not a tight center cluster).
+    const maxRx = Math.max(width / 2 - pad - radius, starRadius + radius + 16);
+    const maxRyTop = Math.max(centerY - pad - radius, starRadius + radius + 12);
+    const maxRyBot = Math.max(height - centerY - pad - radius, starRadius + radius + 12);
+    const maxRy = Math.min(maxRyTop, maxRyBot);
+    const ring = compact
+      ? 0.9 + (index % 4) * 0.025
+      : 0.55 + (index % 5) * 0.07 + Math.floor(index / 5) * 0.04;
 
     let velocityX = (Math.random() - 0.5) * 65;
     let velocityY = (Math.random() - 0.5) * 65;
@@ -131,8 +152,8 @@ function createBodies(
     velocityX = clamped.velocityX;
     velocityY = clamped.velocityY;
 
-    const pointX = centerX + Math.cos(angle) * dist;
-    const pointY = centerY + Math.sin(angle) * dist;
+    const pointX = centerX + Math.cos(angle) * maxRx * ring;
+    const pointY = centerY + Math.sin(angle) * maxRy * ring;
 
     const body: BounceBody = {
       id: planet.id,
@@ -214,11 +235,13 @@ function updateStuckState(
 }
 
 function clampBodyToStage(body: BounceBody, width: number, height: number, floorInset: number) {
+  const compact = isCompactWidth(width);
+  const pad = wallPadding(compact);
   const playHeight = Math.max(height - floorInset, height * 0.45);
-  const minX = WALL_PADDING + body.radius;
-  const maxX = width - WALL_PADDING - body.radius;
-  const minY = WALL_PADDING + body.radius;
-  const maxY = playHeight - WALL_PADDING - body.radius;
+  const minX = pad + body.radius;
+  const maxX = width - pad - body.radius;
+  const minY = pad + body.radius;
+  const maxY = playHeight - pad - body.radius;
 
   body.pointX = Math.min(Math.max(body.pointX, minX), maxX);
   body.pointY = Math.min(Math.max(body.pointY, minY), maxY);
@@ -235,13 +258,31 @@ function scaleBodiesToSize(
   starRadius: number,
   floorInset: number,
 ) {
-  if (prevWidth <= 0 || prevHeight <= 0 || nextWidth <= 0 || nextHeight <= 0) {
+  if (
+    !isUsableLayout(prevWidth, prevHeight) ||
+    !isUsableLayout(nextWidth, nextHeight)
+  ) {
+    return;
+  }
+
+  const scaleX = nextWidth / prevWidth;
+  const scaleY = nextHeight / prevHeight;
+
+  // Chrome toolbar / zero→full frames: never blow up positions.
+  if (
+    scaleX > MAX_SCALE_JUMP ||
+    scaleX < 1 / MAX_SCALE_JUMP ||
+    scaleY > MAX_SCALE_JUMP ||
+    scaleY < 1 / MAX_SCALE_JUMP
+  ) {
+    for (const body of bodies) {
+      clampBodyToStage(body, nextWidth, nextHeight, floorInset);
+    }
+
     return;
   }
 
   const compact = isCompactWidth(nextWidth);
-  const scaleX = nextWidth / prevWidth;
-  const scaleY = nextHeight / prevHeight;
   const playHeight = Math.max(nextHeight - floorInset, nextHeight * 0.45);
   const starX = nextWidth / 2;
   const starY = playHeight * starYRatio(compact);
@@ -268,11 +309,13 @@ function scaleBodiesToSize(
 }
 
 function bounceWalls(body: BounceBody, width: number, height: number, floorInset: number) {
+  const compact = isCompactWidth(width);
+  const pad = wallPadding(compact);
   const playHeight = Math.max(height - floorInset, height * 0.45);
-  const minX = WALL_PADDING + body.radius;
-  const maxX = width - WALL_PADDING - body.radius;
-  const minY = WALL_PADDING + body.radius;
-  const maxY = playHeight - WALL_PADDING - body.radius;
+  const minX = pad + body.radius;
+  const maxX = width - pad - body.radius;
+  const minY = pad + body.radius;
+  const maxY = playHeight - pad - body.radius;
 
   if (body.pointX < minX) {
     body.pointX = minX;
@@ -543,20 +586,11 @@ export function useBouncePhysics(
     const starRadius = starCollisionRadius(starSize);
     const PAUSE_DELAY_MS = 1000;
 
-    const measureFloorInset = (height: number) => {
-      const copy = stage.querySelector('.copy');
-      if (!(copy instanceof HTMLElement)) {
-        floorInsetRef.current = isCompactWidth(stage.clientWidth) ? height * 0.38 : 0;
+    const measureFloorInset = (_height: number) => {
+      // Planets may cross hero copy — no soft floor.
+      floorInsetRef.current = 0;
 
-        return floorInsetRef.current;
-      }
-
-      const stageRect = stage.getBoundingClientRect();
-      const copyRect = copy.getBoundingClientRect();
-      const raw = stageRect.bottom - copyRect.top + 10;
-      floorInsetRef.current = Math.min(Math.max(raw, 0), height * 0.55);
-
-      return floorInsetRef.current;
+      return 0;
     };
 
     const measure = () => {
@@ -576,7 +610,7 @@ export function useBouncePhysics(
 
     const init = () => {
       const { width, height } = measure();
-      if (width === 0 || height === 0) {
+      if (!isUsableLayout(width, height)) {
         return;
       }
 
@@ -605,11 +639,9 @@ export function useBouncePhysics(
     /** Ignore chrome URL-bar height jitter; only real width changes reflow bodies. */
     const WIDTH_SCALE_EPS_PX = 2;
 
-    const applyResize = () => {
-      const prevWidth = sizeRef.current.width;
-      const prevHeight = sizeRef.current.height;
+    const clampBodiesToCurrentStage = () => {
       const { width, height } = stage.getBoundingClientRect();
-      if (width === 0 || height === 0) {
+      if (!isUsableLayout(width, height)) {
         return;
       }
 
@@ -622,8 +654,42 @@ export function useBouncePhysics(
         return;
       }
 
-      const crossedCompact =
-        isCompactWidth(prevWidth) !== isCompactWidth(width) && prevWidth > 0;
+      for (const body of bodiesRef.current) {
+        clampBodyToStage(body, width, height, floorInset);
+      }
+      paintPlanets(bodiesRef.current, planetElsRef.current);
+    };
+
+    const applyResize = () => {
+      const prevWidth = sizeRef.current.width;
+      const prevHeight = sizeRef.current.height;
+      const { width, height } = stage.getBoundingClientRect();
+
+      // Chrome collapse / transient 0×0 — ignore, keep last good size.
+      if (!isUsableLayout(width, height)) {
+        return;
+      }
+
+      sizeRef.current = { width, height };
+      const floorInset = measureFloorInset(height);
+
+      if (bodiesRef.current.length === 0) {
+        spawnBodies(width, height);
+
+        return;
+      }
+
+      // After zero/bad layout or pageshow: never scale — clamp only.
+      if (!isUsableLayout(prevWidth, prevHeight)) {
+        for (const body of bodiesRef.current) {
+          clampBodyToStage(body, width, height, floorInset);
+        }
+        paintPlanets(bodiesRef.current, planetElsRef.current);
+
+        return;
+      }
+
+      const crossedCompact = isCompactWidth(prevWidth) !== isCompactWidth(width);
 
       if (crossedCompact) {
         spawnBodies(width, height);
@@ -642,10 +708,6 @@ export function useBouncePhysics(
           paintPlanets(bodiesRef.current, planetElsRef.current);
         }
 
-        return;
-      }
-
-      if (prevWidth <= 0 || prevHeight <= 0) {
         return;
       }
 
@@ -672,7 +734,20 @@ export function useBouncePhysics(
       }, RESIZE_DEBOUNCE_MS);
     };
 
+    /** BFCache / tab resume: clamp only — never scale from a collapsed frame. */
+    const onPageShow = () => {
+      clampBodiesToCurrentStage();
+    };
+
+    const onVisibilityResume = () => {
+      if (document.visibilityState === 'visible') {
+        clampBodiesToCurrentStage();
+      }
+    };
+
     window.addEventListener('resize', onResize);
+    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener('visibilitychange', onVisibilityResume);
 
     if (reducedMotion) {
       root.classList.add('paused');
@@ -685,6 +760,8 @@ export function useBouncePhysics(
           window.clearTimeout(resizeTimer);
         }
         window.removeEventListener('resize', onResize);
+        window.removeEventListener('pageshow', onPageShow);
+        document.removeEventListener('visibilitychange', onVisibilityResume);
         root.classList.remove('paused');
       };
     }
@@ -820,6 +897,8 @@ export function useBouncePhysics(
       cancelAnimationFrame(raf);
       unsubscribePresence();
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisibilityResume);
       root.classList.remove('paused');
     };
   }, [stageRef, planetElsRef, starSize]);

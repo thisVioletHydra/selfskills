@@ -1,5 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
+import { execSync } from 'node:child_process';
+
 import react from '@vitejs/plugin-react';
 import { createLogger, defineConfig } from 'vite';
 import { assetManifestPlugin } from './vite/asset-manifest-plugin.ts';
@@ -24,12 +26,23 @@ logger.error = (msg, options) => {
   error(msg, options);
 };
 
+function gitShortSha() {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+  } catch {
+    return 'dev';
+  }
+}
+
 const githubPages = process.env.GITHUB_PAGES === 'true';
 
 export default defineConfig({
   base: githubPages ? '/selfskills/' : '/',
   customLogger: logger,
   plugins: [assetManifestPlugin(), react()],
+  define: {
+    __APP_GIT_SHA__: JSON.stringify(gitShortSha()),
+  },
   server: {
     port: 5173,
     open: true,

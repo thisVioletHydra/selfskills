@@ -1,0 +1,115 @@
+.status-chip {
+  position: fixed;
+  inset-block-end: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  inset-inline-start: max(1rem, var(--space-section-x));
+  z-index: 9;
+}
+
+.status-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.38rem 0.72rem 0.38rem 0.58rem;
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-glass);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.status-chip-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.status-lamp,
+.status-popover-lamp {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.status-chip-btn.is-up .status-lamp,
+.status-popover-lamp.is-up {
+  background: #3ecf8e;
+}
+
+.status-chip-btn.is-warn .status-lamp,
+.status-popover-lamp.is-unknown {
+  background: #e6c35c;
+}
+
+.status-chip-btn.is-down .status-lamp,
+.status-popover-lamp.is-down {
+  background: #f07178;
+}
+
+.status-chip-label {
+  opacity: 0.88;
+}
+
+.status-popover {
+  position: absolute;
+  inset-block-end: calc(100% + 0.45rem);
+  inset-inline-start: 0;
+  z-index: 10;
+  min-width: 11.5rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-glass-border);
+  border-radius: 0.65rem;
+  background: var(--color-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.28);
+  display: grid;
+  gap: 0.55rem;
+}
+
+.status-popover-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.status-popover-copy {
+  min-width: 0;
+}
+
+.status-popover-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.status-popover-meta {
+  margin: 0.15rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+@media (hover: hover) {
+  .status-chip-btn:hover {
+    color: var(--color-accent);
+    border-color: color-mix(in oklch, var(--color-accent) 45%, transparent);
+  }
+}

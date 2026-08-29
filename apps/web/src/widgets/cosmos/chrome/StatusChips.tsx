@@ -1,14 +1,24 @@
-import type { HealthDbStatus, HealthSnapshot } from '#web/shared/api/health-api';
+import type { HealthSnapshot } from '#web/shared/api/health-api';
 
 import { fetchHealth, HEALTH_POLL_MS } from '#web/shared/api/health-api';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { useEffect, useId, useRef, useState } from 'react';
 
-type ChipKind = 'api' | 'db';
+import '#web/widgets/cosmos/chrome/status-chip.css';
 
-type OpenPopover = ChipKind | null;
+function overallLamp(health: HealthSnapshot) {
+  if (health.api === 'up' && health.db === 'up') {
+    return 'is-up';
+  }
 
-function lampClass(status: 'up' | 'down' | 'unknown') {
+  if (health.api === 'up') {
+    return 'is-warn';
+  }
+
+  return 'is-down';
+}
+
+function rowState(status: 'up' | 'down' | 'unknown') {
   if (status === 'up') {
     return 'is-up';
   }
@@ -20,30 +30,12 @@ function lampClass(status: 'up' | 'down' | 'unknown') {
   return 'is-unknown';
 }
 
-function dbLabel(
-  status: HealthDbStatus,
-  live: string,
-  down: string,
-  unknown: string,
-) {
-  if (status === 'up') {
-    return live;
-  }
-
-  if (status === 'down') {
-    return down;
-  }
-
-  return unknown;
-}
-
 export function StatusChips() {
   const { t } = useLocale();
-  const apiPanelId = useId();
-  const dbPanelId = useId();
+  const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [health, setHealth] = useState<HealthSnapshot>({ api: 'down', db: 'unknown' });
-  const [open, setOpen] = useState<OpenPopover>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +59,7 @@ export function StatusChips() {
   }, []);
 
   useEffect(() => {
-    if (open === null) {
+    if (!open) {
       return;
     }
 
@@ -77,12 +69,12 @@ export function StatusChips() {
         return;
       }
 
-      setOpen(null);
+      setOpen(false);
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setOpen(null);
+        setOpen(false);
       }
     };
 
@@ -95,57 +87,49 @@ export function StatusChips() {
     };
   }, [open]);
 
-  const toggle = (kind: ChipKind) => {
-    setOpen((current) => (current === kind ? null : kind));
-  };
-
-  const apiLive = health.api === 'up';
+  const lamp = overallLamp(health);
+  const apiLabel = health.api === 'up' ? t('statusLive') : t('statusDown');
+  const dbLabel =
+    health.db === 'up' ? t('statusLive') : health.db === 'down' ? t('statusDown') : t('statusUnknown');
 
   return (
-    <div className="status-chips" ref={rootRef}>
-      <div className="status-chip-wrap">
-        <button
-          type="button"
-          className={`status-chip ${lampClass(health.api)}`}
-          aria-expanded={open === 'api'}
-          aria-controls={apiPanelId}
-          onClick={() => toggle('api')}
-        >
-          <span className="status-lamp" aria-hidden="true" />
-          <span className="label">{t('statusApi')}</span>
-        </button>
-        {open === 'api' ? (
-          <div className="status-popover" id={apiPanelId} role="dialog" aria-label={t('statusApiCard')}>
-            <p className="status-popover-title">{t('statusApiCard')}</p>
-            <p className="status-popover-meta">Railway · GraphQL</p>
-            <p className={`status-popover-state ${lampClass(health.api)}`}>
-              {apiLive ? t('statusLive') : t('statusDown')}
-            </p>
-          </div>
-        ) : null}
-      </div>
+    <div className="status-chip" ref={rootRef}>
+      <button
+        type="button"
+        className={`status-chip-btn ${lamp}`}
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-label={t('statusLabel')}
+        title={t('statusLabel')}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className="status-lamp" aria-hidden="true" />
+        <span className="status-chip-label">{t('statusLabel')}</span>
+      </button>
 
-      <div className="status-chip-wrap">
-        <button
-          type="button"
-          className={`status-chip ${lampClass(health.db)}`}
-          aria-expanded={open === 'db'}
-          aria-controls={dbPanelId}
-          onClick={() => toggle('db')}
+      {open ? (
+        <div
+          className="status-popover"
+          id={panelId}
+          role="dialog"
+          aria-label={t('statusLabel')}
         >
-          <span className="status-lamp" aria-hidden="true" />
-          <span className="label">{t('statusDb')}</span>
-        </button>
-        {open === 'db' ? (
-          <div className="status-popover" id={dbPanelId} role="dialog" aria-label={t('statusDbCard')}>
-            <p className="status-popover-title">{t('statusDbCard')}</p>
-            <p className="status-popover-meta">Neon · Postgres</p>
-            <p className={`status-popover-state ${lampClass(health.db)}`}>
-              {dbLabel(health.db, t('statusLive'), t('statusDown'), t('statusUnknown'))}
-            </p>
+          <div className="status-popover-row">
+            <span className={`status-popover-lamp ${rowState(health.api)}`} aria-hidden="true" />
+            <div className="status-popover-copy">
+              <p className="status-popover-title">{t('statusApiCard')}</p>
+              <p className="status-popover-meta">Railway · GraphQL · {apiLabel}</p>
+            </div>
           </div>
-        ) : null}
-      </div>
+          <div className="status-popover-row">
+            <span className={`status-popover-lamp ${rowState(health.db)}`} aria-hidden="true" />
+            <div className="status-popover-copy">
+              <p className="status-popover-title">{t('statusDbCard')}</p>
+              <p className="status-popover-meta">Neon · Postgres · {dbLabel}</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -8,7 +8,6 @@ import { PlanetModal } from '#web/features/planet-modal/PlanetModal';
 import { AMBIENT_REGISTRY } from '#web/widgets/cosmos/ambient/registry';
 import { HintsResetButton } from '#web/widgets/cosmos/chrome/HintsResetButton';
 import { MotionChip } from '#web/widgets/cosmos/chrome/MotionChip';
-import { StatusChips } from '#web/widgets/cosmos/chrome/StatusChips';
 import { useCosmosHints } from '#web/widgets/cosmos/chrome/useCosmosHints';
 import { ACTIVE_PRESET } from '#web/widgets/cosmos/config/presets';
 import { readCosmosMotionMode, writeCosmosMotionMode } from '#web/widgets/cosmos/lib/motion-state';
@@ -177,10 +176,9 @@ export function CosmosStage() {
               ariaPause={t('orbitPause')}
             />
             <span className="app-version" aria-hidden="true">
-              v1.1.1
+              {`ver:${__APP_GIT_SHA__}`}
             </span>
           </div>
-          <StatusChips />
         </div>
 
         {hintsVisible && (

@@ -45,6 +45,7 @@ export const messagesLocale = {
   planetModalSummary: 'What it is',
   planetModalExperience: 'Experience',
   profileLoadError: 'Failed to load profile',
+  statusLabel: 'Status',
   statusApi: 'API',
   statusDb: 'DB',
   statusApiCard: 'API',

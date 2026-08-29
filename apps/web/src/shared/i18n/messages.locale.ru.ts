@@ -45,6 +45,7 @@ export const messagesLocale = {
   planetModalSummary: 'Что это такое',
   planetModalExperience: 'Опыт работы',
   profileLoadError: 'Не удалось загрузить профиль',
+  statusLabel: 'Статус',
   statusApi: 'API',
   statusDb: 'DB',
   statusApiCard: 'API',
