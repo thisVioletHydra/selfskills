@@ -1,7 +1,7 @@
 export function subscribeWindowEvent(
   type: string,
   listener: EventListenerOrEventListenerObject,
-  options?: boolean | AddEventListenerOptions,
+  options?: boolean | AddEventListenerOptions
 ) {
   window.addEventListener(type, listener, options);
 

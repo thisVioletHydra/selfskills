@@ -1,6 +1,7 @@
 import {
   getFunctionParameterParens,
   getLineIndent,
+  getParameterStartToken,
   isParameterNode,
   isTokenOnSameLine,
 } from '../utils/function-params.mjs';
@@ -30,9 +31,16 @@ export default {
     const sourceCode = context.sourceCode;
 
     function reportCollapse(node, leftParen, rightParen, messageId) {
+      const parameter = node.params[0] ?? node.params.at(-1);
+      const parameterStart = getParameterStartToken(sourceCode, parameter);
+      const parameterEnd = sourceCode.getLastToken(parameter);
+      if (!parameterStart || !parameterEnd) {
+        return;
+      }
+
       const parameterText = sourceCode.text.slice(
-        sourceCode.getTokenAfter(leftParen).range[0],
-        sourceCode.getTokenBefore(rightParen).range[1],
+        parameterStart.range[0],
+        parameterEnd.range[1],
       );
 
       context.report({
@@ -78,13 +86,47 @@ export default {
       );
     }
 
+    function normalizeInlineParameterSpacing(node, leftParen, rightParen, parameter) {
+      const parameterStart = getParameterStartToken(sourceCode, parameter);
+      const parameterEnd = sourceCode.getLastToken(parameter);
+      if (!parameterStart || !parameterEnd) {
+        return;
+      }
+
+      const inner = sourceCode.text.slice(leftParen.range[1], rightParen.range[0]);
+      if (/\n/.test(inner)) {
+        return;
+      }
+
+      const parameterText = sourceCode.text
+        .slice(parameterStart.range[0], parameterEnd.range[1])
+        .replace(/\s+/g, ' ')
+        .trim();
+      const expected = `(${parameterText})`;
+      const actual = sourceCode.text.slice(leftParen.range[0], rightParen.range[1]);
+      if (actual === expected) {
+        return;
+      }
+
+      context.report({
+        node,
+        messageId: 'normalizeParameterSpacing',
+        fix(fixer) {
+          return fixer.replaceTextRange(
+            [leftParen.range[0], rightParen.range[1]],
+            expected,
+          );
+        },
+      });
+    }
+
     function normalizeMultilineSpacing(node, leftParen, rightParen) {
       const baseIndent = getLineIndent(sourceCode, leftParen.loc.start.line);
       const parameterIndent = `${baseIndent}  `;
 
       for (let index = 0; index < node.params.length; index += 1) {
         const parameter = node.params[index];
-        const parameterToken = sourceCode.getFirstToken(parameter);
+        const parameterToken = getParameterStartToken(sourceCode, parameter);
         if (!parameterToken) {
           continue;
         }
@@ -128,7 +170,7 @@ export default {
 
       const { leftParen, rightParen } = parens;
       const firstParameter = node.params[0];
-      const firstParameterToken = sourceCode.getFirstToken(firstParameter);
+      const firstParameterToken = getParameterStartToken(sourceCode, firstParameter);
       if (!firstParameterToken) {
         return;
       }
@@ -141,6 +183,13 @@ export default {
 
       if (node.params.length === 1) {
         const parameter = node.params[0];
+
+        if (multilineIntent) {
+          normalizeMultilineSpacing(node, leftParen, rightParen);
+          normalizeClosingParen(leftParen, rightParen, parameter);
+          return;
+        }
+
         const parameterOnOneLine = parameter.loc.start.line === parameter.loc.end.line;
         const lastParameterToken = sourceCode.getLastToken(parameter);
         const closingParenOnSameLine = isTokenOnSameLine(
@@ -149,16 +198,12 @@ export default {
           rightParen,
         );
 
-        if (multilineIntent && parameterOnOneLine) {
-          normalizeMultilineSpacing(node, leftParen, rightParen);
-          normalizeClosingParen(leftParen, rightParen, parameter);
+        if (!parameterOnOneLine || !closingParenOnSameLine) {
+          reportCollapse(parameter, leftParen, rightParen, 'collapseSingleParameter');
           return;
         }
 
-        if (!parameterOnOneLine || !closingParenOnSameLine) {
-          reportCollapse(parameter, leftParen, rightParen, 'collapseSingleParameter');
-        }
-
+        normalizeInlineParameterSpacing(node, leftParen, rightParen, parameter);
         return;
       }
 
@@ -171,7 +216,7 @@ export default {
         return !isTokenOnSameLine(
           sourceCode,
           sourceCode.getLastToken(previousParameter),
-          sourceCode.getFirstToken(parameter),
+          getParameterStartToken(sourceCode, parameter),
         );
       });
 
@@ -198,7 +243,7 @@ export default {
           isTokenOnSameLine(
             sourceCode,
             sourceCode.getLastToken(previousParameter),
-            sourceCode.getFirstToken(parameter),
+            getParameterStartToken(sourceCode, parameter),
           )
         ) {
           context.report({
@@ -207,7 +252,7 @@ export default {
             fix(fixer) {
               const baseIndent = getLineIndent(sourceCode, leftParen.loc.start.line);
               return fixer.insertTextBefore(
-                sourceCode.getFirstToken(parameter),
+                getParameterStartToken(sourceCode, parameter),
                 `\n${baseIndent}  `,
               );
             },

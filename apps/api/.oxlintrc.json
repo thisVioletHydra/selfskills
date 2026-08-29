@@ -6,9 +6,10 @@
     "unicorn"
   ],
   "jsPlugins": [
-    "../../packages/oxlint-rules/index.mjs"
+    "@selfskills/oxlint-rules"
   ],
   "rules": {
+    "import/newline-after-import": "warn",
     "import/consistent-type-specifier-style": [
       "error",
       "prefer-top-level"
@@ -27,11 +28,12 @@
       "always"
     ],
     "no-negated-condition": "warn",
-    "id-length": [
+    "id-length": "off",
+    "selfskills/id-length": [
       "error",
       {
         "min": 2,
-        "exceptions": ["i", "j", "f", "_"],
+        "exceptions": ["i", "j", "f", "_", "t"],
         "exceptionPatterns": ["^[A-Z]$"],
         "properties": "never"
       }
@@ -39,12 +41,20 @@
     "selfskills/consistent-block-indent": "warn",
     "selfskills/consistent-call-arguments": "warn",
     "selfskills/consistent-chain-layout": "warn",
+    "selfskills/consistent-condition-spacing": "warn",
+    "selfskills/consistent-object-layout": "warn",
     "selfskills/consistent-parameter-layout": "warn",
     "selfskills/consistent-property-indent": "warn",
     "selfskills/consistent-ternary-layout": "warn",
+    "selfskills/no-bang-condition": "warn",
     "selfskills/no-blank-lines-in-arrow-expression": "warn",
     "selfskills/no-blank-lines-in-chain": "warn",
     "selfskills/padding-line-before-decorator": "warn",
+    "selfskills/import-layout": "warn",
+    "selfskills/no-node-named-import": "error",
+    "selfskills/prefer-fs-promises": "warn",
+    "selfskills/prefer-node-default-name": "error",
+    "selfskills/prefer-object-arrow-method": "warn",
     "selfskills/prefer-process-import": "error",
     "unicorn/prefer-node-protocol": "error",
     "unicorn/import-style": [

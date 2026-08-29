@@ -1,6 +1,8 @@
 import { App } from '#web/app/App';
+import { LocaleProvider } from '#web/shared/i18n/LocaleProvider';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+
 import '#web/app/styles/global.css';
 
 const root = document.getElementById('root');
@@ -11,6 +13,8 @@ if (root === null || root === undefined) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <LocaleProvider>
+      <App />
+    </LocaleProvider>
   </StrictMode>,
 );

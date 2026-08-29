@@ -16,6 +16,25 @@ model Profile {
   blurb    String
   portrait String
   facts    Json
-  goals    Json
   about    Json
+}
+
+model ProfileLocale {
+  id     String @id @default(cuid())
+  locale String @unique
+  name   String
+  blurb  String
+  facts  Json
+  about  Json
+}
+
+model Resume {
+  id              String @id @default(cuid())
+  locale          String @unique
+  phone           String
+  email           String
+  experienceYears String
+  education       Json
+  skills          Json
+  jobs            Json
 }

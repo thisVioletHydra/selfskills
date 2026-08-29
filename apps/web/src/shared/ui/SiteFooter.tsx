@@ -1,18 +1,22 @@
+import { useLocale } from '#web/shared/i18n/locale-context';
+
 import '#web/shared/ui/site-chrome.css';
 
 export function SiteFooter() {
+  const { t } = useLocale();
+
   return (
     <footer className="site-footer" id="footer">
       <p className="stack-credits">
-        <span>Фронтенд собран на React через Vite (TypeScript)</span>
+        <span>{t('footerFrontend')}</span>
         <span className="stack-credits-sep" aria-hidden="true">
           ·
         </span>
-        <span>Бэкенд — NestJS, GraphQL, Prisma, PostgreSQL</span>
+        <span>{t('footerBackend')}</span>
         <span className="stack-credits-sep" aria-hidden="true">
           ·
         </span>
-        <span>Инфра — Docker Compose, PostgreSQL в контейнере</span>
+        <span>{t('footerInfra')}</span>
       </p>
     </footer>
   );

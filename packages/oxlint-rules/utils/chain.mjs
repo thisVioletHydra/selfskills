@@ -1,3 +1,15 @@
+/** @type {Set<string>} */
+const NON_CHAIN_OBJECT_TYPES = new Set([
+  'TSAsExpression',
+  'TSSatisfiesExpression',
+  'TSNonNullExpression',
+]);
+
+/** @param {import('estree').Node} objectNode */
+export function isChainObjectNode(objectNode) {
+  return !NON_CHAIN_OBJECT_TYPES.has(objectNode.type);
+}
+
 /** @param {import('estree').Expression | null | undefined} expression */
 export function isChainExpression(expression) {
   if (!expression) {
@@ -79,7 +91,9 @@ export function collectChainExpressions(node) {
 export function walkMemberChain(expression, visitLink) {
   if (expression.type === 'MemberExpression') {
     walkMemberChain(expression.object, visitLink);
-    visitLink(expression.object, expression);
+    if (isChainObjectNode(expression.object)) {
+      visitLink(expression.object, expression);
+    }
     return;
   }
 
@@ -102,7 +116,12 @@ export function getChainLinkRange(sourceCode, objectNode, memberNode) {
     return null;
   }
 
-  return { linkStart, linkEnd };
+  return {
+    linkStart,
+    linkEnd,
+    gapStart: objectNode.range[1],
+    gapEnd: linkEnd.range[0],
+  };
 }
 
 /** @param {import('eslint').SourceCode} sourceCode */

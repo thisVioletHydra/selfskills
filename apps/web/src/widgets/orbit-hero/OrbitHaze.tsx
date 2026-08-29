@@ -212,7 +212,8 @@ function OrbitHazeAmbient({ motionMode }: OrbitHazeProps) {
       clearLifeTimers();
       const generation = createGeneration(count, true);
       setGenerations([generation]);
-      if (!frozen) {
+
+      if (frozen === false) {
         armRemoveTimer(generation);
       }
     });
@@ -231,9 +232,7 @@ function OrbitHazeAmbient({ motionMode }: OrbitHazeProps) {
       }
     }
 
-    return () => {
-      clearLifeTimers();
-    };
+    return () => clearLifeTimers();
   }, [armRemoveTimer, clearLifeTimers, frozen]);
 
   useEffect(() => {
@@ -264,8 +263,8 @@ function OrbitHazeAmbient({ motionMode }: OrbitHazeProps) {
 
   return (
     <div className="haze-layer" aria-hidden="true">
-      {generations.flatMap((generation) =>
-        generation.blobs.map((blob) => {
+      {generations.flatMap(
+        (generation) => generation.blobs.map((blob) => {
           const style = {
             '--haze-w': `${blob.width}vw`,
             '--haze-h': `${blob.height}vw`,

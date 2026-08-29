@@ -1,33 +1,23 @@
 # infra
 
-Postgres через **Colima** (без Docker Desktop, без автозапуска при логине).
+Локальный Postgres и prod-compose для VPS.
 
-## Первый раз
-
-```bash
-brew install colima docker docker-compose
-```
-
-Не делай `brew services start colima`.
-
-## Три терминала
+## Локально (Colima / Docker)
 
 ```bash
-pnpm db up       # терминал 1 — держит postgres, Ctrl+C = stop
-pnpm back        # терминал 2
-pnpm front       # терминал 3
+brew install colima docker docker-compose   # один раз
+# не делай brew services start colima
+
+pnpm db up        # держит postgres, Ctrl+C = stop
+pnpm db down      # если контейнер завис
+pnpm db destroy   # снести volume
 ```
 
-`pnpm db down` — если контейнер остался висеть после краша терминала.
+Compose: `infra/docker-compose.yml`  
+Переменные API: `apps/api/.env.example`
 
-`pnpm db destroy` — убить БД под ноль (volume).
+Дальше из корня: migrate + seed + `pnpm back` / `pnpm front` — см. корневой `README.md`.
 
-Первый clone — migrate + seed:
+## VPS
 
-```bash
-cd apps/api
-pnpm exec prisma migrate dev
-pnpm exec prisma db seed
-```
-
-Colima выключить: `colima stop`
+См. [VPS.md](./VPS.md) и `docker-compose.prod.yml`.

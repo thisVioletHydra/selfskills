@@ -2,9 +2,11 @@ import type { Planet } from '#web/entities/planet/planets';
 import type { OrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
 
 import { CORE_PLANET, ORBIT_PLANETS } from '#web/entities/planet/planets';
+import { localizePlanet } from '#web/entities/planet/localizePlanet';
 import { PlanetModal } from '#web/features/planet-modal/PlanetModal';
 import { resetOrbitHintState } from '#web/shared/lib/orbit-hint-state';
 import { readOrbitMotionMode, writeOrbitMotionMode } from '#web/shared/lib/orbit-motion-state';
+import { useLocale } from '#web/shared/i18n/locale-context';
 import { OrbitComets } from '#web/widgets/orbit-hero/OrbitComet';
 import { OrbitHaze } from '#web/widgets/orbit-hero/OrbitHaze';
 import { OrbitPulseStars } from '#web/widgets/orbit-hero/OrbitPulseStars';
@@ -12,9 +14,11 @@ import { useBouncePhysics } from '#web/widgets/orbit-hero/useBouncePhysics';
 import { useOrbitHints } from '#web/widgets/orbit-hero/useOrbitHints';
 import { usePlanetThrow } from '#web/widgets/orbit-hero/usePlanetThrow';
 import { useRef, useState } from 'react';
+
 import '#web/widgets/orbit-hero/orbit-hero.css';
 
 export function OrbitHero() {
+  const { t, locale } = useLocale();
   const stageRef = useRef<HTMLDivElement>(null);
   const planetElsRef = useRef(new Map<string, HTMLElement | null>());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -23,7 +27,7 @@ export function OrbitHero() {
   const [motionMode, setMotionMode] = useState<OrbitMotionMode>(() => readOrbitMotionMode());
 
   const { hints, teaseActive, dismissTapHint, dismissThrowHint, finishHide, markTeaseDone } =
-    useOrbitHints();
+    useOrbitHints(t);
 
   const interactionId = draggingId ?? hoveredId;
   const { bodiesRef } = useBouncePhysics(
@@ -85,8 +89,8 @@ export function OrbitHero() {
           type="button"
           className="hints-reset"
           onClick={() => resetOrbitHintState()}
-          aria-label="Сбросить подсказки"
-          title="Сбросить подсказки"
+          aria-label={t('hintsReset')}
+          title={t('hintsReset')}
         >
           <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
             <path
@@ -112,8 +116,8 @@ export function OrbitHero() {
           className="motion-chip"
           onClick={toggleMotion}
           aria-pressed={isPaused}
-          aria-label={isPaused ? 'Запустить орбиту' : 'Поставить орбиту на паузу'}
-          title={isPaused ? 'Play' : 'Pause'}
+          aria-label={isPaused ? t('orbitPlay') : t('orbitPause')}
+          title={isPaused ? t('play') : t('pause')}
         >
           {isPaused ? (
             <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
@@ -125,12 +129,13 @@ export function OrbitHero() {
               <rect x="9.6" y="2.8" width="3.2" height="10.4" rx="0.6" fill="currentColor" />
             </svg>
           )}
-          <span className="label">{isPaused ? 'Play' : 'Pause'}</span>
+          <span className="label">{isPaused ? t('play') : t('pause')}</span>
         </button>
 
         {hintsVisible && (
-          <div className="hints" aria-label="Подсказки">
-            {hints.map((hint) =>
+          <div className="hints" aria-label={t('hintsAria')}>
+            {hints.map(
+              (hint) =>
               hint.visible ? (
                 <p
                   key={hint.key}
@@ -183,8 +188,8 @@ export function OrbitHero() {
               onPointerMove={(event) => throwHandlers.onPointerMove(planet, event)}
               onPointerUp={(event) => throwHandlers.onPointerUp(planet, event)}
               onPointerCancel={() => throwHandlers.onPointerCancel(planet)}
-              aria-label={`${planet.name}. Тап — карточка. Зажми и швырни.`}
-              title="Тап — карточка · зажми и швырни"
+              aria-label={t('planetTapAria', { name: planet.name })}
+              title={t('planetTapTitle')}
             >
               <img src={planet.icon} alt="" draggable={false} />
             </button>
@@ -195,32 +200,31 @@ export function OrbitHero() {
           type="button"
           className="supernova"
           onClick={() => openPlanet(CORE_PLANET)}
-          aria-label={`${CORE_PLANET.name}. Тап — открыть карточку.`}
-          title="Тап — карточка JavaScript"
+          aria-label={t('supernovaAria', { name: CORE_PLANET.name })}
+          title={t('supernovaTap')}
         >
           <img src={CORE_PLANET.icon} alt="" draggable={false} />
         </button>
 
         <div className="copy">
-          <p className="tag">planets</p>
+          <p className="tag">{t('heroTag')}</p>
           <h1 className="title">
-            JS в центре.
+            {t('heroTitleLine1')}
             <br />
-            Остальное — орбиты.
+            {t('heroTitleLine2')}
           </h1>
 
           <figure className="hero-quote-wrap">
-            <blockquote className="hero-quote">
-              Можно кодить до синих пальцев, но идеальный код всё равно останется где-то за горизонтом
-              событий. Наверное, поэтому разработка и не заканчивается — вселенная слишком велика,
-              чтобы однажды поставить точку.
-            </blockquote>
-            <figcaption className="hero-quote-by">— ai-нейрослоп</figcaption>
+            <blockquote className="hero-quote">{t('heroQuote')}</blockquote>
+            <figcaption className="hero-quote-by">{t('heroQuoteBy')}</figcaption>
           </figure>
         </div>
       </div>
 
-      <PlanetModal planet={activePlanet} onClose={() => setActivePlanet(null)} />
+      <PlanetModal
+        planet={activePlanet === null ? null : localizePlanet(activePlanet, locale)}
+        onClose={() => setActivePlanet(null)}
+      />
     </section>
   );
 }

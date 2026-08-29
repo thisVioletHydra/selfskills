@@ -1,13 +1,13 @@
 export const profileSeed = {
   slug: 'main',
   name: 'Рыбчин Роман',
-  role: 'Frontend-разработчик · TypeScript / Vue / Node',
+  role: 'Fullstack-разработчик · TypeScript / Vue / Node',
   tag: 'about',
 
   blurb:
-    'В основном я занимаюсь фронтендом и люблю JavaScript за то, что на нём можно собрать почти всё — от интерфейса до серверной части. Работаю с Vue и React, пишу на Node.js и NestJS, использую Prisma и GraphQL. С Docker и CI/CD тоже знаком не понаслышке. А если вместо модного стека достался jQuery, PHP или другой легаси — ничего страшного, разберусь.',
+    'Фулстек: JavaScript — ядро. Вокруг него Vue и React на фронте, Node.js и NestJS на бэке, Prisma и GraphQL между ними. Docker и CI/CD — часть работы. А если вместо модного стека достался jQuery, PHP или другой легаси — ничего страшного, разберусь.',
 
-  portrait: '/portrait.webp',
+  portrait: 'portrait',
 
   facts: [
     { label: 'Возраст', value: '29' },
@@ -17,12 +17,6 @@ export const profileSeed = {
     { label: 'Занятость', value: 'Полная' },
     { label: 'Опыт', value: '5 лет' },
     { label: 'Образование', value: 'БГУИР, электронный маркетинг' },
-  ],
-
-  goals: [
-    'Хочется работать над продуктом, который развивается, а не бесконечно клепать похожие страницы',
-    'Люблю задачи, где нужно сначала подумать, а уже потом писать код',
-    'Интересен стек вокруг TypeScript — Vue или React, Node.js и внятный CI/CD',
   ],
 
   about: [

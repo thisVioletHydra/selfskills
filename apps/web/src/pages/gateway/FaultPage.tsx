@@ -1,14 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
-
 import { pingBackend } from '#web/shared/api/ping-api';
 import { sleep } from '#web/shared/lib/sleep';
+
 import '#web/pages/gateway/gateway-page.css';
 
 type FaultCode = 404 | 502;
 
 const RETRY_COOLDOWN_MS = 1000;
 const RETRY_CHECK_MS = 500;
-const HOME_CHECK_MS = 500;
 
 type FaultPageProps = {
   code: FaultCode;
@@ -16,16 +15,17 @@ type FaultPageProps = {
   text: string;
   busy?: boolean;
   onRetry?: () => void;
+  onHome?: () => void | Promise<void>;
 };
 
-export function FaultPage({ code, title, text, busy = false, onRetry }: FaultPageProps) {
+export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: FaultPageProps) {
   const [cooling, setCooling] = useState(false);
   const [barTick, setBarTick] = useState(0);
   const homeLock = useRef(false);
   const retryLock = useRef(false);
 
   const handleRetry = useCallback(async () => {
-    if (busy || cooling || retryLock.current || !onRetry) {
+    if (busy || cooling || retryLock.current || onRetry === undefined) {
       return;
     }
 
@@ -53,20 +53,25 @@ export function FaultPage({ code, title, text, busy = false, onRetry }: FaultPag
 
     homeLock.current = true;
 
-    if (code === 404) {
-      globalThis.location.assign('/');
-      return;
+    try {
+      if (onHome !== undefined) {
+        await onHome();
+        return;
+      }
+
+      if (code === 404) {
+        globalThis.location.assign('/');
+        return;
+      }
+
+      const alive = await pingBackend();
+      if (alive) {
+        globalThis.location.assign('/');
+      }
+    } finally {
+      homeLock.current = false;
     }
-
-    const [alive] = await Promise.all([pingBackend(), sleep(HOME_CHECK_MS)]);
-
-    if (alive) {
-      globalThis.location.assign('/');
-      return;
-    }
-
-    homeLock.current = false;
-  }, [busy, code]);
+  }, [busy, code, onHome]);
 
   const retryLocked = busy || cooling;
 
@@ -78,7 +83,7 @@ export function FaultPage({ code, title, text, busy = false, onRetry }: FaultPag
       <h1 className="title">{title}</h1>
       <p className="text">{text}</p>
       <div className="actions">
-        {code === 502 && onRetry ? (
+        {code === 502 && onRetry !== undefined ? (
           <button
             type="button"
             className={`retry${cooling ? ' is-cooling' : ''}`}

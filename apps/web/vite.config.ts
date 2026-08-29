@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import react from '@vitejs/plugin-react';
 import { createLogger, defineConfig } from 'vite';
+import { assetManifestPlugin } from './vite/asset-manifest-plugin.ts';
 
 const logger = createLogger();
 const warn = logger.warn.bind(logger);
@@ -23,9 +24,12 @@ logger.error = (msg, options) => {
   error(msg, options);
 };
 
+const githubPages = process.env.GITHUB_PAGES === 'true';
+
 export default defineConfig({
+  base: githubPages ? '/selfskills/' : '/',
   customLogger: logger,
-  plugins: [react()],
+  plugins: [assetManifestPlugin(), react()],
   server: {
     port: 5173,
     open: true,

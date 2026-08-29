@@ -5,7 +5,7 @@ import {
   subscribeOrbitHintReset,
   writeOrbitHintState,
 } from '#web/shared/lib/orbit-hint-state';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export type OrbitHintKey = 'tapDismissed' | 'throwDismissed';
 
@@ -18,20 +18,7 @@ export type OrbitHintItem = {
   hiding: boolean;
 };
 
-const HINT_COPY: Omit<OrbitHintItem, 'visible' | 'hiding'>[] = [
-  {
-    key: 'tapDismissed',
-    text: 'Тап — карточка',
-    mark: '◎',
-    markClass: 'mark',
-  },
-  {
-    key: 'throwDismissed',
-    text: 'Зажми и швырни',
-    mark: '↗',
-    markClass: 'mark throw',
-  },
-];
+type Translate = (key: 'hintTap' | 'hintThrow') => string;
 
 type HidingMap = Record<OrbitHintKey, boolean>;
 
@@ -40,9 +27,27 @@ const INITIAL_HIDING: HidingMap = {
   throwDismissed: false,
 };
 
-export function useOrbitHints() {
+function buildHintCopy(t: Translate): Omit<OrbitHintItem, 'visible' | 'hiding'>[] {
+  return [
+    {
+      key: 'tapDismissed',
+      text: t('hintTap'),
+      mark: '◎',
+      markClass: 'mark',
+    },
+    {
+      key: 'throwDismissed',
+      text: t('hintThrow'),
+      mark: '↗',
+      markClass: 'mark throw',
+    },
+  ];
+}
+
+export function useOrbitHints(t: Translate) {
   const [hintState, setHintState] = useState<OrbitHintState>(readOrbitHintState);
   const [hiding, setHiding] = useState<HidingMap>(INITIAL_HIDING);
+  const hintCopy = useMemo(() => buildHintCopy(t), [t]);
 
   useEffect(() => {
     return subscribeOrbitHintReset(() => {
@@ -77,7 +82,7 @@ export function useOrbitHints() {
     setHiding((current) => ({ ...current, [key]: false }));
   }, []);
 
-  const hints: OrbitHintItem[] = HINT_COPY.map((item) => ({
+  const hints: OrbitHintItem[] = hintCopy.map((item) => ({
     ...item,
     visible: !hintState[item.key],
     hiding: hiding[item.key],

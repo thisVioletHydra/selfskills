@@ -1,8 +1,11 @@
 import type { ProfileInfo } from '#web/entities/profile/profile';
+import type { Locale } from '#web/shared/lib/locale-state';
+
+import { graphqlUrl } from '#web/shared/api/graphql-url';
 
 const PROFILE_QUERY = `
-  query Profile {
-    profile {
+  query Profile($locale: Locale!) {
+    profile(locale: $locale) {
       name
       role
       tag
@@ -12,7 +15,6 @@ const PROFILE_QUERY = `
         label
         value
       }
-      goals
       about
     }
   }
@@ -23,13 +25,16 @@ type GqlProfileResponse = {
   errors?: Array<{ message: string }>;
 };
 
-let profileInFlight: Promise<ProfileInfo> | null = null;
+const profileInFlight = new Map<Locale, Promise<ProfileInfo>>();
 
-async function requestProfile(): Promise<ProfileInfo> {
-  const res = await fetch('/graphql', {
+async function requestProfile(locale: Locale): Promise<ProfileInfo> {
+  const res = await fetch(graphqlUrl(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: PROFILE_QUERY }),
+    body: JSON.stringify({
+      query: PROFILE_QUERY,
+      variables: { locale },
+    }),
   });
 
   if (!res.ok) {
@@ -38,24 +43,29 @@ async function requestProfile(): Promise<ProfileInfo> {
 
   const json = (await res.json()) as GqlProfileResponse;
 
-  if (json.errors?.length) {
-    throw new Error(json.errors[0]?.message ?? 'GraphQL error');
+  if ((json.errors?.length ?? 0) > 0) {
+    throw new Error(json.errors?.[0]?.message ?? 'GraphQL error');
   }
 
-  if (!json.data?.profile) {
+  if (json.data?.profile === undefined || json.data?.profile === null) {
     throw new Error('Profile not found');
   }
 
   return json.data.profile;
 }
 
-/** Concurrent callers share one in-flight request (Strict Mode remounts). */
-export function fetchProfile(): Promise<ProfileInfo> {
-  if (profileInFlight === null) {
-    profileInFlight = requestProfile().finally(() => {
-      profileInFlight = null;
-    });
+/** Concurrent callers per locale share one in-flight request (Strict Mode remounts). */
+export function fetchProfile(locale: Locale): Promise<ProfileInfo> {
+  const cached = profileInFlight.get(locale);
+
+  if (cached !== undefined) {
+    return cached;
   }
 
-  return profileInFlight;
+  const request = requestProfile(locale).finally(() => {
+    profileInFlight.delete(locale);
+  });
+
+  profileInFlight.set(locale, request);
+  return request;
 }

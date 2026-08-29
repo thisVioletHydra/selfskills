@@ -67,3 +67,29 @@ export function isParameterNode(node) {
     || node.type === 'ObjectPattern'
   );
 }
+
+/**
+ * Decorators sit before the parameter identifier in source but are omitted by
+ * `getFirstToken(parameter)`.
+ *
+ * @param {import('eslint').SourceCode} sourceCode
+ * @param {import('estree').Node} parameter
+ */
+export function getParameterStartToken(sourceCode, parameter) {
+  const decorators = parameter.decorators;
+  if (Array.isArray(decorators) && decorators.length > 0) {
+    const decoratorToken = sourceCode.getFirstToken(decorators[0]);
+    if (decoratorToken) {
+      return decoratorToken;
+    }
+  }
+
+  if (parameter.type === 'TSParameterProperty') {
+    return (
+      getParameterStartToken(sourceCode, parameter.parameter)
+      ?? sourceCode.getFirstToken(parameter)
+    );
+  }
+
+  return sourceCode.getFirstToken(parameter);
+}

@@ -10,15 +10,17 @@
     gap: 0.75rem;
     padding: var(--space-7);
     background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, var(--color-accent-mist) 0%, transparent 48%),
       radial-gradient(circle at 20% 80%, var(--color-cold) 0%, transparent 42%),
       radial-gradient(circle at 80% 20%, var(--color-accent-glow) 0%, transparent 40%),
-      var(--color-bg-deep);
+      radial-gradient(
+        ellipse 100% 80% at 50% 40%,
+        var(--color-bg-lift) 0%,
+        var(--color-bg) 55%,
+        var(--color-bg-deep) 100%
+      );
     color: var(--color-text);
     text-align: center;
-  }
-
-  :scope.fault-page--blank {
-    display: block;
   }
 
   .code {
@@ -185,4 +187,9 @@
   to {
     clip-path: inset(0 100% 0 0);
   }
+}
+
+.home-gate-pending {
+  flex: 1 0 auto;
+  min-block-size: 100dvh;
 }

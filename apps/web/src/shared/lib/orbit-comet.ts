@@ -79,8 +79,9 @@ export function createCometFlight(delay = 0): CometFlight {
 export function createCometWave(forcedCount?: 1 | 2): CometFlight[] {
   const count = forcedCount ?? rollCometCount();
 
-  return Array.from({ length: count }, (_, index) =>
-    createCometFlight(index === 0 ? 0 : rand(0.35, 1.1)),
+  return Array.from(
+    { length: count },
+    (_, index) => createCometFlight(index === 0 ? 0 : rand(0.35, 1.1))
   );
 }
 

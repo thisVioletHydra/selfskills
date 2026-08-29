@@ -1,23 +1,25 @@
 import type { ProfileInfo } from '#web/entities/profile/profile';
+import type { ResumeInfo } from '#web/entities/resume/resume';
 import type { CSSProperties } from 'react';
 
+import { useRef } from 'react';
 import { PLANETS } from '#web/entities/planet/planets';
-import { DEMO_RESUME } from '#web/entities/resume/resume';
-import { GITHUB_URL, TELEGRAM_QR_SRC, TELEGRAM_URL } from '#web/shared/config/contacts';
+import { profileFactValue } from '#web/entities/profile/profileFactValue';
+import { GITHUB_URL, TELEGRAM_URL } from '#web/shared/config/contacts';
+import { imageUrl } from '#web/generated/asset-urls';
+import { useLocale } from '#web/shared/i18n/locale-context';
+import { useBentoMotion } from '#web/widgets/portfolio-bento/useBentoMotion';
+
 import '#web/widgets/portfolio-bento/portfolio-bento.css';
 
 const TELEGRAM = TELEGRAM_URL;
-
 const SKILL_LEVELS = [95, 90, 88, 85, 82, 78];
 
 type PortfolioBentoProps = {
   profile: ProfileInfo | null;
+  resume: ResumeInfo | null;
   loading?: boolean;
 };
-
-function factValue(facts: ProfileInfo['facts'], label: string, fallback: string) {
-  return facts.find((fact) => fact.label === label)?.value ?? fallback;
-}
 
 function BentoSkeleton() {
   return (
@@ -45,68 +47,120 @@ function BentoSkeleton() {
   );
 }
 
-export function PortfolioBento({ profile, loading = false }: PortfolioBentoProps) {
-  if (loading || profile === null) {
+export function PortfolioBento({ profile, resume, loading = false }: PortfolioBentoProps) {
+  const { locale, t } = useLocale();
+  const sectionRef = useRef<HTMLElement>(null);
+  const motionEnabled = !loading && profile !== null && resume !== null;
+  const {
+    revealed,
+    experienceActive,
+    educationActive,
+    aboutActive,
+    skillsActive,
+    softwareActive
+  } = useBentoMotion({
+    enabled: motionEnabled,
+    sectionRef,
+  });
+
+  if (loading || profile === null || resume === null) {
     return <BentoSkeleton />;
   }
 
-  const portraitStyle = { '--portrait-url': `url(${profile.portrait})` } as CSSProperties;
+  const portraitStyle = {
+    '--portrait-url': `url(${imageUrl(profile.portrait)})`,
+  } as CSSProperties;
 
-  const skillRows = DEMO_RESUME.skills.slice(0, 6).map((name, index) => ({
+  const sectionClassName = [
+    'portfolio-bento',
+    revealed ? 'is-revealed' : '',
+    experienceActive ? 'is-experience-active' : '',
+    educationActive ? 'is-education-active' : '',
+    aboutActive ? 'is-about-active' : '',
+    skillsActive ? 'is-skills-active' : '',
+    softwareActive ? 'is-software-active' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const skillRows = resume.skills.slice(0, 6).map((name, index) => ({
     name,
     level: SKILL_LEVELS[index] ?? 70,
   }));
 
   const softwarePlanets = PLANETS.filter((planet) => planet.isCore !== true).slice(0, 9);
 
+  const experienceRaw = profileFactValue(profile.facts, 'experience', locale, resume.experienceYears);
+  const experienceYears = experienceRaw.match(/\d+/)?.[0] ?? experienceRaw;
+
   const stats = [
     {
-      label: 'Years',
-      value: factValue(profile.facts, 'Опыт', DEMO_RESUME.experienceYears).replace(' лет', '+'),
+      label: t('statsYears'),
+      value: `${experienceYears}+`
     },
     {
-      label: 'Status',
-      value: 'Open',
+      label: t('statsStatus'),
+      value: t('statsJobSearch')
     },
     {
-      label: 'City',
-      value: factValue(profile.facts, 'Город', 'Москва'),
+      label: t('statsCity'),
+      value: profileFactValue(profile.facts, 'city', locale, locale === 'en' ? 'Moscow' : 'Москва')
     },
     {
-      label: 'Format',
-      value: factValue(profile.facts, 'Формат', 'Remote'),
+      label: t('statsFormat'),
+      value: profileFactValue(profile.facts, 'format', locale, locale === 'en' ? 'Remote' : 'Удалённо')
     },
   ];
 
   return (
-    <section className="portfolio-bento" id="portfolio">
+    <section ref={sectionRef} className={sectionClassName} id="portfolio">
+      <div className="bento-scroll-hint" aria-hidden={revealed}>
+        <span className="bento-scroll-hint-label">{t('scroll')}</span>
+        <svg className="bento-scroll-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 5v12m0 0 4.5-4.5M12 17l-4.5-4.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+
       <div className="bento-shell">
         <div className="bento">
           <aside className="bento-sidebar" id="contact">
-            <div className="bento-card bento-card--sidebar">
+            <div
+              className="bento-card bento-card--sidebar bento-reveal"
+              style={{ '--reveal-i': 0 } as CSSProperties}
+            >
               <div
                 className="bento-portrait"
                 role="img"
-                aria-label={`Портрет: ${profile.name}`}
+                aria-label={t('portraitAria', { name: profile.name })}
                 style={portraitStyle}
               />
 
-              <div className="bento-identity">
-                <h2 className="bento-name">{profile.name}</h2>
-                <p className="bento-role">{profile.role}</p>
-              </div>
+              <h2 className="bento-name">{profile.name}</h2>
+              <p className="bento-role">
+                <span className="bento-role-title">{t('roleTitle')}</span>
+                <span className="bento-role-stack">{t('roleStack')}</span>
+              </p>
 
               <p className="bento-bio">{profile.blurb}</p>
 
               <ul className="bento-contacts">
                 <li>
-                  <a href={`tel:${DEMO_RESUME.phone.replace(/\s/g, '')}`}>{DEMO_RESUME.phone}</a>
+                  <a href={`tel:${resume.phone.replace(/\s/g, '')}`}>{resume.phone}</a>
                 </li>
                 <li>
-                  <a href={`mailto:${DEMO_RESUME.email}`}>{DEMO_RESUME.email}</a>
+                  <a href={`mailto:${resume.email}`}>{resume.email}</a>
                 </li>
                 <li>
-                  <span>{factValue(profile.facts, 'Город', 'Москва')} · удалённо</span>
+                  <span>
+                    {profileFactValue(profile.facts, 'city', locale, 'Москва')} · {t('remote')}
+                  </span>
                 </li>
               </ul>
 
@@ -115,11 +169,11 @@ export function PortfolioBento({ profile, loading = false }: PortfolioBentoProps
                 href={TELEGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Telegram — QR-код для быстрого контакта"
+                aria-label={t('telegramQrAria')}
               >
                 <img
                   className="bento-qr-image"
-                  src={TELEGRAM_QR_SRC}
+                  src={imageUrl('telegram-qr')}
                   alt=""
                   width={274}
                   height={274}
@@ -133,13 +187,16 @@ export function PortfolioBento({ profile, loading = false }: PortfolioBentoProps
                   GitHub
                 </a>
                 <a href={TELEGRAM}>Telegram</a>
-                <a href={`mailto:${DEMO_RESUME.email}`}>Email</a>
+                <a href={`mailto:${resume.email}`}>Email</a>
               </div>
             </div>
           </aside>
 
           <div className="bento-main">
-            <div className="bento-card bento-stats">
+            <div
+              className="bento-card bento-stats bento-reveal"
+              style={{ '--reveal-i': 1 } as CSSProperties}
+            >
               {stats.map((stat) => (
                 <div key={stat.label} className="bento-stat">
                   <p className="bento-stat-value">{stat.value}</p>
@@ -148,93 +205,140 @@ export function PortfolioBento({ profile, loading = false }: PortfolioBentoProps
               ))}
             </div>
 
-            <article className="bento-card" id="experience">
+            <article
+              className="bento-card bento-chain-card"
+              id="experience"
+            >
               <header className="bento-card-head">
-                <h3 className="bento-heading">Experience</h3>
-                <span className="bento-meta">Timeline</span>
+                <h3 className="bento-heading">{t('experience')}</h3>
+                <span className="bento-meta">{t('timeline')}</span>
               </header>
               <ol className="bento-timeline">
-                {DEMO_RESUME.jobs.map((job) => (
-                  <li key={job.id} className="bento-timeline-item">
+                {resume.jobs.map((job, index) => {
+                  let lineIndex = 0;
+                  const lineClass = 'bento-timeline-line';
+                  const nextLineStyle = () => ({ '--line-i': lineIndex++ } as CSSProperties);
+
+                  return (
+                  <li
+                    key={job.id}
+                    className="bento-timeline-item"
+                    style={{ '--job-i': index } as CSSProperties}
+                  >
                     <div className="bento-timeline-marker" aria-hidden="true" />
                     <div className="bento-timeline-body">
                       <p className="bento-timeline-date">{job.period}</p>
-                      <h4 className="bento-timeline-title">{job.role}</h4>
-                      <p className="bento-timeline-company">
-                        {job.url ? (
-                          <a href={job.url} target="_blank" rel="noopener noreferrer">
-                            {job.company}
-                          </a>
-                        ) : (
-                          job.company
-                        )}
-                        {job.location ? ` · ${job.location}` : ''}
-                      </p>
-                      {job.productNote ? (
-                        <div className="bento-timeline-note">
-                          <p>{job.productNote}</p>
-                          {job.productExampleUrl ? (
-                            <a
-                              className="bento-timeline-example"
-                              href={job.productExampleUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Публичный пример: {job.productExampleUrl}
+                      <div className="bento-timeline-detail">
+                        <h4
+                          className={`bento-timeline-title ${lineClass}`}
+                          style={nextLineStyle()}
+                        >
+                          {job.role}
+                        </h4>
+                        <p
+                          className={`bento-timeline-company ${lineClass}`}
+                          style={nextLineStyle()}
+                        >
+                          {job.url !== undefined && job.url !== '' ? (
+                            <a href={job.url} target="_blank" rel="noopener noreferrer">
+                              {job.company}
                             </a>
-                          ) : null}
-                        </div>
-                      ) : null}
-                      <ul className="bento-timeline-list">
-                        {job.highlights.slice(0, 5).map((line) => (
-                          <li key={line.slice(0, 48)}>{line}</li>
-                        ))}
-                      </ul>
+                          ) : (
+                            job.company
+                          )}
+                          {job.location === '' ? '' : ` · ${job.location}`}
+                        </p>
+                        {job.productNote !== undefined && job.productNote !== '' ? (
+                          <div className="bento-timeline-note">
+                            <p className={lineClass} style={nextLineStyle()}>
+                              {job.productNote}
+                            </p>
+                            {job.productExampleUrl !== undefined && job.productExampleUrl !== '' ? (
+                              <a
+                                className={`bento-timeline-example ${lineClass}`}
+                                href={job.productExampleUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={nextLineStyle()}
+                              >
+                                {t('publicExample')} {job.productExampleUrl}
+                              </a>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        <ul className="bento-timeline-list">
+                          {job.highlights.slice(0, 5).map((line) => (
+                            <li key={line.slice(0, 48)} className={lineClass} style={nextLineStyle()}>
+                              {line}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ol>
             </article>
 
-            <article className="bento-card">
+            <article className="bento-card bento-chain-card" id="education">
               <header className="bento-card-head">
-                <h3 className="bento-heading">Education</h3>
+                <h3 className="bento-heading">{t('education')}</h3>
               </header>
               <ol className="bento-timeline bento-timeline--compact">
                 <li className="bento-timeline-item">
                   <div className="bento-timeline-marker" aria-hidden="true" />
                   <div className="bento-timeline-body">
-                    <p className="bento-timeline-date">{DEMO_RESUME.education.details}</p>
-                    <h4 className="bento-timeline-title">{DEMO_RESUME.education.school}</h4>
-                    <p className="bento-timeline-company">{DEMO_RESUME.education.level}</p>
+                    <p className="bento-timeline-date">{resume.education.details}</p>
+                    <h4 className="bento-timeline-title">{resume.education.school}</h4>
+                    <p className="bento-timeline-company">{resume.education.level}</p>
                   </div>
                 </li>
               </ol>
             </article>
 
             <div className="bento-split">
-              <article className="bento-card" id="skills">
-                <h3 className="bento-heading">Skills</h3>
+              <article
+                className="bento-card bento-chain-card"
+                id="skills"
+              >
+                <h3 className="bento-heading">{t('skills')}</h3>
                 <ul className="bento-skill-list">
-                  {skillRows.map((skill) => (
+                  {skillRows.map((skill, index) => (
                     <li key={skill.name} className="bento-skill">
                       <div className="bento-skill-row">
                         <span className="bento-skill-name">{skill.name}</span>
                         <span className="bento-skill-pct">{skill.level}%</span>
                       </div>
                       <div className="bento-skill-track">
-                        <span className="bento-skill-bar" style={{ inlineSize: `${skill.level}%` }} />
+                        <span
+                          className="bento-skill-bar"
+                          style={
+                            {
+                              '--skill-pct': `${skill.level}%`,
+                              '--skill-i': index,
+                            } as CSSProperties
+                          }
+                        />
                       </div>
                     </li>
                   ))}
                 </ul>
               </article>
 
-              <article className="bento-card">
-                <h3 className="bento-heading">Software</h3>
+              <article
+                className="bento-card bento-chain-card"
+                id="software"
+              >
+                <h3 className="bento-heading">{t('software')}</h3>
                 <ul className="bento-software">
-                  {softwarePlanets.map((planet) => (
-                    <li key={planet.id} className="bento-software-item" title={planet.name}>
+                  {softwarePlanets.map((planet, index) => (
+                    <li
+                      key={planet.id}
+                      className="bento-software-item"
+                      title={planet.name}
+                      style={{ '--software-i': index } as CSSProperties}
+                    >
                       <img src={planet.icon} alt="" />
                       <span>{planet.name}</span>
                     </li>
@@ -243,13 +347,30 @@ export function PortfolioBento({ profile, loading = false }: PortfolioBentoProps
               </article>
             </div>
 
-            <article className="bento-card">
-              <h3 className="bento-heading">About</h3>
-              <div className="bento-prose">
-                {profile.about.map((paragraph) => (
-                  <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+            <article
+              className="bento-card bento-chain-card"
+              id="about"
+            >
+              <h3 className="bento-heading">{t('about')}</h3>
+              <ol className="bento-timeline bento-about-track">
+                {profile.about.map((paragraph, index) => (
+                  <li
+                    key={paragraph.slice(0, 48)}
+                    className="bento-timeline-item"
+                    style={{ '--job-i': index } as CSSProperties}
+                  >
+                    <div className="bento-timeline-marker" aria-hidden="true" />
+                    <div className="bento-timeline-body">
+                      <p
+                        className="bento-about-paragraph bento-timeline-line"
+                        style={{ '--line-i': 0 } as CSSProperties}
+                      >
+                        {paragraph}
+                      </p>
+                    </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             </article>
           </div>
         </div>

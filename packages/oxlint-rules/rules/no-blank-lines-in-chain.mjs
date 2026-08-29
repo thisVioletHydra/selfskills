@@ -34,8 +34,8 @@ export default {
         return;
       }
 
-      const { linkStart, linkEnd } = range;
-      const gapText = sourceCode.text.slice(linkStart.range[1], linkEnd.range[0]);
+      const { linkStart, linkEnd, gapStart, gapEnd } = range;
+      const gapText = sourceCode.text.slice(gapStart, gapEnd);
       if (!/\n[\t ]*\n/.test(gapText)) {
         return;
       }
@@ -50,7 +50,7 @@ export default {
         messageId: 'unexpectedBlankLine',
         fix(fixer) {
           return fixer.replaceTextRange(
-            [linkStart.range[1], linkEnd.range[0]],
+            [gapStart, gapEnd],
             expectedGap,
           );
         },

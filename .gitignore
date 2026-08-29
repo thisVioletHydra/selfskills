@@ -6,11 +6,13 @@ node_modules/
 dist/
 **/dist/
 .vite/
+*.tsbuildinfo
 
 # env
 .env
 .env.*
 !.env.example
+!infra/.env.prod.example
 
 # logs
 *.log
@@ -28,3 +30,4 @@ Thumbs.db
 coverage/
 *.local
 .turbo/
+apps/web/src/generated/

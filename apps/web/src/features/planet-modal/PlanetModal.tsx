@@ -1,6 +1,8 @@
 import type { Planet } from '#web/entities/planet/planets';
 
+import { useLocale } from '#web/shared/i18n/locale-context';
 import { useEffect } from 'react';
+
 import '#web/features/planet-modal/planet-modal.css';
 
 type PlanetModalProps = {
@@ -9,6 +11,8 @@ type PlanetModalProps = {
 };
 
 export function PlanetModal({ planet, onClose }: PlanetModalProps) {
+  const { t } = useLocale();
+
   useEffect(() => {
     if (planet === null || planet === undefined) {
       return;
@@ -39,9 +43,9 @@ export function PlanetModal({ planet, onClose }: PlanetModalProps) {
         className="panel"
         open
         aria-labelledby="planet-modal-title"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" className="close" onClick={onClose} aria-label="Закрыть">
+        <button type="button" className="close" onClick={onClose} aria-label={t('planetModalClose')}>
           ×
         </button>
 
@@ -54,17 +58,17 @@ export function PlanetModal({ planet, onClose }: PlanetModalProps) {
 
         <dl className="fields">
           <div className="field">
-            <dt>Название</dt>
+            <dt>{t('planetModalName')}</dt>
             <dd>
               {planet.name} / {planet.reading}
             </dd>
           </div>
           <div className="field">
-            <dt>Что это такое</dt>
+            <dt>{t('planetModalSummary')}</dt>
             <dd>{planet.summary}</dd>
           </div>
           <div className="field">
-            <dt>Опыт работы</dt>
+            <dt>{t('planetModalExperience')}</dt>
             <dd>{planet.experience}</dd>
           </div>
         </dl>

@@ -50,6 +50,9 @@ importers:
       graphql:
         specifier: ^16.14.2
         version: 16.14.2
+      prisma:
+        specifier: 6.19.3
+        version: 6.19.3(typescript@6.0.3)
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -81,9 +84,6 @@ importers:
       oxlint-tsgolint:
         specifier: ^7.0.2001
         version: 7.0.2001
-      prisma:
-        specifier: 6.19.3
-        version: 6.19.3(typescript@6.0.3)
       tsx:
         specifier: ^4.23.12
         version: 4.23.12

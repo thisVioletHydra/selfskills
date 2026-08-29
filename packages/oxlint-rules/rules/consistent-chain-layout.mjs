@@ -5,6 +5,12 @@ import {
 } from '../utils/chain.mjs';
 import { getLineIndent, isTokenOnSameLine } from '../utils/function-params.mjs';
 
+/** @param {import('estree').MemberExpression} memberNode */
+function isMethodLink(memberNode) {
+  const parent = memberNode.parent;
+  return parent?.type === 'CallExpression' && parent.callee === memberNode;
+}
+
 /** @param {import('estree').Node} node */
 function visitChainNodes(node, checkChain) {
   for (const expression of collectChainExpressions(node)) {
@@ -18,13 +24,13 @@ export default {
     type: 'layout',
     docs: {
       description:
-        'Keep call chains inline, or multiline when the first link starts on its own line.',
+        'Column-break only method calls (`.foo()`); property paths (`a.b.c`) stay inline.',
     },
     fixable: 'whitespace',
     messages: {
-      collapseChain: 'Call chain should stay on one line.',
-      expandChain: 'Multiline call chain must place each link on its own line.',
-      normalizeChainSpacing: 'Normalize spacing inside this call chain.',
+      collapseChain: 'Property access should stay on one line.',
+      expandChain: 'Multiline method chain must place each call on its own line.',
+      normalizeChainSpacing: 'Normalize spacing inside this method chain.',
     },
     schema: [],
   },
@@ -34,6 +40,10 @@ export default {
     function normalizeGap(node, rangeStart, rangeEnd, expectedText, messageId) {
       const actualText = sourceCode.text.slice(rangeStart, rangeEnd);
       if (actualText === expectedText) {
+        return;
+      }
+
+      if (/[^\s]/.test(actualText)) {
         return;
       }
 
@@ -56,80 +66,55 @@ export default {
         return;
       }
 
-      const firstLink = links[0];
-      const firstRange = getChainLinkRange(
-        sourceCode,
-        firstLink.objectNode,
-        firstLink.memberNode,
-      );
-      if (!firstRange) {
-        return;
+      /** @type {{ objectNode: import('estree').Node, memberNode: import('estree').MemberExpression, range: NonNullable<ReturnType<typeof getChainLinkRange>>, method: boolean }[]} */
+      const resolved = [];
+      for (const link of links) {
+        const range = getChainLinkRange(sourceCode, link.objectNode, link.memberNode);
+        if (!range) {
+          return;
+        }
+
+        resolved.push({
+          ...link,
+          range,
+          method: isMethodLink(link.memberNode),
+        });
       }
+
+      const firstBrokenMethodIndex = resolved.findIndex(
+        (link) =>
+          link.method
+          && !isTokenOnSameLine(sourceCode, link.range.linkStart, link.range.linkEnd),
+      );
 
       const baseIndent = getLineIndent(
         sourceCode,
-        firstLink.objectNode.loc.start.line,
+        resolved[0].objectNode.loc.start.line,
       );
       const chainIndent = `${baseIndent}  `;
-      const multilineIntent = !isTokenOnSameLine(
-        sourceCode,
-        firstRange.linkStart,
-        firstRange.linkEnd,
-      );
 
-      if (!multilineIntent) {
-        for (const link of links) {
-          const range = getChainLinkRange(
-            sourceCode,
-            link.objectNode,
-            link.memberNode,
-          );
-          if (!range) {
-            continue;
-          }
+      for (let index = 0; index < resolved.length; index += 1) {
+        const link = resolved[index];
 
+        if (!link.method || firstBrokenMethodIndex === -1 || index < firstBrokenMethodIndex) {
           normalizeGap(
             link.memberNode,
-            range.linkStart.range[1],
-            range.linkEnd.range[0],
+            link.range.gapStart,
+            link.range.gapEnd,
             '',
             'collapseChain',
           );
-        }
-
-        return;
-      }
-
-      for (const link of links) {
-        const range = getChainLinkRange(
-          sourceCode,
-          link.objectNode,
-          link.memberNode,
-        );
-        if (!range) {
-          continue;
-        }
-
-        if (isTokenOnSameLine(sourceCode, range.linkStart, range.linkEnd)) {
-          context.report({
-            node: link.memberNode,
-            messageId: 'expandChain',
-            fix(fixer) {
-              return fixer.insertTextBefore(
-                range.linkEnd,
-                `\n${chainIndent}`,
-              );
-            },
-          });
           continue;
         }
 
         normalizeGap(
           link.memberNode,
-          range.linkStart.range[1],
-          range.linkEnd.range[0],
+          link.range.gapStart,
+          link.range.gapEnd,
           `\n${chainIndent}`,
-          'normalizeChainSpacing',
+          isTokenOnSameLine(sourceCode, link.range.linkStart, link.range.linkEnd)
+            ? 'expandChain'
+            : 'normalizeChainSpacing',
         );
       }
     }

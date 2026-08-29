@@ -1,3 +1,5 @@
+import { graphqlUrl } from '#web/shared/api/graphql-url';
+
 const PING_QUERY = '{ __typename }';
 const PING_TIMEOUT_MS = 3000;
 
@@ -14,7 +16,7 @@ async function requestPing(): Promise<boolean> {
   }, PING_TIMEOUT_MS);
 
   try {
-    const res = await fetch('/graphql', {
+    const res = await fetch(graphqlUrl(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: PING_QUERY }),

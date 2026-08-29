@@ -1,51 +1,62 @@
 import type { ProfileInfo } from '#web/entities/profile/profile';
+import type { ResumeInfo } from '#web/entities/resume/resume';
 
 import { GatewayPage } from '#web/pages/gateway/GatewayPage';
 import { fetchProfile } from '#web/shared/api/profile-api';
+import { fetchResume } from '#web/shared/api/resume-api';
+import { messages } from '#web/shared/i18n/messages';
+import { useLocale } from '#web/shared/i18n/locale-context';
+import { LocaleToggle } from '#web/shared/ui/LocaleToggle';
 import { SiteFooter } from '#web/shared/ui/SiteFooter';
 import { OrbitHero } from '#web/widgets/orbit-hero/OrbitHero';
 import { PortfolioBento } from '#web/widgets/portfolio-bento/PortfolioBento';
 import { useEffect, useState } from 'react';
 
+type PortfolioData = {
+  profile: ProfileInfo;
+  resume: ResumeInfo;
+};
+
 export function ProfilePage() {
+  const { locale } = useLocale();
   const [attempt, setAttempt] = useState(0);
-  const [profile, setProfile] = useState<ProfileInfo | null>(null);
+  const [data, setData] = useState<PortfolioData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    fetchProfile()
-      .then((data) => {
+    Promise.all([fetchProfile(locale), fetchResume(locale)])
+      .then(([profile, resume]) => {
         if (cancelled) {
           return;
         }
 
         setError(null);
-        setProfile(data);
+        setData({ profile, resume });
       })
       .catch((caught: unknown) => {
         if (cancelled) {
           return;
         }
 
-        const message = caught instanceof Error ? caught.message : 'Не удалось загрузить профиль';
-        setProfile(null);
+        const message = caught instanceof Error ? caught.message : messages[locale].profileLoadError;
+        setData(null);
         setError(message);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [attempt]);
+  }, [attempt, locale]);
 
   useEffect(() => {
-    if (profile === null) {
+    if (data === null) {
       return;
     }
 
-    document.title = `${profile.name} — ${profile.role.split('·')[0]?.trim() ?? 'Portfolio'}`;
-  }, [profile]);
+    document.title = `${data.profile.name} — ${data.profile.role.split('·')[0]?.trim() ?? 'Portfolio'}`;
+  }, [data]);
 
   if (error !== null) {
     return (
@@ -53,19 +64,23 @@ export function ProfilePage() {
         onRetry={() => {
           setAttempt((current) => current + 1);
         }}
+        onHome={() => {
+          setAttempt((current) => current + 1);
+        }}
       />
     );
   }
 
-  const loading = profile === null;
+  const loading = data === null;
 
   return (
     <>
       <main>
         <OrbitHero />
-        <PortfolioBento profile={profile} loading={loading} />
+        <PortfolioBento profile={loading ? null : data.profile} resume={loading ? null : data.resume} loading={loading} />
       </main>
       <SiteFooter />
+      <LocaleToggle />
     </>
   );
 }

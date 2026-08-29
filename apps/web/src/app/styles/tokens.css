@@ -85,7 +85,7 @@
     /* Layout */
     --width-content: 45rem;
     --width-bento: min(100%, 68rem);
-    --bento-sidebar: minmax(16.5rem, 20.5rem);
+    --bento-sidebar: minmax(18.25rem, 23rem);
     --width-about: 54rem; /* ~864px — шире 720, peek сверху не трогаем */
     --width-copy: 32.5rem;
     --width-measure: 38rem;

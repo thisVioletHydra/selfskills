@@ -1,24 +1,4 @@
-import dockerIcon from '#web/icons/docker.svg';
-import eslintIcon from '#web/icons/eslint.svg';
-import gitIcon from '#web/icons/git.svg';
-import githubIcon from '#web/icons/github.svg';
-import gitlabIcon from '#web/icons/gitlab.svg';
-import graphqlIcon from '#web/icons/graphql.svg';
-import javascriptIcon from '#web/icons/javascript.svg';
-import nestIcon from '#web/icons/nest.svg';
-import nginxIcon from '#web/icons/nginx.svg';
-import nodeIcon from '#web/icons/node.svg';
-import pnpmIcon from '#web/icons/pnpm.svg';
-import postcssIcon from '#web/icons/postcss.svg';
-import prismaIcon from '#web/icons/prisma.svg';
-import reactIcon from '#web/icons/react.svg';
-import rustIcon from '#web/icons/rust.svg';
-import sassIcon from '#web/icons/sass.svg';
-import tsdownIcon from '#web/icons/tsdown.svg';
-import typescriptIcon from '#web/icons/typescript.svg';
-import viteIcon from '#web/icons/vite.svg';
-import vscodeIcon from '#web/icons/vscode.svg';
-import vueIcon from '#web/icons/vue.svg';
+import { iconUrl } from '#web/generated/asset-urls';
 
 export type Planet = {
   id: string;
@@ -31,14 +11,15 @@ export type Planet = {
   isCore?: boolean;
 };
 
-export const PLANETS: Planet[] = [
+type PlanetData = Omit<Planet, 'icon'>;
+
+const PLANET_DATA: PlanetData[] = [
   {
     id: 'javascript',
     name: 'JavaScript',
     reading: 'джаваскрипт',
     summary: 'Язык, на котором крутится весь фронт и Node.',
     experience: 'База всего. Без него остальной стек не живёт — знаю уверенно, пишу каждый день.',
-    icon: javascriptIcon,
     size: 96,
     isCore: true,
   },
@@ -49,7 +30,6 @@ export const PLANETS: Planet[] = [
     summary: 'Типизированный JS — типы на этапе разработки, не в рантайме.',
     experience:
       'Плюс: меньше багов на проде. Минус: иногда типовая дрочь. В проде — да, без него не хочу.',
-    icon: typescriptIcon,
     size: 42,
   },
   {
@@ -59,7 +39,6 @@ export const PLANETS: Planet[] = [
     summary: 'JS на сервере — рантайм, не фреймворк.',
     experience:
       'Бэкенд, CLI, скрипты. Плюс: один язык везде. Минус: тяжёлые CPU-таски не его конёк.',
-    icon: nodeIcon,
     size: 42,
   },
   {
@@ -69,7 +48,6 @@ export const PLANETS: Planet[] = [
     summary: 'UI-библиотека для JS — компоненты и состояние.',
     experience:
       'Перехожу с Vue на практике: компоненты, хуки, стейт. Не продаю себя как «5 лет React», но фундамент тот же.',
-    icon: reactIcon,
     size: 42,
   },
   {
@@ -79,7 +57,6 @@ export const PLANETS: Planet[] = [
     summary: 'Фреймворк для JS — реактивный UI из коробки.',
     experience:
       'Основной продовый UI-стек последние годы. SFC, Vite, экосистема — родная территория.',
-    icon: vueIcon,
     size: 42,
   },
   {
@@ -88,7 +65,6 @@ export const PLANETS: Planet[] = [
     reading: 'вит',
     summary: 'Сборщик / dev-server нового поколения.',
     experience: 'Дефолт для фронта. Быстрый HMR, простая конфигурация, без Webpack-страданий.',
-    icon: viteIcon,
     size: 42,
   },
   {
@@ -97,7 +73,6 @@ export const PLANETS: Planet[] = [
     reading: 'нест',
     summary: 'Node-фреймворк с модулями, DI и структурой «как в Angular», но для бэка.',
     experience: 'Беру под API и GraphQL: модули, провайдеры, понятный скелет сервиса.',
-    icon: nestIcon,
     size: 42,
   },
   {
@@ -106,7 +81,6 @@ export const PLANETS: Planet[] = [
     reading: 'призма',
     summary: 'ORM с типами и миграциями.',
     experience: 'Схема → клиент → меньше ручного SQL. Удобно стыковать с Nest и GraphQL.',
-    icon: prismaIcon,
     size: 42,
   },
   {
@@ -115,7 +89,6 @@ export const PLANETS: Planet[] = [
     reading: 'графкьюэл',
     summary: 'Язык запросов к API — клиент берёт только нужные поля.',
     experience: 'Схемы, резолверы, типизация. Не серебряная пуля, но для продуктового API — ок.',
-    icon: graphqlIcon,
     size: 42,
   },
   {
@@ -125,7 +98,6 @@ export const PLANETS: Planet[] = [
     summary: 'Пайплайн для CSS: плагины, префиксы, современный синтаксис.',
     experience:
       'Годы в проде: Browserslist, legacy/modern-сборки, точечные фиксы под старые браузеры.',
-    icon: postcssIcon,
     size: 42,
   },
   {
@@ -134,7 +106,6 @@ export const PLANETS: Planet[] = [
     reading: 'докер',
     summary: 'Контейнеры — одинаковое окружение у всех.',
     experience: 'Dev и деплой: сервисы в compose, без «у меня локально работает».',
-    icon: dockerIcon,
     size: 42,
   },
   {
@@ -143,7 +114,6 @@ export const PLANETS: Planet[] = [
     reading: 'пиэнпиэм',
     summary: 'Пакетный менеджер с жёстким node_modules и экономией диска.',
     experience: 'Дефолт в монорепах. Быстрее npm, предсказуемее hoist.',
-    icon: pnpmIcon,
     size: 42,
   },
   {
@@ -152,7 +122,6 @@ export const PLANETS: Planet[] = [
     reading: 'гит',
     summary: 'Система контроля версий.',
     experience: 'Ветки, ревью, CI, откаты. Без этого продакшен не существует.',
-    icon: gitIcon,
     size: 42,
   },
   {
@@ -161,7 +130,6 @@ export const PLANETS: Planet[] = [
     reading: 'гитхаб',
     summary: 'Хостинг репозиториев, PR, Actions, релизы.',
     experience: 'Публичные репы, код-ревью, CI. Там же живут личные проекты и форки.',
-    icon: githubIcon,
     size: 42,
   },
   {
@@ -170,7 +138,6 @@ export const PLANETS: Planet[] = [
     reading: 'гитлаб',
     summary: 'Git + CI/CD + ревью в одном месте, часто self-hosted.',
     experience: 'Продовый пайплайн: мержи, runners, автодеплой, откаты без ручного копирования.',
-    icon: gitlabIcon,
     size: 42,
   },
   {
@@ -180,7 +147,6 @@ export const PLANETS: Planet[] = [
     summary: 'Сборка TypeScript-библиотек / пакетов на современном пайплайне.',
     experience:
       'Для внутренних пакетов и либ — быстрее и проще классического tsc+бандлер-зоопарка.',
-    icon: tsdownIcon,
     size: 42,
   },
   {
@@ -189,7 +155,6 @@ export const PLANETS: Planet[] = [
     reading: 'ислинт',
     summary: 'Линтер для JS/TS — правила и автофиксы.',
     experience: 'Конфиги команды, flat config, антифу-стек. Без линтера репа быстро гниёт.',
-    icon: eslintIcon,
     size: 42,
   },
   {
@@ -198,7 +163,6 @@ export const PLANETS: Planet[] = [
     reading: 'энжинкс',
     summary: 'Веб-сервер и реверс-прокси.',
     experience: 'Статика, прокси на Node/API, SSL, конфиги без магии «почему 502».',
-    icon: nginxIcon,
     size: 42,
   },
   {
@@ -207,7 +171,6 @@ export const PLANETS: Planet[] = [
     reading: 'саас',
     summary: 'CSS с переменными, миксинами и вложенностью (SCSS).',
     experience: 'Годы вёрстки и тем: переменные, partials, до того как CSS сам это умел.',
-    icon: sassIcon,
     size: 42,
   },
   {
@@ -217,7 +180,6 @@ export const PLANETS: Planet[] = [
     summary: 'Системный язык с ownership и без GC.',
     experience:
       'Хобби: пытаюсь понять borrow checker и не сдаться. В прод на нём пока не пишу — учусь.',
-    icon: rustIcon,
     size: 42,
   },
   {
@@ -226,10 +188,14 @@ export const PLANETS: Planet[] = [
     reading: 'виэскод',
     summary: 'Редактор кода — расширения, дебаг, терминал в одном окне.',
     experience: 'Основной инструмент каждый день: TS, Vue/React, Nest, линт, git — всё отсюда.',
-    icon: vscodeIcon,
     size: 42,
   },
 ];
+
+export const PLANETS: Planet[] = PLANET_DATA.map((planet) => ({
+  ...planet,
+  icon: iconUrl(planet.id),
+}));
 
 export const CORE_PLANET = PLANETS.find((item) => item.isCore === true)!;
 export const ORBIT_PLANETS = PLANETS.filter((item) => item.isCore !== true);

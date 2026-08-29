@@ -160,7 +160,7 @@ export function cancel(id: string) {
 }
 
 export function cancelAll(prefix?: string) {
-  for (const id of [...registry.keys()]) {
+  for (const id of registry.keys()) {
     if (prefix === undefined || id.startsWith(prefix)) {
       cancel(id);
     }

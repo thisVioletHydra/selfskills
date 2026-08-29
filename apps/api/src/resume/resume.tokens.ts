@@ -1,0 +1,1 @@
+export const TOKEN_RESUME_SERVICE = Symbol('RESUME_SERVICE');

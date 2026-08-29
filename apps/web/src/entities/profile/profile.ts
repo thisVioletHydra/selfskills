@@ -8,8 +8,8 @@ export type ProfileInfo = {
   role: string;
   tag: string;
   blurb: string;
+  /** Asset key from public/images (see generated asset-urls). */
   portrait: string;
   facts: ProfileFact[];
-  goals: string[];
   about: string[];
 };

@@ -30,8 +30,5 @@ export class Profile {
   facts: ProfileFact[];
 
   @Field(() => [String])
-  goals: string[];
-
-  @Field(() => [String])
   about: string[];
 }
