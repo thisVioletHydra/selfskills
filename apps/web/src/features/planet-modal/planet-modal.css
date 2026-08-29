@@ -6,8 +6,8 @@
     display: grid;
     place-items: center;
     padding: var(--space-6);
-    background: var(--color-overlay);
-    backdrop-filter: blur(4px);
+    /* Solid overlay — backdrop-filter flashes/warps the panel on Android Chrome GPUs */
+    background: color-mix(in oklch, oklch(0 0 0) 72%, transparent);
   }
 
   .panel {
@@ -17,7 +17,7 @@
     padding: var(--space-6);
     border: 1px solid var(--color-panel-border);
     border-radius: var(--radius-md);
-    background: color-mix(in oklch, var(--color-bg-panel) 92%, transparent);
+    background: var(--color-bg-panel);
     color: var(--color-text);
     box-shadow: 0 24px 80px color-mix(in oklch, oklch(0 0 0) 60%, transparent);
     font-family: var(--font-sans);
@@ -97,17 +97,5 @@
     line-height: var(--leading-normal);
     color: var(--color-muted);
     text-wrap: pretty;
-  }
-}
-
-@supports (backdrop-filter: blur(4px)) {
-  @scope (.planet-modal) {
-    :scope {
-      background: color-mix(in oklch, oklch(0 0 0) 55%, transparent);
-    }
-
-    .panel {
-      backdrop-filter: blur(12px);
-    }
   }
 }

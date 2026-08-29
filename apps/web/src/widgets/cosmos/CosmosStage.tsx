@@ -44,12 +44,14 @@ export function CosmosStage() {
   const { teaseActive, markTeaseDone } = useCosmosHints();
 
   const interactionId = draggingId ?? hoveredId;
+  const modalOpen = activePlanet !== null;
   const { bodiesRef } = useBouncePhysics(
     stageRef,
     planetElsRef,
     CORE_PLANET.size,
     interactionId,
     motionMode,
+    modalOpen,
   );
 
   const toggleMotion = () => {

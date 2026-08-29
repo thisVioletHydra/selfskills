@@ -46,6 +46,8 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    // Phone / tunnel Host headers (localtunnel, cloudflare quick tunnel)
+    allowedHosts: true,
     proxy: {
       '/graphql': {
         target: 'http://localhost:3000',

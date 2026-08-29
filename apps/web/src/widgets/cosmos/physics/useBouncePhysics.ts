@@ -562,11 +562,13 @@ export function useBouncePhysics(
   planetElsRef: RefObject<Map<string, HTMLElement | null>>,
   starSize: number,
   interactionId: string | null,
-  motionMode: 'auto' | 'paused' = 'auto'
+  motionMode: 'auto' | 'paused' = 'auto',
+  suspendPhysics = false,
 ) {
   const bodiesRef = useRef<BounceBody[]>([]);
   const interactionRef = useRef(interactionId);
   const motionModeRef = useRef(motionMode);
+  const suspendRef = useRef(suspendPhysics);
   const sizeRef = useRef({ width: 0, height: 0 });
   const floorInsetRef = useRef(0);
   const syncRunningRef = useRef<() => void>(() => {});
@@ -579,6 +581,11 @@ export function useBouncePhysics(
     motionModeRef.current = motionMode;
     syncRunningRef.current();
   }, [motionMode]);
+
+  useEffect(() => {
+    suspendRef.current = suspendPhysics;
+    syncRunningRef.current();
+  }, [suspendPhysics]);
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
@@ -778,11 +785,12 @@ export function useBouncePhysics(
     let inView = true;
     let pageVisible = document.visibilityState === 'visible';
 
-    const shouldRun = () => motionModeRef.current === 'auto' && inView && pageVisible;
+    const shouldRun = () =>
+      motionModeRef.current === 'auto' && inView && pageVisible && !suspendRef.current;
 
-    /** Hard stop (user pause / tab hidden) — freeze CSS ambient too. */
+    /** Hard stop (user pause / tab hidden / modal) — freeze CSS ambient too. */
     const shouldHardStop = () =>
-      motionModeRef.current === 'paused' || !pageVisible;
+      motionModeRef.current === 'paused' || !pageVisible || suspendRef.current;
 
     const setPausedClass = (paused: boolean) => {
       root.classList.toggle('paused', paused);

@@ -82,9 +82,10 @@ export function PlanetModal({ planet, onClose }: PlanetModalProps) {
         tryCloseOutside();
       }}
     >
-      <dialog
+      <div
         className="panel"
-        open
+        role="dialog"
+        aria-modal="true"
         aria-labelledby="planet-modal-title"
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
@@ -116,7 +117,7 @@ export function PlanetModal({ planet, onClose }: PlanetModalProps) {
             <dd>{planet.experience}</dd>
           </div>
         </dl>
-      </dialog>
+      </div>
     </div>
   );
 }
