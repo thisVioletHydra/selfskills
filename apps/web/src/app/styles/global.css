@@ -15,11 +15,14 @@
     -webkit-text-size-adjust: 100%;
     min-block-size: 100%;
     background-color: var(--color-bg-deep);
+    /* Android Chrome: downward drag at scrollTop 0 = pull-to-refresh */
+    overscroll-behavior-y: none;
   }
 
   body {
     margin: 0;
     min-block-size: 100dvh;
+    overscroll-behavior-y: none;
   }
 
   img,

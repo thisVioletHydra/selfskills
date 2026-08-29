@@ -8,6 +8,7 @@
     max-inline-size: 100%;
     overflow: clip;
     background-color: var(--color-bg-deep);
+    overscroll-behavior: none;
     background-image:
       radial-gradient(ellipse 55% 45% at 50% 42%, var(--color-accent-core) 0%, transparent 58%),
       radial-gradient(

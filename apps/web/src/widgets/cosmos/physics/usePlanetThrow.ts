@@ -38,7 +38,41 @@ function lockPlanetTouch(target: HTMLElement) {
 }
 
 function unlockPlanetTouch(target: HTMLElement) {
-  target.style.touchAction = 'pan-y';
+  target.style.touchAction = 'none';
+}
+
+/**
+ * Android Chrome pull-to-refresh: non-passive touchmove + overscroll lock while dragging.
+ * CSS overscroll-behavior alone is not enough on some WebViews when scrollY === 0.
+ */
+let dragTouchMoveBlock: ((event: TouchEvent) => void) | null = null;
+
+function lockPageOverscroll() {
+  document.documentElement.style.overscrollBehaviorY = 'none';
+  document.body.style.overscrollBehaviorY = 'none';
+
+  if (dragTouchMoveBlock !== null) {
+    return;
+  }
+
+  dragTouchMoveBlock = (event: TouchEvent) => {
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+  };
+  document.addEventListener('touchmove', dragTouchMoveBlock, { passive: false });
+}
+
+function unlockPageOverscroll() {
+  document.documentElement.style.overscrollBehaviorY = '';
+  document.body.style.overscrollBehaviorY = '';
+
+  if (dragTouchMoveBlock === null) {
+    return;
+  }
+
+  document.removeEventListener('touchmove', dragTouchMoveBlock);
+  dragTouchMoveBlock = null;
 }
 
 /** After a throw, ignore hover-pause so the planet doesn't catch its own cursor. */
@@ -116,6 +150,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     draggingIdRef.current = null;
     activePointerIdRef.current = null;
     setDraggingId(null);
+    unlockPageOverscroll();
   };
 
   const onPointerDown = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -139,6 +174,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     event.preventDefault();
     lockPlanetTouch(target);
     capturePointer(target, event.pointerId);
+    lockPageOverscroll();
 
     const point = stagePoint(stage, event.clientX, event.clientY);
     const body = getBody(planet.id);
@@ -146,6 +182,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     if (body === null || body === undefined) {
       unlockPlanetTouch(target);
       releasePointer(target, event.pointerId);
+      unlockPageOverscroll();
       return;
     }
 
