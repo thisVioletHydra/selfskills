@@ -21,7 +21,8 @@ RUN pnpm --filter api exec prisma generate \
   && pnpm --filter api build \
   && pnpm --filter api deploy --prod --legacy /out \
   && cp -R apps/api/prisma /out/prisma \
-  && cp -R apps/api/dist /out/dist
+  && cp -R apps/api/dist /out/dist \
+  && cd /out && ./node_modules/.bin/prisma generate
 
 FROM node:24-alpine AS runner
 WORKDIR /app
