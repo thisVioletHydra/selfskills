@@ -1,0 +1,28 @@
+# Render Blueprint — Nest GraphQL API → Neon Postgres
+# Dashboard: New → Blueprint → этот репо → render.yaml
+# Или вручную: New Web Service → Docker → Dockerfile Path: apps/api/Dockerfile
+#   Docker Build Context Directory: .  (корень репо)
+#
+# Env (Dashboard → Environment):
+#   DATABASE_URL  — Neon UNPOOLED (host без -pooler), ?sslmode=require
+#   CORS_ORIGIN   — https://thisviolethydra.github.io
+#   PORT          — Render подставит сам; в Dockerfile дефолт 3000
+
+services:
+  - type: web
+    name: selfskills-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: https://thisviolethydra.github.io
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=192
