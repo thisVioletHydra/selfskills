@@ -43,6 +43,7 @@ export const messagesLocale = {
   orbitPlay: 'Resume orbit',
   planetTapTitle: 'Tap a planet · fling a planet',
   planetTapAria: '{name}. Tap a planet. Fling a planet.',
+  orbitPlanetsAria: 'Orbiting skill planets. Tap or fling a planet.',
   supernovaTap: 'Open the JavaScript card',
   supernovaAria: '{name}. Open card.',
   localeToggle: 'Interface language',

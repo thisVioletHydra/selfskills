@@ -609,6 +609,18 @@
     pointer-events: none;
   }
 
+  .planets-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    pointer-events: auto;
+    cursor: grab;
+  }
+
   .corona {
     position: absolute;
     top: 50%;
@@ -755,7 +767,7 @@
 
   .copy {
     position: absolute;
-    z-index: 2;
+    z-index: 5;
     inset-inline: var(--space-6);
     inset-block-end: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
     margin-inline: auto;
@@ -1110,7 +1122,7 @@
       inset-inline: var(--space-4);
       inset-block-end: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
       inline-size: calc(100% - var(--space-8));
-      z-index: 2;
+      z-index: 5;
       text-shadow: 0 1px 14px rgb(0 0 0 / 0.9);
     }
 

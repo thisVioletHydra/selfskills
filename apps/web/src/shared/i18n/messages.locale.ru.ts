@@ -43,6 +43,7 @@ export const messagesLocale = {
   orbitPlay: 'Запустить орбиту',
   planetTapTitle: 'Тапни планетку · швырни планетку',
   planetTapAria: '{name}. Тапни планетку. Швырни планетку.',
+  orbitPlanetsAria: 'Орбитальные планеты навыков. Тапни или швырни планетку.',
   supernovaTap: 'Открыть карточку JavaScript',
   supernovaAria: '{name}. Открыть карточку.',
   localeToggle: 'Язык интерфейса',

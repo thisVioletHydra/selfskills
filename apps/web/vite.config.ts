@@ -69,6 +69,12 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
+      // Debug ingest (phone via tunnel → local Cursor ingest)
+      '/__dbg': {
+        target: 'http://127.0.0.1:7823',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/__dbg/, '/ingest/d4f7eff0-1fdb-486f-a3a1-b9265597a158'),
+      },
     },
   },
   build: {

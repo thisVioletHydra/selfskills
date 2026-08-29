@@ -2,8 +2,16 @@ import type { RefObject } from 'react';
 
 import { ORBIT_PLANETS } from '#web/entities/planet/planets';
 import { subscribeCosmosPresence } from '#web/widgets/cosmos/lib/presence';
+import {
+  drawPlanets,
+  onPlanetIconsReady,
+  ORBIT_PLANET_BY_ID,
+  preloadPlanetIcons,
+  resizePlanetCanvas,
+  type DrawPlanetsOpts,
+} from '#web/widgets/cosmos/physics/planet-canvas';
 import { clampThrowSpeed, MAX_THROW_SPEED } from '#web/widgets/cosmos/physics/throw-constants';
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 export type BounceBody = {
   id: string;
@@ -86,44 +94,9 @@ function clampSpeed(velocityX: number, velocityY: number, maxSpeed = MAX_SPEED) 
   return { velocityX: velocityX * scale, velocityY: velocityY * scale };
 }
 
-/** Layout left/top so Android hit-tests match the visual (transform-only breaks taps). */
-export function paintPlanetPosition(el: HTMLElement, pointX: number, pointY: number) {
-  const prevX = Number(el.dataset.px ?? Number.NaN);
-  const prevY = Number(el.dataset.py ?? Number.NaN);
-  if (
-    Number.isFinite(prevX)
-    && Number.isFinite(prevY)
-    && Math.abs(prevX - pointX) < 0.45
-    && Math.abs(prevY - pointY) < 0.45
-  ) {
-    return;
-  }
-
-  el.dataset.px = String(pointX);
-  el.dataset.py = String(pointY);
-  el.style.left = `${pointX}px`;
-  el.style.top = `${pointY}px`;
-  el.style.transform = 'translate(-50%, -50%)';
-  el.dataset.positioned = '1';
-}
-
-/** @deprecated Prefer paintPlanetPosition — kept for any transform-only callers. */
-export function planetTransform(pointX: number, pointY: number) {
-  return `translate3d(${pointX}px, ${pointY}px, 0) translate(-50%, -50%)`;
-}
-
 export { clampThrowSpeed, orbitPlanetsForWidth, COMPACT_WIDTH_PX };
 
-export function paintPlanets(bodies: BounceBody[], elements: Map<string, HTMLElement | null>) {
-  for (const body of bodies) {
-    const el = elements.get(body.id);
-    if (el === null || el === undefined) {
-      continue;
-    }
-
-    paintPlanetPosition(el, body.pointX, body.pointY);
-  }
-}
+export type PlanetPaintOpts = DrawPlanetsOpts;
 
 function ensureMinSpeed(body: BounceBody, minSpeed: number) {
   const speed = Math.hypot(body.velocityX, body.velocityY);
@@ -577,23 +550,33 @@ function step(
 
 export function useBouncePhysics(
   stageRef: RefObject<HTMLElement | null>,
-  planetElsRef: RefObject<Map<string, HTMLElement | null>>,
+  canvasRef: RefObject<HTMLCanvasElement | null>,
   starSize: number,
   interactionId: string | null,
+  draggingId: string | null,
   motionMode: 'auto' | 'paused' = 'auto',
   suspendPhysics = false,
+  paintExtraRef?: RefObject<Partial<DrawPlanetsOpts> | null>,
 ) {
   const bodiesRef = useRef<BounceBody[]>([]);
   const interactionRef = useRef(interactionId);
+  const draggingRef = useRef(draggingId);
   const motionModeRef = useRef(motionMode);
   const suspendRef = useRef(suspendPhysics);
   const sizeRef = useRef({ width: 0, height: 0 });
   const floorInsetRef = useRef(0);
   const syncRunningRef = useRef<() => void>(() => {});
+  const requestPaintRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     interactionRef.current = interactionId;
+    requestPaintRef.current();
   }, [interactionId]);
+
+  useEffect(() => {
+    draggingRef.current = draggingId;
+    requestPaintRef.current();
+  }, [draggingId]);
 
   useEffect(() => {
     motionModeRef.current = motionMode;
@@ -611,10 +594,40 @@ export function useBouncePhysics(
       return;
     }
 
+    preloadPlanetIcons();
+
     const root = stage.closest('.cosmos-stage') ?? stage;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const starRadius = starCollisionRadius(starSize);
     const PAUSE_DELAY_MS = 1000;
+
+    const resolvePaintOpts = (): DrawPlanetsOpts => {
+      const extra = paintExtraRef?.current ?? null;
+      return {
+        interactionId: interactionRef.current,
+        draggingId: draggingRef.current,
+        teaseActive: extra?.teaseActive,
+        pullHintId: extra?.pullHintId,
+        tapHintId: extra?.tapHintId,
+        pullHintText: extra?.pullHintText,
+        tapHintText: extra?.tapHintText,
+      };
+    };
+
+    const paint = () => {
+      const canvas = canvasRef.current;
+      if (canvas === null || canvas === undefined) {
+        return;
+      }
+
+      drawPlanets(canvas, bodiesRef.current, ORBIT_PLANET_BY_ID, resolvePaintOpts());
+    };
+
+    requestPaintRef.current = paint;
+
+    const unsubscribeIcons = onPlanetIconsReady(() => {
+      paint();
+    });
 
     const measureFloorInset = (_height: number) => {
       // Planets may cross hero copy — no soft floor.
@@ -623,10 +636,20 @@ export function useBouncePhysics(
       return 0;
     };
 
+    const syncCanvasSize = (width: number, height: number) => {
+      const canvas = canvasRef.current;
+      if (canvas === null || canvas === undefined) {
+        return;
+      }
+
+      resizePlanetCanvas(canvas, width, height);
+    };
+
     const measure = () => {
       const { width, height } = stage.getBoundingClientRect();
       sizeRef.current = { width, height };
       measureFloorInset(height);
+      syncCanvasSize(width, height);
 
       return sizeRef.current;
     };
@@ -635,7 +658,8 @@ export function useBouncePhysics(
       const floorInset = measureFloorInset(height);
       const initial = createBodies(width, height, starRadius, floorInset);
       bodiesRef.current = initial;
-      paintPlanets(initial, planetElsRef.current);
+      syncCanvasSize(width, height);
+      paint();
     };
 
     const init = () => {
@@ -661,7 +685,8 @@ export function useBouncePhysics(
       for (const body of bodiesRef.current) {
         clampBodyToStage(body, width, height, floorInset);
       }
-      paintPlanets(bodiesRef.current, planetElsRef.current);
+      syncCanvasSize(width, height);
+      paint();
     });
 
     let resizeTimer = 0;
@@ -677,6 +702,7 @@ export function useBouncePhysics(
 
       sizeRef.current = { width, height };
       const floorInset = measureFloorInset(height);
+      syncCanvasSize(width, height);
 
       if (bodiesRef.current.length === 0) {
         spawnBodies(width, height);
@@ -687,7 +713,7 @@ export function useBouncePhysics(
       for (const body of bodiesRef.current) {
         clampBodyToStage(body, width, height, floorInset);
       }
-      paintPlanets(bodiesRef.current, planetElsRef.current);
+      paint();
     };
 
     const applyResize = () => {
@@ -702,6 +728,7 @@ export function useBouncePhysics(
 
       sizeRef.current = { width, height };
       const floorInset = measureFloorInset(height);
+      syncCanvasSize(width, height);
 
       if (bodiesRef.current.length === 0) {
         spawnBodies(width, height);
@@ -714,7 +741,7 @@ export function useBouncePhysics(
         for (const body of bodiesRef.current) {
           clampBodyToStage(body, width, height, floorInset);
         }
-        paintPlanets(bodiesRef.current, planetElsRef.current);
+        paint();
 
         return;
       }
@@ -735,7 +762,7 @@ export function useBouncePhysics(
           for (const body of bodiesRef.current) {
             clampBodyToStage(body, width, height, floorInset);
           }
-          paintPlanets(bodiesRef.current, planetElsRef.current);
+          paint();
         }
 
         return;
@@ -750,7 +777,7 @@ export function useBouncePhysics(
         starRadius,
         floorInset,
       );
-      paintPlanets(bodiesRef.current, planetElsRef.current);
+      paint();
     };
 
     const onResize = () => {
@@ -781,8 +808,11 @@ export function useBouncePhysics(
 
     if (reducedMotion) {
       root.classList.add('paused');
+      paint();
 
       return () => {
+        requestPaintRef.current = () => {};
+        unsubscribeIcons();
         if (floorSyncRaf !== 0) {
           window.cancelAnimationFrame(floorSyncRaf);
         }
@@ -815,6 +845,11 @@ export function useBouncePhysics(
     const IDLE_PAUSE_MS = coarsePointer ? 1800 : 8000;
     let idlePaused = false;
     let idleTimer = 0;
+
+    // #region agent log
+    let dbgFrames = 0;
+    let dbgWindowStart = performance.now();
+    // #endregion
 
     const bumpInteraction = () => {
       if (idleTimer !== 0) {
@@ -861,6 +896,8 @@ export function useBouncePhysics(
       if (freezeAmbient) {
         setPausedClass(true);
       }
+      // Keep last frame on screen when physics freezes.
+      paint();
     };
 
     const tick = (now: number) => {
@@ -901,7 +938,39 @@ export function useBouncePhysics(
           dt,
           floorInsetRef.current,
         );
-        paintPlanets(bodiesRef.current, planetElsRef.current);
+        paint();
+
+        // #region agent log
+        dbgFrames += 1;
+        const dbgElapsed = now - dbgWindowStart;
+        if (dbgElapsed >= 1000) {
+          const fps = (dbgFrames * 1000) / dbgElapsed;
+          fetch('/__dbg', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Debug-Session-Id': '26c370',
+            },
+            body: JSON.stringify({
+              sessionId: '26c370',
+              runId: 'canvas-1',
+              hypothesisId: 'H-canvas',
+              location: 'useBouncePhysics.ts:tick',
+              message: 'fps',
+              data: {
+                fps: Math.round(fps * 10) / 10,
+                paintMode: 'canvas',
+                bodies: bodiesRef.current.length,
+                compact: isCompactWidth(width),
+                coarse: coarsePointer,
+              },
+              timestamp: Date.now(),
+            }),
+          }).catch(() => {});
+          dbgFrames = 0;
+          dbgWindowStart = now;
+        }
+        // #endregion
       }
 
       raf = requestAnimationFrame(tick);
@@ -966,9 +1035,12 @@ export function useBouncePhysics(
 
     syncRunning();
     bumpInteraction();
+    paint();
 
     return () => {
       syncRunningRef.current = () => {};
+      requestPaintRef.current = () => {};
+      unsubscribeIcons();
       stage.removeEventListener('pointerdown', onStagePointer);
       stage.removeEventListener('pointermove', onStagePointer);
       if (idleTimer !== 0) {
@@ -991,7 +1063,11 @@ export function useBouncePhysics(
       document.removeEventListener('visibilitychange', onVisibilityResume);
       root.classList.remove('paused');
     };
-  }, [stageRef, planetElsRef, starSize]);
+  }, [stageRef, canvasRef, starSize]);
 
-  return { bodiesRef };
+  const requestPaint = useCallback(() => {
+    requestPaintRef.current();
+  }, []);
+
+  return { bodiesRef, requestPaint };
 }

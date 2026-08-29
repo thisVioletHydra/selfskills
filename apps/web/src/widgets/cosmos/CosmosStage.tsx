@@ -1,6 +1,7 @@
 import type { Planet } from '#web/entities/planet/planets';
 import type { AmbientId } from '#web/widgets/cosmos/ambient/types';
 import type { CosmosMotionMode } from '#web/widgets/cosmos/lib/motion-state';
+import type { DrawPlanetsOpts } from '#web/widgets/cosmos/physics/planet-canvas';
 
 import { CORE_PLANET, ORBIT_PLANETS } from '#web/entities/planet/planets';
 import { localizePlanet } from '#web/entities/planet/localizePlanet';
@@ -56,7 +57,8 @@ function renderAmbient(ids: readonly AmbientId[], motionMode: CosmosMotionMode) 
 export function CosmosStage() {
   const { t, locale } = useLocale();
   const stageRef = useRef<HTMLDivElement>(null);
-  const planetElsRef = useRef(new Map<string, HTMLElement | null>());
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const paintExtraRef = useRef<Partial<DrawPlanetsOpts> | null>(null);
   const demoFlingDoneRef = useRef(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -70,15 +72,25 @@ export function CosmosStage() {
 
   const { teaseActive, markTeaseDone } = useCosmosHints();
 
+  paintExtraRef.current = {
+    teaseActive,
+    pullHintId: PULL_HINT_PLANET_ID,
+    tapHintId: TAP_HINT_PLANET_ID,
+    pullHintText: t('hintPull'),
+    tapHintText: t('hintTap'),
+  };
+
   const interactionId = draggingId ?? hoveredId;
   const modalOpen = activePlanet !== null;
-  const { bodiesRef } = useBouncePhysics(
+  const { bodiesRef, requestPaint } = useBouncePhysics(
     stageRef,
-    planetElsRef,
+    canvasRef,
     CORE_PLANET.size,
     interactionId,
+    draggingId,
     motionMode,
     modalOpen,
+    paintExtraRef,
   );
 
   const toggleMotion = () => {
@@ -98,16 +110,22 @@ export function CosmosStage() {
 
   const throwHandlers = usePlanetThrow({
     stageRef,
+    canvasRef,
     bodiesRef,
-    planetElsRef,
     setDraggingId,
     setHoveredId,
     onOpen: openPlanet,
+    onPaint: requestPaint,
+    onInteract: markInteracted,
     onThrow: () => {
       markInteracted();
       demoFlingDoneRef.current = true;
     },
   });
+
+  useEffect(() => {
+    requestPaint();
+  }, [requestPaint, teaseActive, locale]);
 
   useEffect(() => {
     if (!teaseActive || motionMode !== 'auto' || demoFlingDoneRef.current) {
@@ -188,51 +206,16 @@ export function CosmosStage() {
           <div className="corona core" />
         </div>
 
-        {orbitPlanets.map((planet, index) => {
-          const isActive = interactionId === planet.id;
-          const isDragging = draggingId === planet.id;
-          const teaseAlt = index % 2 === 1 ? ' tease-alt' : '';
-          const showPlanetPull = planet.id === PULL_HINT_PLANET_ID;
-          const showPlanetTap = planet.id === TAP_HINT_PLANET_ID;
-
-          return (
-            <button
-              key={planet.id}
-              type="button"
-              ref={(node) => {
-                planetElsRef.current.set(planet.id, node);
-              }}
-              className={`planet${teaseAlt}${isActive ? ' paused' : ''}${isDragging ? ' dragging' : ''}`}
-              style={{
-                width: `${planet.size}px`,
-                height: `${planet.size}px`,
-              }}
-              onPointerEnter={() => throwHandlers.onPointerEnter(planet)}
-              onPointerLeave={() => throwHandlers.onPointerLeave(planet)}
-              onPointerDown={(event) => {
-                throwHandlers.onPointerDown(planet, event);
-                markInteracted();
-              }}
-              onPointerMove={(event) => throwHandlers.onPointerMove(planet, event)}
-              onPointerUp={(event) => throwHandlers.onPointerUp(planet, event)}
-              onPointerCancel={(event) => throwHandlers.onPointerCancel(planet, event)}
-              aria-label={t('planetTapAria', { name: planet.name })}
-              title={t('planetTapTitle')}
-            >
-              {showPlanetPull ? (
-                <span className="planet-pull-hint" aria-hidden="true">
-                  {t('hintPull')}
-                </span>
-              ) : null}
-              {showPlanetTap ? (
-                <span className="planet-pull-hint" aria-hidden="true">
-                  {t('hintTap')}
-                </span>
-              ) : null}
-              <img src={planet.icon} alt="" draggable={false} />
-            </button>
-          );
-        })}
+        <canvas
+          ref={canvasRef}
+          className="planets-canvas"
+          aria-label={t('orbitPlanetsAria')}
+          onPointerDown={throwHandlers.onPointerDown}
+          onPointerMove={throwHandlers.onPointerMove}
+          onPointerUp={throwHandlers.onPointerUp}
+          onPointerCancel={throwHandlers.onPointerCancel}
+          onPointerLeave={throwHandlers.onPointerLeave}
+        />
 
         <button
           type="button"

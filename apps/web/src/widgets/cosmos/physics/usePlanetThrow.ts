@@ -11,17 +11,22 @@ import {
   createDragAccelerationTracker,
   TAP_THRESHOLD_PX,
 } from '#web/widgets/cosmos/physics/drag-acceleration';
-import { paintPlanetPosition } from '#web/widgets/cosmos/physics/useBouncePhysics';
+import {
+  hitTestPlanet,
+  ORBIT_PLANET_BY_ID,
+} from '#web/widgets/cosmos/physics/planet-canvas';
 import { useRef } from 'react';
 
 type UsePlanetThrowOptions = {
   stageRef: RefObject<HTMLElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   bodiesRef: RefObject<BounceBody[]>;
-  planetElsRef: RefObject<Map<string, HTMLElement | null>>;
   setDraggingId: Dispatch<SetStateAction<string | null>>;
   setHoveredId: Dispatch<SetStateAction<string | null>>;
   onOpen: (planet: Planet) => void;
   onThrow?: () => void;
+  onPaint: () => void;
+  onInteract?: () => void;
 };
 
 function stagePoint(stage: HTMLElement, clientX: number, clientY: number) {
@@ -31,14 +36,6 @@ function stagePoint(stage: HTMLElement, clientX: number, clientY: number) {
     pointX: clientX - rect.left,
     pointY: clientY - rect.top,
   };
-}
-
-function lockPlanetTouch(target: HTMLElement) {
-  target.style.touchAction = 'none';
-}
-
-function unlockPlanetTouch(target: HTMLElement) {
-  target.style.touchAction = 'none';
 }
 
 /**
@@ -81,12 +78,14 @@ const THROW_HOVER_IMMUNE_MS = 1500;
 export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const {
     stageRef,
+    canvasRef,
     bodiesRef,
-    planetElsRef,
     setDraggingId,
     setHoveredId,
     onOpen,
     onThrow,
+    onPaint,
+    onInteract,
   } = options;
 
   const trackerRef = useRef(createDragAccelerationTracker());
@@ -96,8 +95,15 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
   const activePointerIdRef = useRef<number | null>(null);
   /** planetId → performance.now() until hover may pause again */
   const hoverImmuneUntilRef = useRef(new Map<string, number>());
+  const coarsePointerRef = useRef(
+    typeof window !== 'undefined'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false,
+  );
 
   const getBody = (id: string) => bodiesRef.current.find((body) => body.id === id);
+
+  const getPlanet = (id: string) => ORBIT_PLANET_BY_ID.get(id);
 
   const isHoverImmune = (id: string) => {
     const until = hoverImmuneUntilRef.current.get(id);
@@ -118,13 +124,6 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
       isActivePointerSession(draggingIdRef.current, planetId)
       && activePointerIdRef.current === pointerId
     );
-  };
-
-  const paintBody = (id: string, pointX: number, pointY: number) => {
-    const el = planetElsRef.current.get(id);
-    if (el !== null && el !== undefined) {
-      paintPlanetPosition(el, pointX, pointY);
-    }
   };
 
   const applyRelease = (planet: Planet, release: { velocityX: number; velocityY: number; didDrag: boolean }) => {
@@ -151,15 +150,42 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     activePointerIdRef.current = null;
     setDraggingId(null);
     unlockPageOverscroll();
+    const canvas = canvasRef.current;
+    if (canvas !== null && canvas !== undefined) {
+      canvas.style.cursor = 'grab';
+    }
   };
 
-  const onPointerDown = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
+  const syncHoverFromPoint = (pointX: number, pointY: number) => {
+    if (coarsePointerRef.current || draggingIdRef.current !== null) {
+      return;
+    }
+
+    const hitId = hitTestPlanet(bodiesRef.current, pointX, pointY);
+    if (hitId === null || isHoverImmune(hitId)) {
+      setHoveredId(null);
+      const canvas = canvasRef.current;
+      if (canvas !== null && canvas !== undefined) {
+        canvas.style.cursor = 'grab';
+      }
+
+      return;
+    }
+
+    setHoveredId(hitId);
+    const canvas = canvasRef.current;
+    if (canvas !== null && canvas !== undefined) {
+      canvas.style.cursor = 'grab';
+    }
+  };
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const stage = stageRef.current;
+    const canvas = event.currentTarget;
     if (stage === null || stage === undefined) {
       return;
     }
 
-    // Only primary finger; ignore multi-touch while already dragging something else.
     if (event.isPrimary !== true) {
       return;
     }
@@ -168,23 +194,22 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
       return;
     }
 
-    const target = event.currentTarget;
-    // Must run before the browser commits a pan — CSS touch-action: none is the real fix;
-    // preventDefault blocks the compatibility mouse path on Android WebView.
-    event.preventDefault();
-    lockPlanetTouch(target);
-    capturePointer(target, event.pointerId);
-    lockPageOverscroll();
-
     const point = stagePoint(stage, event.clientX, event.clientY);
-    const body = getBody(planet.id);
-
-    if (body === null || body === undefined) {
-      unlockPlanetTouch(target);
-      releasePointer(target, event.pointerId);
-      unlockPageOverscroll();
+    const hitId = hitTestPlanet(bodiesRef.current, point.pointX, point.pointY);
+    if (hitId === null) {
       return;
     }
+
+    const planet = getPlanet(hitId);
+    const body = getBody(hitId);
+    if (planet === undefined || body === null || body === undefined) {
+      return;
+    }
+
+    event.preventDefault();
+    capturePointer(canvas, event.pointerId);
+    lockPageOverscroll();
+    onInteract?.();
 
     trackerRef.current.start(point);
 
@@ -195,50 +220,72 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     body.stuckSeconds = 0;
     body.stuckAnchorX = point.pointX;
     body.stuckAnchorY = point.pointY;
-    paintBody(planet.id, point.pointX, point.pointY);
+    onPaint();
 
     draggingIdRef.current = planet.id;
     activePointerIdRef.current = event.pointerId;
     setDraggingId(planet.id);
     setHoveredId(null);
+    canvas.style.cursor = 'grabbing';
   };
 
-  const onPointerMove = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isDragPointer(planet.id, event.pointerId)) {
+  const onPointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const stage = stageRef.current;
+    if (stage === null || stage === undefined) {
       return;
     }
 
-    const stage = stageRef.current;
-    const body = getBody(planet.id);
-    if (stage === null || stage === undefined || body === null || body === undefined) {
+    const point = stagePoint(stage, event.clientX, event.clientY);
+    const dragId = draggingIdRef.current;
+
+    if (dragId === null || activePointerIdRef.current !== event.pointerId) {
+      syncHoverFromPoint(point.pointX, point.pointY);
+
+      return;
+    }
+
+    if (!isDragPointer(dragId, event.pointerId)) {
+      return;
+    }
+
+    const body = getBody(dragId);
+    if (body === null || body === undefined) {
       return;
     }
 
     event.preventDefault();
 
-    const point = stagePoint(stage, event.clientX, event.clientY);
     body.pointX = point.pointX;
     body.pointY = point.pointY;
     body.velocityX = 0;
     body.velocityY = 0;
-    paintBody(planet.id, point.pointX, point.pointY);
+    onPaint();
 
     trackerRef.current.move(point);
   };
 
-  const onPointerUp = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isDragPointer(planet.id, event.pointerId)) {
+  const onPointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const dragId = draggingIdRef.current;
+    if (dragId === null || !isDragPointer(dragId, event.pointerId)) {
       return;
     }
 
-    const target = event.currentTarget;
-    releasePointer(target, event.pointerId);
-    unlockPlanetTouch(target);
+    const canvas = event.currentTarget;
+    releasePointer(canvas, event.pointerId);
+
+    const planet = getPlanet(dragId);
+    if (planet === undefined) {
+      clearDragSession();
+      onPaint();
+
+      return;
+    }
 
     const release = trackerRef.current.end();
     applyRelease(planet, release);
 
     clearDragSession();
+    onPaint();
 
     if (!release.didDrag) {
       // Kill the synthetic click that Android would otherwise dump on the new modal backdrop.
@@ -247,39 +294,41 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     }
   };
 
-  const onPointerCancel = (planet: Planet, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!isDragPointer(planet.id, event.pointerId)) {
+  const onPointerCancel = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const dragId = draggingIdRef.current;
+    if (dragId === null || !isDragPointer(dragId, event.pointerId)) {
       return;
     }
 
-    const target = event.currentTarget;
-    unlockPlanetTouch(target);
+    const canvas = event.currentTarget;
+    if (canvas.hasPointerCapture(event.pointerId)) {
+      releasePointer(canvas, event.pointerId);
+    }
 
-    const release = trackerRef.current.cancel();
-    applyRelease(planet, release);
+    const planet = getPlanet(dragId);
+    if (planet !== undefined) {
+      const release = trackerRef.current.cancel();
+      applyRelease(planet, release);
+    }
 
     clearDragSession();
+    onPaint();
   };
 
-  const onPointerEnter = (planet: Planet) => {
-    if (draggingIdRef.current !== null || isHoverImmune(planet.id)) {
+  const onPointerLeave = () => {
+    if (draggingIdRef.current !== null) {
       return;
     }
 
-    setHoveredId(planet.id);
-  };
-
-  const onPointerLeave = (planet: Planet) => {
-    setHoveredId((current) => (current === planet.id ? null : current));
+    setHoveredId(null);
   };
 
   return {
-    onPointerEnter,
-    onPointerLeave,
     onPointerDown,
     onPointerMove,
     onPointerUp,
     onPointerCancel,
+    onPointerLeave,
   };
 }
 
