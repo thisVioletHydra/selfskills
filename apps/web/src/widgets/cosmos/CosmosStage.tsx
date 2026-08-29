@@ -13,6 +13,7 @@ import { readCosmosMotionMode, writeCosmosMotionMode } from '#web/widgets/cosmos
 import { useBouncePhysics } from '#web/widgets/cosmos/physics/useBouncePhysics';
 import { usePlanetThrow } from '#web/widgets/cosmos/physics/usePlanetThrow';
 import { useLocale } from '#web/shared/i18n/locale-context';
+import { LocaleToggle } from '#web/shared/ui/LocaleToggle';
 import { useEffect, useRef, useState } from 'react';
 
 import '#web/widgets/cosmos/cosmos-stage.css';
@@ -138,6 +139,10 @@ export function CosmosStage() {
             ariaPlay={t('orbitPlay')}
             ariaPause={t('orbitPause')}
           />
+        </div>
+
+        <div className="chrome-right">
+          <LocaleToggle />
         </div>
 
         <div className="hints" aria-hidden="true">

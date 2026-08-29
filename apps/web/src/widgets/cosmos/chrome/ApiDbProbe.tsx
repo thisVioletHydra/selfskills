@@ -92,13 +92,11 @@ export function ApiDbProbe() {
     }
   };
 
-  const lampClass = result.status === 'idle' ? '' : `is-${result.status}`;
-
   return (
     <div className="api-db-probe" ref={rootRef}>
       <button
         type="button"
-        className={`api-db-trigger ${lampClass}`.trim()}
+        className="api-db-trigger"
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={t('apiDbAria')}
@@ -107,7 +105,6 @@ export function ApiDbProbe() {
           setOpen((current) => !current);
         }}
       >
-        <span className="api-db-lamp" aria-hidden="true" />
         <span className="label">{t('apiDbButton')}</span>
       </button>
 

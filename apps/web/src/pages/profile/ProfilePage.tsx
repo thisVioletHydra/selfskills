@@ -6,7 +6,6 @@ import { fetchProfile } from '#web/shared/api/profile-api';
 import { fetchResume } from '#web/shared/api/resume-api';
 import { messages } from '#web/shared/i18n/messages';
 import { useLocale } from '#web/shared/i18n/locale-context';
-import { LocaleToggle } from '#web/shared/ui/LocaleToggle';
 import { SiteFooter } from '#web/shared/ui/SiteFooter';
 import { ApiDbProbe } from '#web/widgets/cosmos/chrome/ApiDbProbe';
 import { StatusChips } from '#web/widgets/cosmos/chrome/StatusChips';
@@ -84,7 +83,6 @@ export function ProfilePage() {
       <SiteFooter />
       <StatusChips />
       <ApiDbProbe />
-      <LocaleToggle />
     </>
   );
 }
