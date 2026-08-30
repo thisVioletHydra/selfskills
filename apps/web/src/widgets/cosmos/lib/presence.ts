@@ -23,8 +23,8 @@ let io: IntersectionObserver | null = null;
 let leaveTimer = 0;
 let enterTimer = 0;
 let hideTimer = 0;
-/** Latest IO: enough of the hero is on screen. */
-let intersecting = true;
+/** IO: hero section has zero intersection with viewport (fully scrolled away). */
+let heroFullyOffScreen = false;
 let presence: CosmosPresence = {
   inView: true,
   pageVisible: true,
@@ -84,25 +84,21 @@ function clearEnterTimer() {
   }
 }
 
-/** Arm leave only when off-screen; any scroll resets the idle clock. */
 function armLeaveAfterScrollIdle() {
   clearLeaveTimer();
-  if (intersecting || !presence.inView) {
+  if (presence.inView !== true) {
     return;
   }
 
   leaveTimer = window.setTimeout(() => {
     leaveTimer = 0;
-    if (!intersecting) {
-      setInView(false);
-    }
+    setInView(false);
   }, LEAVE_AFTER_SCROLL_IDLE_MS);
 }
 
 function onScroll() {
-  // Scrolling: never pause. Restart the off-screen idle clock if still away.
   clearLeaveTimer();
-  if (!intersecting && presence.inView) {
+  if (heroFullyOffScreen && presence.inView) {
     armLeaveAfterScrollIdle();
   }
 }
@@ -179,10 +175,11 @@ function ensureAttached(target: Element) {
         return;
       }
 
-      const visible = entry.isIntersecting && entry.intersectionRatio >= MIN_RATIO;
-      intersecting = visible;
+      const onScreenEnough = entry.isIntersecting && entry.intersectionRatio >= MIN_RATIO;
+      const fullyOffScreen = !entry.isIntersecting;
 
-      if (visible) {
+      if (onScreenEnough) {
+        heroFullyOffScreen = false;
         clearLeaveTimer();
         clearEnterTimer();
 
@@ -192,7 +189,7 @@ function ensureAttached(target: Element) {
 
         enterTimer = window.setTimeout(() => {
           enterTimer = 0;
-          if (intersecting) {
+          if (entry.isIntersecting && entry.intersectionRatio >= MIN_RATIO) {
             setInView(true);
           }
         }, ENTER_HYSTERESIS_MS);
@@ -200,13 +197,21 @@ function ensureAttached(target: Element) {
         return;
       }
 
+      if (!fullyOffScreen) {
+        heroFullyOffScreen = false;
+        // Hero still peeks into viewport — keep running, don't arm off-screen pause.
+        clearLeaveTimer();
+        return;
+      }
+
+      heroFullyOffScreen = true;
       clearEnterTimer();
 
       if (!presence.inView) {
         return;
       }
 
-      // Off-screen: wait until scroll is idle, then pause.
+      // Fully off-screen: wait until scroll is idle, then pause.
       armLeaveAfterScrollIdle();
     },
     { threshold: [0, 0.15, 0.25, 0.5, 1], rootMargin: '0px 0px 0px 0px' },

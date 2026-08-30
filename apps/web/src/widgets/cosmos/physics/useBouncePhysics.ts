@@ -825,52 +825,19 @@ export function useBouncePhysics(
     let last = performance.now();
     let inView = true;
     let pageVisible = document.visibilityState === 'visible';
-    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    // Coarse → 30Hz — full flock+ambient heated Samsung at 60Hz. Desktop uncapped.
-    // Native rAF rate (60/90/120) — coarse 30Hz cap felt like ~20fps stutter.
     const frameBudgetMs = () => 0;
-    /** Desktop only — coarse uses presence (inView/pageVisible), not idle pause. */
-    const IDLE_PAUSE_MS = 8000;
-    let idlePaused = false;
-    let idleTimer = 0;
-    let wakeSettleTimer = 0;
-
-    const bumpInteraction = () => {
-      // Coarse: no idle pause — presence already freezes off-screen.
-      if (coarsePointer) {
-        return;
-      }
-
-      if (idleTimer !== 0) {
-        window.clearTimeout(idleTimer);
-        idleTimer = 0;
-      }
-
-      if (idlePaused) {
-        idlePaused = false;
-        syncRunningRef.current();
-      }
-
-      idleTimer = window.setTimeout(() => {
-        idleTimer = 0;
-        idlePaused = true;
-        syncRunningRef.current();
-      }, IDLE_PAUSE_MS);
-    };
 
     const shouldRun = () =>
       motionModeRef.current === 'auto'
       && inView
       && pageVisible
-      && !suspendRef.current
-      && !idlePaused;
+      && !suspendRef.current;
 
-    /** Hard stop (user pause / tab hidden / modal / idle) — freeze CSS ambient too. */
+    /** Hard stop (user pause / tab hidden / modal) — freeze CSS ambient too. */
     const shouldHardStop = () =>
       motionModeRef.current === 'paused'
       || !pageVisible
-      || suspendRef.current
-      || idlePaused;
+      || suspendRef.current;
 
     const setPausedClass = (paused: boolean) => {
       root.classList.toggle('paused', paused);
@@ -955,7 +922,6 @@ export function useBouncePhysics(
       loopActive = true;
       setPausedClass(false);
       last = performance.now();
-      bumpInteraction();
       raf = requestAnimationFrame(tick);
     };
 
@@ -978,51 +944,20 @@ export function useBouncePhysics(
         return;
       }
 
-      if (wakeSettleTimer !== 0) {
-        window.clearTimeout(wakeSettleTimer);
-        wakeSettleTimer = 0;
-      }
-
       stopLoop(true);
     };
 
     syncRunningRef.current = syncRunning;
 
-    // pointermove on full-stage canvas was resetting idle every jitter → phone never cooled
-    // (canvas-1 logs: long stretches at 0.5–5fps while loop still alive).
-    const onStagePointerDown = () => {
-      bumpInteraction();
-    };
-    const onStagePointerMove = () => {
-      if (interactionRef.current !== null) {
-        bumpInteraction();
-      }
-    };
-    stage.addEventListener('pointerdown', onStagePointerDown, { passive: true });
-    stage.addEventListener('pointermove', onStagePointerMove, { passive: true });
-
     const unsubscribePresence = subscribeCosmosPresence(root, (next) => {
-      const wasInView = inView;
       inView = next.inView;
       pageVisible = next.pageVisible;
       // Offscreen: pause physics/ambient (.paused), keep canvas frame — do not hide stage.
       root.classList.toggle('is-offscreen', !next.inView);
-
-      if (next.inView && !wasInView) {
-        bumpInteraction();
-      } else if (!next.inView && wasInView) {
-        idlePaused = false;
-        if (idleTimer !== 0) {
-          window.clearTimeout(idleTimer);
-          idleTimer = 0;
-        }
-      }
-
       syncRunning();
     });
 
     syncRunning();
-    bumpInteraction();
     paint();
 
     return () => {
@@ -1030,14 +965,6 @@ export function useBouncePhysics(
       syncRunningRef.current = () => {};
       requestPaintRef.current = () => {};
       unsubscribeIcons();
-      stage.removeEventListener('pointerdown', onStagePointerDown);
-      stage.removeEventListener('pointermove', onStagePointerMove);
-      if (idleTimer !== 0) {
-        window.clearTimeout(idleTimer);
-      }
-      if (wakeSettleTimer !== 0) {
-        window.clearTimeout(wakeSettleTimer);
-      }
       if (floorSyncRaf !== 0) {
         window.cancelAnimationFrame(floorSyncRaf);
       }
