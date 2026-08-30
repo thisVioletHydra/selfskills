@@ -588,16 +588,6 @@
     animation-delay: 0.35s;
   }
 
-  .stage.hinting .supernova::after {
-    content: '';
-    position: absolute;
-    inset: -10px;
-    border: 1px dashed var(--color-accent-ring);
-    border-radius: 50%;
-    animation: supernova-tap-ring 2.6s ease-in-out infinite;
-    pointer-events: none;
-  }
-
   .star {
     position: absolute;
     top: 42%;
@@ -758,7 +748,13 @@
   }
 
   .supernova::after {
-    content: none;
+    content: '';
+    position: absolute;
+    inset: -10px;
+    border: 1px dashed var(--color-accent-ring);
+    border-radius: 50%;
+    animation: supernova-tap-ring 2.6s ease-in-out infinite;
+    pointer-events: none;
   }
 
   .supernova img {
@@ -1184,7 +1180,7 @@
       .corona,
       .mark.throw,
       .stage.hinting .planet img,
-      .stage.hinting .supernova::after,
+      .supernova::after,
       .hint,
       .comet,
       .spark,
@@ -1222,7 +1218,7 @@
   :is(
     .corona,
     .stage.hinting .planet img,
-    .stage.hinting .supernova::after,
+    .supernova::after,
     .comet,
     .spark,
     .pulse-star,
