@@ -145,6 +145,12 @@
     top: var(--bento-gap);
   }
 
+  @media (pointer: coarse), (max-width: 767px) {
+    .bento-sidebar {
+      position: static;
+    }
+  }
+
   .bento-card--sidebar {
     display: grid;
     gap: 1.25rem;

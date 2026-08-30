@@ -15,36 +15,14 @@ import { useBouncePhysics } from '#web/widgets/cosmos/physics/useBouncePhysics';
 import { usePlanetThrow } from '#web/widgets/cosmos/physics/usePlanetThrow';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { LocaleToggle } from '#web/shared/ui/LocaleToggle';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import '#web/widgets/cosmos/cosmos-stage.css';
 
 const STAR_MODULES = new Set<AmbientId>(['starfield', 'pulseStars', 'comets']);
 const DEMO_FLING_DELAY_MS = 1200;
-const PULL_HINT_PLANET_ID = 'typescript';
-const TAP_HINT_PLANET_ID = 'docker';
-
-function subscribeCoarsePointer(onStoreChange: () => void) {
-  const mq = window.matchMedia('(pointer: coarse)');
-  mq.addEventListener('change', onStoreChange);
-
-  return () => mq.removeEventListener('change', onStoreChange);
-}
-
-function getCoarsePointer() {
-  return window.matchMedia('(pointer: coarse)').matches;
-}
-
-function subscribeCompactWidth(onStoreChange: () => void) {
-  const mq = window.matchMedia('(max-width: 767px)');
-  mq.addEventListener('change', onStoreChange);
-
-  return () => mq.removeEventListener('change', onStoreChange);
-}
-
-function getCompactWidth() {
-  return window.matchMedia('(max-width: 767px)').matches;
-}
+const PULL_HINT_PLANET_ID = 'docker';
+const TAP_HINT_PLANET_ID = 'typescript';
 
 function renderAmbient(ids: readonly AmbientId[], motionMode: CosmosMotionMode) {
   return ids.map((id) => {
@@ -64,11 +42,7 @@ export function CosmosStage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
   const [motionMode, setMotionMode] = useState<CosmosMotionMode>(() => readCosmosMotionMode());
-  const coarsePointer = useSyncExternalStore(subscribeCoarsePointer, getCoarsePointer, () => false);
-  const compactWidth = useSyncExternalStore(subscribeCompactWidth, getCompactWidth, () => false);
-  const orbitPlanets = compactWidth
-    ? ORBIT_PLANETS.filter((_, index) => index % 2 === 0)
-    : ORBIT_PLANETS;
+  const orbitPlanets = ORBIT_PLANETS;
 
   const { teaseActive, markTeaseDone } = useCosmosHints();
 
@@ -165,12 +139,8 @@ export function CosmosStage() {
 
   const stageClassName = teaseActive ? 'stage hinting' : 'stage';
   const isPaused = motionMode === 'paused';
-  const starIds: AmbientId[] = coarsePointer
-    ? ['starfield']
-    : ACTIVE_PRESET.modules.filter((id) => STAR_MODULES.has(id));
-  const overlayIds: AmbientId[] = coarsePointer
-    ? []
-    : ACTIVE_PRESET.modules.filter((id) => !STAR_MODULES.has(id));
+  const starIds: AmbientId[] = ACTIVE_PRESET.modules.filter((id) => STAR_MODULES.has(id));
+  const overlayIds: AmbientId[] = ACTIVE_PRESET.modules.filter((id) => !STAR_MODULES.has(id));
 
   return (
     <section className="cosmos-stage" id="cosmos">

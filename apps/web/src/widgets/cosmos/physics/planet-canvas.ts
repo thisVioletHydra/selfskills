@@ -51,7 +51,8 @@ export function resizePlanetCanvas(
     return;
   }
 
-  const dpr = Math.max(window.devicePixelRatio || 1, 1);
+  const dprCap = window.matchMedia('(pointer: coarse)').matches ? 1 : 2;
+  const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), dprCap);
   const nextWidth = Math.max(1, Math.floor(cssWidth * dpr));
   const nextHeight = Math.max(1, Math.floor(cssHeight * dpr));
 
@@ -145,10 +146,7 @@ export function drawPlanets(
 
     ctx.restore();
 
-    if (opts.teaseActive !== true) {
-      continue;
-    }
-
+    // Planet tip labels stay on (teaseActive only drives stage.hinting / demo fling).
     let hintText: string | undefined;
     if (body.id === opts.pullHintId) {
       hintText = opts.pullHintText;

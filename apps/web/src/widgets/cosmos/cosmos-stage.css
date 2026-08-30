@@ -616,9 +616,15 @@
     width: 100%;
     height: 100%;
     display: block;
-    touch-action: none;
+    contain: strict;
+    /* pan-y: miss planet → page scroll; drag locks via .is-dragging */
+    touch-action: pan-y;
     pointer-events: auto;
     cursor: grab;
+  }
+
+  .planets-canvas.is-dragging {
+    touch-action: none;
   }
 
   .corona {
@@ -1193,6 +1199,14 @@
   }
 }
 
+/* Offscreen (inView false): keep last canvas frame visible — no visibility:hidden hole.
+   Physics + .paused already freeze the loop and ambient keyframes. */
+@scope (.cosmos-stage.is-offscreen) {
+  :scope {
+    pointer-events: none;
+  }
+}
+
 @scope (.cosmos-stage.paused) {
   :is(
     .corona,
@@ -1210,27 +1224,6 @@
 
   .planet {
     will-change: auto;
-  }
-}
-
-/* Phones: kill infinite ambient GPU work — physics alone already taxes the device */
-@media (pointer: coarse) {
-  @scope (.cosmos-stage) {
-    :is(.haze, .pulse-star, .corona, .comet, .spark) {
-      animation: none !important;
-    }
-
-    .planet img {
-      filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
-      transition: none;
-    }
-
-    .planet:hover img,
-    .planet.paused img,
-    .planet.dragging img {
-      transform: none;
-      filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
-    }
   }
 }
 

@@ -70,12 +70,7 @@ function starYRatio(compact: boolean) {
   return compact ? STAR_Y_RATIO_COMPACT : STAR_Y_RATIO;
 }
 
-function orbitPlanetsForWidth(width: number) {
-  // Half the flock on phones — 20×N² collisions cook the GPU for no UX gain.
-  if (isCompactWidth(width)) {
-    return ORBIT_PLANETS.filter((_, index) => index % 2 === 0);
-  }
-
+function orbitPlanetsForWidth(_width: number) {
   return ORBIT_PLANETS;
 }
 
@@ -597,9 +592,9 @@ export function useBouncePhysics(
     preloadPlanetIcons();
 
     const root = stage.closest('.cosmos-stage') ?? stage;
+    let alive = true;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const starRadius = starCollisionRadius(starSize);
-    const PAUSE_DELAY_MS = 1000;
 
     const resolvePaintOpts = (): DrawPlanetsOpts => {
       const extra = paintExtraRef?.current ?? null;
@@ -754,8 +749,7 @@ export function useBouncePhysics(
         return;
       }
 
-      const widthDelta = Math.abs(prevWidth - width);
-      const heightChanged = Math.abs(prevHeight - height) > 0.5;
+      const heightChanged = heightDelta > 0.5;
 
       if (widthDelta < WIDTH_SCALE_EPS_PX) {
         if (heightChanged) {
@@ -828,30 +822,25 @@ export function useBouncePhysics(
 
     let raf = 0;
     let loopActive = false;
-    let pauseTimer = 0;
     let last = performance.now();
     let inView = true;
     let pageVisible = document.visibilityState === 'visible';
     const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    /** Phones: 20Hz sim — 30Hz still cooked the device (see perf-1 logs ~29fps hot). */
-    const frameBudgetMs = () => {
-      const compact = isCompactWidth(sizeRef.current.width);
-      if (coarsePointer || compact) {
-        return 1000 / 20;
-      }
-
-      return 1000 / 60;
-    };
-    const IDLE_PAUSE_MS = coarsePointer ? 1800 : 8000;
+    // Coarse → 30Hz — full flock+ambient heated Samsung at 60Hz. Desktop uncapped.
+    // Native rAF rate (60/90/120) — coarse 30Hz cap felt like ~20fps stutter.
+    const frameBudgetMs = () => 0;
+    /** Desktop only — coarse uses presence (inView/pageVisible), not idle pause. */
+    const IDLE_PAUSE_MS = 8000;
     let idlePaused = false;
     let idleTimer = 0;
-
-    // #region agent log
-    let dbgFrames = 0;
-    let dbgWindowStart = performance.now();
-    // #endregion
+    let wakeSettleTimer = 0;
 
     const bumpInteraction = () => {
+      // Coarse: no idle pause — presence already freezes off-screen.
+      if (coarsePointer) {
+        return;
+      }
+
       if (idleTimer !== 0) {
         window.clearTimeout(idleTimer);
         idleTimer = 0;
@@ -888,6 +877,18 @@ export function useBouncePhysics(
     };
 
     const stopLoop = (freezeAmbient: boolean) => {
+      if (!alive) {
+        return;
+      }
+
+      if (!loopActive) {
+        if (freezeAmbient && !root.classList.contains('paused')) {
+          setPausedClass(true);
+        }
+
+        return;
+      }
+
       loopActive = false;
       if (raf !== 0) {
         cancelAnimationFrame(raf);
@@ -901,17 +902,19 @@ export function useBouncePhysics(
     };
 
     const tick = (now: number) => {
+      if (!alive) {
+        return;
+      }
+
       if (shouldHardStop()) {
         stopLoop(true);
 
         return;
       }
 
-      // Soft leave (scroll away): keep RAF alive until pauseTimer; do NOT freeze ambient
-      // every IO flap — Android Chrome flaps intersection when the URL bar moves.
+      // Presence leave already waited scroll-idle — stop immediately, no soft RAF hang.
       if (!inView) {
-        last = now;
-        raf = requestAnimationFrame(tick);
+        stopLoop(true);
 
         return;
       }
@@ -939,45 +942,13 @@ export function useBouncePhysics(
           floorInsetRef.current,
         );
         paint();
-
-        // #region agent log
-        dbgFrames += 1;
-        const dbgElapsed = now - dbgWindowStart;
-        if (dbgElapsed >= 1000) {
-          const fps = (dbgFrames * 1000) / dbgElapsed;
-          fetch('/__dbg', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Debug-Session-Id': '26c370',
-            },
-            body: JSON.stringify({
-              sessionId: '26c370',
-              runId: 'canvas-1',
-              hypothesisId: 'H-canvas',
-              location: 'useBouncePhysics.ts:tick',
-              message: 'fps',
-              data: {
-                fps: Math.round(fps * 10) / 10,
-                paintMode: 'canvas',
-                bodies: bodiesRef.current.length,
-                compact: isCompactWidth(width),
-                coarse: coarsePointer,
-              },
-              timestamp: Date.now(),
-            }),
-          }).catch(() => {});
-          dbgFrames = 0;
-          dbgWindowStart = now;
-        }
-        // #endregion
       }
 
       raf = requestAnimationFrame(tick);
     };
 
-    const startLoop = () => {
-      if (loopActive || !shouldRun()) {
+    const beginLoop = () => {
+      if (!alive || loopActive || !shouldRun()) {
         return;
       }
 
@@ -988,48 +959,53 @@ export function useBouncePhysics(
       raf = requestAnimationFrame(tick);
     };
 
+    const startLoop = () => {
+      if (!alive || loopActive || !shouldRun()) {
+        return;
+      }
+
+      beginLoop();
+    };
+
     const syncRunning = () => {
+      if (!alive) {
+        return;
+      }
+
       if (shouldRun()) {
-        if (pauseTimer !== 0) {
-          window.clearTimeout(pauseTimer);
-          pauseTimer = 0;
-        }
         startLoop();
 
         return;
       }
 
-      if (pauseTimer !== 0) {
-        window.clearTimeout(pauseTimer);
-        pauseTimer = 0;
+      if (wakeSettleTimer !== 0) {
+        window.clearTimeout(wakeSettleTimer);
+        wakeSettleTimer = 0;
       }
 
-      if (shouldHardStop() || !loopActive) {
-        stopLoop(true);
-
-        return;
-      }
-
-      // Off-screen: delay before killing RAF (matches ambient gate intent).
-      pauseTimer = window.setTimeout(() => {
-        pauseTimer = 0;
-        if (!shouldRun()) {
-          stopLoop(false);
-        }
-      }, PAUSE_DELAY_MS);
+      stopLoop(true);
     };
 
     syncRunningRef.current = syncRunning;
 
-    const onStagePointer = () => {
+    // pointermove on full-stage canvas was resetting idle every jitter → phone never cooled
+    // (canvas-1 logs: long stretches at 0.5–5fps while loop still alive).
+    const onStagePointerDown = () => {
       bumpInteraction();
     };
-    stage.addEventListener('pointerdown', onStagePointer, { passive: true });
-    stage.addEventListener('pointermove', onStagePointer, { passive: true });
+    const onStagePointerMove = () => {
+      if (interactionRef.current !== null) {
+        bumpInteraction();
+      }
+    };
+    stage.addEventListener('pointerdown', onStagePointerDown, { passive: true });
+    stage.addEventListener('pointermove', onStagePointerMove, { passive: true });
 
     const unsubscribePresence = subscribeCosmosPresence(root, (next) => {
       inView = next.inView;
       pageVisible = next.pageVisible;
+      // Offscreen: pause physics/ambient (.paused), keep canvas frame — do not hide stage.
+      root.classList.toggle('is-offscreen', !next.inView);
       syncRunning();
     });
 
@@ -1038,19 +1014,20 @@ export function useBouncePhysics(
     paint();
 
     return () => {
+      alive = false;
       syncRunningRef.current = () => {};
       requestPaintRef.current = () => {};
       unsubscribeIcons();
-      stage.removeEventListener('pointerdown', onStagePointer);
-      stage.removeEventListener('pointermove', onStagePointer);
+      stage.removeEventListener('pointerdown', onStagePointerDown);
+      stage.removeEventListener('pointermove', onStagePointerMove);
       if (idleTimer !== 0) {
         window.clearTimeout(idleTimer);
       }
+      if (wakeSettleTimer !== 0) {
+        window.clearTimeout(wakeSettleTimer);
+      }
       if (floorSyncRaf !== 0) {
         window.cancelAnimationFrame(floorSyncRaf);
-      }
-      if (pauseTimer !== 0) {
-        window.clearTimeout(pauseTimer);
       }
       if (resizeTimer !== 0) {
         window.clearTimeout(resizeTimer);
@@ -1062,6 +1039,7 @@ export function useBouncePhysics(
       window.removeEventListener('pageshow', onPageShow);
       document.removeEventListener('visibilitychange', onVisibilityResume);
       root.classList.remove('paused');
+      root.classList.remove('is-offscreen');
     };
   }, [stageRef, canvasRef, starSize]);
 

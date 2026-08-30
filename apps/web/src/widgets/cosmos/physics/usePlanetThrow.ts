@@ -152,6 +152,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     unlockPageOverscroll();
     const canvas = canvasRef.current;
     if (canvas !== null && canvas !== undefined) {
+      canvas.classList.remove('is-dragging');
       canvas.style.cursor = 'grab';
     }
   };
@@ -226,6 +227,7 @@ export function usePlanetThrow(options: UsePlanetThrowOptions) {
     activePointerIdRef.current = event.pointerId;
     setDraggingId(planet.id);
     setHoveredId(null);
+    canvas.classList.add('is-dragging');
     canvas.style.cursor = 'grabbing';
   };
 

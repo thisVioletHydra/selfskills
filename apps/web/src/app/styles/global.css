@@ -81,6 +81,12 @@
     text-rendering: optimizeLegibility;
   }
 
+  @media (pointer: coarse) {
+    body {
+      background-attachment: scroll;
+    }
+  }
+
   a {
     color: inherit;
     text-decoration: none;
@@ -109,5 +115,17 @@
 
   #root > main {
     flex: 1 0 auto;
+  }
+
+  /* Touch / narrow: no shadows — cheaper paint on Android/iOS. Blur/backdrop-filter stay. */
+  @media (pointer: coarse), (max-width: 767px) {
+    :where(*, *::before, *::after) {
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    :where(.planet img, .supernova img) {
+      filter: none !important;
+    }
   }
 }
