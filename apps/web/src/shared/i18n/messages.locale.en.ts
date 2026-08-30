@@ -52,6 +52,10 @@ export const messagesLocale = {
   planetModalSummary: 'What it does',
   planetModalExperience: 'How we met',
   profileLoadError: 'Failed to load profile',
+  gateway502Title: 'Server unavailable',
+  gateway502Text: 'The server is not responding. API and DB status — bottom left.',
+  gateway502WakeHint:
+    'The backend may be waking up after sleep — send a request and wait about 30 seconds. The status lamp will turn green when /health responds OK.',
   statusLabel: 'Status',
   statusApi: 'API',
   statusDb: 'DB',

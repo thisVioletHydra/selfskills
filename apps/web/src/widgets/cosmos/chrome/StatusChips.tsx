@@ -1,12 +1,16 @@
 import type { HealthSnapshot } from '#web/shared/api/health-api';
 
-import { fetchHealth, HEALTH_POLL_MS } from '#web/shared/api/health-api';
+import { useHealth } from '#web/shared/api/useHealth';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { useEffect, useId, useRef, useState } from 'react';
 
 import '#web/widgets/cosmos/chrome/status-chip.css';
 
 function overallLamp(health: HealthSnapshot) {
+  if (health.api === 'unknown') {
+    return 'is-warn';
+  }
+
   if (health.api === 'up' && health.db === 'up') {
     return 'is-up';
   }
@@ -34,29 +38,8 @@ export function StatusChips() {
   const { t } = useLocale();
   const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
-  const [health, setHealth] = useState<HealthSnapshot>({ api: 'down', db: 'unknown' });
+  const health = useHealth();
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const poll = async () => {
-      const next = await fetchHealth();
-      if (!cancelled) {
-        setHealth(next);
-      }
-    };
-
-    void poll();
-    const timer = window.setInterval(() => {
-      void poll();
-    }, HEALTH_POLL_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -88,7 +71,12 @@ export function StatusChips() {
   }, [open]);
 
   const lamp = overallLamp(health);
-  const apiLabel = health.api === 'up' ? t('statusLive') : t('statusDown');
+  const apiLabel =
+    health.api === 'up'
+      ? t('statusLive')
+      : health.api === 'down'
+        ? t('statusDown')
+        : t('statusUnknown');
   const dbLabel =
     health.db === 'up' ? t('statusLive') : health.db === 'down' ? t('statusDown') : t('statusUnknown');
 

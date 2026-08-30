@@ -51,6 +51,15 @@
     text-wrap: pretty;
   }
 
+  .hint {
+    margin: 0;
+    max-inline-size: 30rem;
+    color: color-mix(in oklch, var(--color-text) 72%, var(--color-muted));
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    text-wrap: pretty;
+  }
+
   .actions {
     display: flex;
     flex-wrap: wrap;

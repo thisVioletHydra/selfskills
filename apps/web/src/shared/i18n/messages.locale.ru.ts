@@ -52,6 +52,10 @@ export const messagesLocale = {
   planetModalSummary: 'Что умеет',
   planetModalExperience: 'Как мы знакомы',
   profileLoadError: 'Не удалось загрузить профиль',
+  gateway502Title: 'Сервер недоступен',
+  gateway502Text: 'Сервер не отвечает. Статус API и БД — внизу слева.',
+  gateway502WakeHint:
+    'Бэкенд мог уснуть — сделайте запрос и подождите около 30 секунд. Лампа «Статус» загорится зелёным, когда /health ответит OK.',
   statusLabel: 'Статус',
   statusApi: 'API',
   statusDb: 'DB',

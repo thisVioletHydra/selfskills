@@ -8,7 +8,7 @@ import {
 } from '#web/shared/api/request-gate';
 
 const PING_QUERY = '{ __typename }';
-const PING_TIMEOUT_MS = 10_000;
+const PING_TIMEOUT_MS = 30_000;
 
 type PingResponse = {
   data?: { __typename?: string };

@@ -1002,10 +1002,22 @@ export function useBouncePhysics(
     stage.addEventListener('pointermove', onStagePointerMove, { passive: true });
 
     const unsubscribePresence = subscribeCosmosPresence(root, (next) => {
+      const wasInView = inView;
       inView = next.inView;
       pageVisible = next.pageVisible;
       // Offscreen: pause physics/ambient (.paused), keep canvas frame — do not hide stage.
       root.classList.toggle('is-offscreen', !next.inView);
+
+      if (next.inView && !wasInView) {
+        bumpInteraction();
+      } else if (!next.inView && wasInView) {
+        idlePaused = false;
+        if (idleTimer !== 0) {
+          window.clearTimeout(idleTimer);
+          idleTimer = 0;
+        }
+      }
+
       syncRunning();
     });
 

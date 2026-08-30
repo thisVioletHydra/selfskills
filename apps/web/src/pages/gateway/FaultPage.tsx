@@ -17,12 +17,13 @@ type FaultPageProps = {
   code: FaultCode;
   title: string;
   text: string;
+  hint?: string;
   busy?: boolean;
   onRetry?: () => void;
   onHome?: () => void | Promise<void>;
 };
 
-export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: FaultPageProps) {
+export function FaultPage({ code, title, text, hint, busy = false, onRetry, onHome }: FaultPageProps) {
   const [coolingMs, setCoolingMs] = useState(0);
   const [barTick, setBarTick] = useState(0);
   const homeLock = useRef(false);
@@ -113,6 +114,7 @@ export function FaultPage({ code, title, text, busy = false, onRetry, onHome }: 
       </p>
       <h1 className="title">{title}</h1>
       <p className="text">{text}</p>
+      {hint !== undefined && hint.length > 0 ? <p className="hint">{hint}</p> : null}
       <div className="actions">
         {code === 502 && onRetry !== undefined ? (
           <button

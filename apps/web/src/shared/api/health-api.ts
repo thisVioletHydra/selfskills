@@ -1,14 +1,25 @@
 import { graphqlUrl } from '#web/shared/api/graphql-url';
 
 export type HealthDbStatus = 'up' | 'down' | 'unknown';
+export type HealthApiStatus = 'up' | 'down' | 'unknown';
 
 export type HealthSnapshot = {
-  api: 'up' | 'down';
+  api: HealthApiStatus;
   db: HealthDbStatus;
 };
 
-const HEALTH_TIMEOUT_MS = 4000;
-const POLL_MS = 35_000;
+const HEALTH_TIMEOUT_MS = 30_000;
+const HEALTH_POLL_MS = 35_000;
+const HEALTH_FAST_POLL_MS = 4_000;
+
+const INITIAL_SNAPSHOT: HealthSnapshot = { api: 'unknown', db: 'unknown' };
+
+type HealthListener = (snapshot: HealthSnapshot) => void;
+
+const listeners = new Set<HealthListener>();
+let snapshot: HealthSnapshot = INITIAL_SNAPSHOT;
+let pollTimer = 0;
+let pollInFlight = false;
 
 /** Derive `/health` from GraphQL origin (`/graphql` → `/health`). */
 export function healthUrl(): string {
@@ -55,4 +66,69 @@ export async function fetchHealth(): Promise<HealthSnapshot> {
   }
 }
 
-export { POLL_MS as HEALTH_POLL_MS };
+function notify() {
+  for (const listener of listeners) {
+    listener(snapshot);
+  }
+}
+
+function clearPollTimer() {
+  if (pollTimer !== 0) {
+    globalThis.clearTimeout(pollTimer);
+    pollTimer = 0;
+  }
+}
+
+function nextPollDelay(next: HealthSnapshot) {
+  return next.api === 'up' ? HEALTH_POLL_MS : HEALTH_FAST_POLL_MS;
+}
+
+async function runPoll() {
+  if (pollInFlight) {
+    return;
+  }
+
+  pollInFlight = true;
+
+  try {
+    const next = await fetchHealth();
+    snapshot = next;
+    notify();
+  } finally {
+    pollInFlight = false;
+  }
+
+  if (listeners.size === 0) {
+    return;
+  }
+
+  clearPollTimer();
+  pollTimer = globalThis.setTimeout(() => {
+    pollTimer = 0;
+    void runPoll();
+  }, nextPollDelay(snapshot));
+}
+
+export function getHealthSnapshot(): HealthSnapshot {
+  return snapshot;
+}
+
+/** Shared health poll — fast while API is down, slow when up. */
+export function subscribeHealth(listener: HealthListener): () => void {
+  listeners.add(listener);
+  listener(snapshot);
+
+  if (listeners.size === 1) {
+    void runPoll();
+  }
+
+  return () => {
+    listeners.delete(listener);
+
+    if (listeners.size === 0) {
+      clearPollTimer();
+    }
+  };
+}
+
+export { HEALTH_POLL_MS, HEALTH_FAST_POLL_MS };
