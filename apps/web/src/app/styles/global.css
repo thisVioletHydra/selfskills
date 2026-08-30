@@ -117,14 +117,15 @@
     flex: 1 0 auto;
   }
 
-  /* Touch / narrow: no shadows — cheaper paint on Android/iOS. Blur/backdrop-filter stay. */
+  /* Touch / narrow: no shadows — cheaper paint on Android/iOS. Blur/backdrop-filter stay.
+     Keep supernova drop-shadow — without it the yellow JS mark blends into the hero glow. */
   @media (pointer: coarse), (max-width: 767px) {
     :where(*, *::before, *::after) {
       box-shadow: none !important;
       text-shadow: none !important;
     }
 
-    :where(.planet img, .supernova img) {
+    :where(.planet img) {
       filter: none !important;
     }
   }

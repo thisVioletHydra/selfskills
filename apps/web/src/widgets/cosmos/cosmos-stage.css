@@ -604,8 +604,9 @@
     left: 50%;
     width: var(--size-orbit-planet);
     height: var(--size-orbit-planet);
-    transform: translate(-50%, -50%);
-    z-index: 3;
+    /* Above canvas — Android often treats canvas as an opaque layer and eats corona behind it. */
+    transform: translate3d(-50%, -50%, 0);
+    z-index: 5;
     pointer-events: none;
   }
 
@@ -748,10 +749,12 @@
     padding: 0;
     border: none;
     background: transparent;
-    transform: translate(-50%, -50%);
+    /* Own layer — Android compositor can drop the mark when siblings promote canvas. */
+    transform: translate3d(-50%, -50%, 0);
     cursor: pointer;
     z-index: 11;
     touch-action: pan-y;
+    isolation: isolate;
   }
 
   .supernova::after {
@@ -765,6 +768,14 @@
     filter: drop-shadow(0 0 40px rgba(247, 223, 30, 0.45))
       drop-shadow(0 0 80px rgba(247, 223, 30, 0.2)) drop-shadow(0 16px 40px rgba(0, 0, 0, 0.7));
     transition: transform var(--duration-med) var(--ease-out);
+  }
+
+  @media (pointer: coarse), (max-width: 767px) {
+    .supernova img {
+      /* One glow only — cheap, but keeps JS readable on yellow hero mist. */
+      filter: drop-shadow(0 0 18px rgba(247, 223, 30, 0.7))
+        drop-shadow(0 4px 14px rgba(0, 0, 0, 0.65));
+    }
   }
 
   .supernova:hover img {
