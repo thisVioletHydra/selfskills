@@ -36,7 +36,7 @@ export class ProfileService {
       where: { slug: PROFILE_SLUG },
     });
 
-    if (!row) {
+    if (row === null) {
       return null;
     }
 
@@ -48,14 +48,18 @@ export class ProfileService {
       where: { locale },
     });
 
-    if (!localeRow) {
+    if (localeRow === null) {
       return mapProfile(row);
     }
 
+    const base = mapProfile(row);
+
     return {
-      ...mapProfile(row),
       name: localeRow.name,
+      role: base.role,
+      tag: base.tag,
       blurb: localeRow.blurb,
+      portrait: base.portrait,
       facts: localeRow.facts as unknown as Profile['facts'],
       about: localeRow.about as unknown as string[],
     };

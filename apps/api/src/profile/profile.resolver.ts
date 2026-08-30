@@ -16,7 +16,7 @@ export class ProfileResolver {
   ): Promise<Profile> {
     const profile = await this.profileService.findOne(locale);
 
-    if (!profile) {
+    if (profile === null) {
       throw new NotFoundException('Profile not found');
     }
 
