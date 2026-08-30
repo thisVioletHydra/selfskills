@@ -1,9 +1,11 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { execSync } from 'node:child_process';
+import childProcess from 'node:child_process';
+import process from 'node:process';
 
 import react from '@vitejs/plugin-react';
 import { createLogger, defineConfig } from 'vite';
+
 import { assetManifestPlugin } from './vite/asset-manifest-plugin.ts';
 
 const logger = createLogger();
@@ -28,7 +30,7 @@ logger.error = (msg, options) => {
 
 function gitShortSha() {
   try {
-    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+    return childProcess.execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
   } catch {
     return 'dev';
   }
@@ -52,7 +54,7 @@ export default defineConfig({
       '/graphql': {
         target: 'http://localhost:3000',
         changeOrigin: true,
-        configure(proxy) {
+        configure: (proxy) => {
           proxy.on('error', (_err, _req, res) => {
             const response = res as ServerResponse | IncomingMessage;
 

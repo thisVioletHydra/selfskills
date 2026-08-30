@@ -15,7 +15,7 @@ import { useBouncePhysics } from '#web/widgets/cosmos/physics/useBouncePhysics';
 import { usePlanetThrow } from '#web/widgets/cosmos/physics/usePlanetThrow';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { LocaleToggle } from '#web/shared/ui/LocaleToggle';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import '#web/widgets/cosmos/cosmos-stage.css';
 
@@ -46,13 +46,15 @@ export function CosmosStage() {
 
   const { teaseActive, markTeaseDone } = useCosmosHints();
 
-  paintExtraRef.current = {
-    teaseActive,
-    pullHintId: PULL_HINT_PLANET_ID,
-    tapHintId: TAP_HINT_PLANET_ID,
-    pullHintText: t('hintPull'),
-    tapHintText: t('hintTap'),
-  };
+  useLayoutEffect(() => {
+    paintExtraRef.current = {
+      teaseActive,
+      pullHintId: PULL_HINT_PLANET_ID,
+      tapHintId: TAP_HINT_PLANET_ID,
+      pullHintText: t('hintPull'),
+      tapHintText: t('hintTap'),
+    };
+  }, [teaseActive, t]);
 
   const interactionId = draggingId ?? hoveredId;
   const modalOpen = activePlanet !== null;

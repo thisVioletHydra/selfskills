@@ -37,16 +37,13 @@ function prefersReducedMotion() {
 /** Section has moved up past the peek cue — safe to show the bento shell. */
 function isSectionReadyToReveal(node: Element) {
   const rect = node.getBoundingClientRect();
-  const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+  const innerHeight = window.innerHeight;
+  const viewHeight = innerHeight > 0 ? innerHeight : document.documentElement.clientHeight;
 
   return rect.top < viewHeight * 0.9;
 }
 
-function observeOnce(
-  node: Element,
-  onEnter: () => void,
-  options: IntersectionObserverInit,
-): IntersectionObserver {
+function observeOnce(node: Element, onEnter: () => void, options: IntersectionObserverInit): IntersectionObserver {
   const observer = new IntersectionObserver(([entry]) => {
     if (entry?.isIntersecting !== true) {
       return;
@@ -97,7 +94,7 @@ export function useBentoMotion({ enabled, sectionRef }: UseBentoMotionOptions) {
 
     const observers: IntersectionObserver[] = [];
 
-    if (!revealed) {
+    if (revealed !== true) {
       observers.push(
         observeOnce(
           section,
