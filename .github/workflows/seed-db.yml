@@ -1,5 +1,5 @@
 # Required GitHub Actions secrets (Settings → Secrets and variables → Actions):
-#   DATABASE_URL — Railway Postgres public TCP URL (proxy.rlwy.net), без кавычек
+#   DATABASE_URL — Postgres public TCP URL for seed from Actions (без кавычек)
 #
 # Не коммитить секреты в репозиторий.
 
@@ -7,6 +7,17 @@ name: Seed DB
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/prisma/seed.ts'
+      - 'apps/api/prisma/seed-data/**'
+      - '.github/workflows/seed-db.yml'
+
+concurrency:
+  group: seed-db-main
+  cancel-in-progress: false
 
 jobs:
   seed:
