@@ -114,15 +114,23 @@ export function StatusChips() {
           <div className="status-popover-row">
             <span className={`status-popover-lamp ${rowState(health.api)}`} aria-hidden="true" />
             <div className="status-popover-copy">
-              <p className="status-popover-title">{t('statusApiCard')}</p>
-              <p className="status-popover-meta">Railway · GraphQL · {apiLabel}</p>
+              <p className="status-popover-title">
+                {t('statusApiCard')}
+                {' · '}
+                GraphQL
+              </p>
+              <p className="status-popover-meta">Railway · {apiLabel}</p>
             </div>
           </div>
           <div className="status-popover-row">
             <span className={`status-popover-lamp ${rowState(health.db)}`} aria-hidden="true" />
             <div className="status-popover-copy">
-              <p className="status-popover-title">{t('statusDbCard')}</p>
-              <p className="status-popover-meta">Railway · Postgres · {dbLabel}</p>
+              <p className="status-popover-title">
+                {t('statusDbCard')}
+                {' · '}
+                Postgres
+              </p>
+              <p className="status-popover-meta">Railway · {dbLabel}</p>
             </div>
           </div>
           {lastPing !== null && avgPing !== null ? (
