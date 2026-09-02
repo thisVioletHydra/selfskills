@@ -2,7 +2,7 @@ export const messagesLocale = {
   roleTitle: 'Fullstack-разработчик',
   roleStack: 'TypeScript / Vue / Node',
   scroll: 'вниз',
-  statsYears: 'Лет',
+  statsYears: 'Стаж',
   statsStatus: 'Статус',
   statsCity: 'Город',
   statsFormat: 'Формат',
