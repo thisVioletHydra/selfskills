@@ -1,11 +1,11 @@
 export const profileSeed = {
   slug: 'main',
   name: 'Рыбчин Роман',
-  role: 'Fullstack-разработчик · TypeScript / Vue / Node',
+  role: 'Fullstack-разработчик · TypeScript / Vue / React / Node',
   tag: 'about',
 
   blurb:
-    'Фулстек: JavaScript — ядро. Вокруг него Vue и React на фронте, Node.js и NestJS на бэке, Prisma и GraphQL между ними. Docker и CI/CD — часть работы. А если вместо модного стека достался jQuery, PHP или другой легаси — ничего страшного, разберусь.',
+    'Фулстек: JavaScript — ядро. Вокруг него Vue и React на фронте, Node.js и NestJS на бэке, Prisma и GraphQL между ними. Docker и CI/CD — часть работы. А если достался jQuery или другой легаси — не пугает, разберусь.',
 
   portrait: 'portrait',
 
@@ -23,8 +23,6 @@ export const profileSeed = {
     'Fullstack-разработчик с фокусом на frontend, большую часть карьеры занимаюсь коммерческими продуктами. Основной стек: TypeScript, JavaScript, React, Vue 3, HTML, CSS, PostCSS, Vite и Node.js. Работаю с REST API и GraphQL, собираю проекты в pnpm monorepo, использую Git и настраиваю CI/CD. На backend применяю NestJS, Fastify, Prisma, PostgreSQL и SQLite: поднимаю API с нуля, подключаю платёжные интеграции и деплою в продакшен. Во frontend-проектах использую TanStack Query, Zustand, Tailwind CSS, shadcn/ui, Orval и Zod, для тестирования и мониторинга подключаю Vitest, Playwright и Sentry.',
 
     'Свободно собираю продукт целиком: frontend, GraphQL API и база данных как единая система с общими типами на TypeScript. В своих проектах довожу до продакшена связку React + NestJS + Prisma с деплоем на Railway и GitHub Pages. В платёжной логике реализовал webhook с идемпотентностью, конкурентно-безопасную выдачу ключей и retry-логику для внешних поставщиков. Уверенно работаю с Docker и виртуализацией: подбираю базовые образы (Alpine вместо полного Node-образа), пишу docker-compose для локальной разработки и настраиваю пайплайны в GitHub Actions.',
-
-    'Последние годы работал над IAM/SSO-платформой: security-critical экраны авторизации, модернизация legacy, производительность, совместимость со старыми браузерами. Продукт, в который входит мой frontend, включён в Реестр российского ПО и сертифицирован ФСТЭК России.',
 
     'Предпочитаю AI-агентов вместо ручного набора рутинного кода. Это не отказ от мышления: я проектирую решение, задаю ограничения и отвечаю за результат, агент берёт механику. Скорость растёт, внимание уходит на архитектуру и сложные места. В подходящих задачах это сокращает работу с нескольких дней до нескольких часов.',
 

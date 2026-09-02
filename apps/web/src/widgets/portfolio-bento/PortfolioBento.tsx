@@ -13,13 +13,77 @@ import { useBentoMotion } from '#web/widgets/portfolio-bento/useBentoMotion';
 import '#web/widgets/portfolio-bento/portfolio-bento.css';
 
 const TELEGRAM = TELEGRAM_URL;
-const SKILL_LEVELS = [95, 90, 88, 85, 82, 78];
+
+const SKILL_GROUPS = {
+  core: ['TypeScript', 'JavaScript', 'Vue', 'React', 'Node.js'],
+  working: [
+    'Nuxt.js',
+    'Next.js',
+    'NestJS',
+    'Express',
+    'Prisma',
+    'GraphQL',
+    'Tailwind CSS',
+    'Vite',
+    'HTML5',
+    'CSS3',
+    'Git',
+    'GitLab CI',
+    'REST API',
+    'Docker',
+    'PostgreSQL',
+  ],
+  familiar: ['Strapi', 'MongoDB'],
+} as const;
+
+type SkillGroupId = keyof typeof SKILL_GROUPS;
+
+const SKILL_GROUP_KEYS: Record<SkillGroupId, 'skillsCore' | 'skillsWorking' | 'skillsFamiliar'> = {
+  core: 'skillsCore',
+  working: 'skillsWorking',
+  familiar: 'skillsFamiliar',
+};
 
 type PortfolioBentoProps = {
   profile: ProfileInfo | null;
   resume: ResumeInfo | null;
   loading?: boolean;
 };
+
+function groupResumeSkills(skills: string[]) {
+  const byName = new Set(skills);
+  const used = new Set<string>();
+
+  const groups = (Object.keys(SKILL_GROUPS) as SkillGroupId[])
+    .map((id) => {
+      const names = SKILL_GROUPS[id].filter((name) => byName.has(name));
+      for (const name of names) {
+        used.add(name);
+      }
+      return {
+        id,
+        labelKey: SKILL_GROUP_KEYS[id],
+        names,
+      };
+    })
+    .filter((group) => group.names.length > 0);
+
+  const leftovers = skills.filter((name) => !used.has(name));
+  if (leftovers.length === 0) {
+    return groups;
+  }
+
+  const working = groups.find((group) => group.id === 'working');
+  if (working !== undefined) {
+    working.names.push(...leftovers);
+    return groups;
+  }
+
+  return [
+    ...groups,
+    { id: 'working' as SkillGroupId, labelKey: SKILL_GROUP_KEYS.working, names: leftovers },
+  ];
+}
 
 function BentoScrollHint({ revealed = false }: { revealed?: boolean }) {
   const { t } = useLocale();
@@ -89,14 +153,11 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
     .filter(Boolean)
     .join(' ');
 
-  const skillRows = resume.skills
-    .slice(0, 6)
-    .map((name, index) => ({
-      name,
-      level: SKILL_LEVELS[index] ?? 70,
-    }));
+  const skillGroups = groupResumeSkills(resume.skills);
+  let skillTagIndex = 0;
 
   const softwarePlanets = PLANETS.filter((planet) => planet.isCore !== true).slice(0, 9);
+  const phoneMasked = resume.phone.includes('*');
 
   const experienceRaw = profileFactValue(profile.facts, 'experience', locale, resume.experienceYears);
   const experienceYears = experienceRaw.match(/\d+/)?.[0] ?? experienceRaw;
@@ -147,9 +208,15 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
               <p className="bento-bio">{profile.blurb}</p>
 
               <ul className="bento-contacts">
-                <li>
-                  <a href={`tel:${resume.phone.replace(/\s/g, '')}`}>{resume.phone}</a>
-                </li>
+                {resume.phone !== '' ? (
+                  <li>
+                    {phoneMasked ? (
+                      <span>{resume.phone}</span>
+                    ) : (
+                      <a href={`tel:${resume.phone.replace(/\s/g, '')}`}>{resume.phone}</a>
+                    )}
+                  </li>
+                ) : null}
                 <li>
                   <a href={`mailto:${resume.email}`}>{resume.email}</a>
                 </li>
@@ -249,7 +316,7 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
                             <p className={lineClass} style={nextLineStyle()}>
                               {job.productNote}
                             </p>
-                            {job.productExampleUrl !== undefined && job.productExampleUrl !== '' ? (
+                            {typeof job.productExampleUrl === 'string' && job.productExampleUrl.length > 0 ? (
                               <a
                                 className={`bento-timeline-example ${lineClass}`}
                                 href={job.productExampleUrl}
@@ -299,27 +366,27 @@ export function PortfolioBento({ profile, resume, loading = false }: PortfolioBe
                 id="skills"
               >
                 <h3 className="bento-heading">{t('skills')}</h3>
-                <ul className="bento-skill-list">
-                  {skillRows.map((skill, index) => (
-                    <li key={skill.name} className="bento-skill">
-                      <div className="bento-skill-row">
-                        <span className="bento-skill-name">{skill.name}</span>
-                        <span className="bento-skill-pct">{skill.level}%</span>
-                      </div>
-                      <div className="bento-skill-track">
-                        <span
-                          className="bento-skill-bar"
-                          style={
-                            {
-                              '--skill-pct': `${skill.level}%`,
-                              '--skill-i': index,
-                            } as CSSProperties
-                          }
-                        />
-                      </div>
-                    </li>
+                <div className="bento-skill-groups">
+                  {skillGroups.map((group) => (
+                    <div key={group.id} className="bento-skill-group">
+                      <p className="bento-skill-group-label">{t(group.labelKey)}</p>
+                      <ul className="bento-skill-tags">
+                        {group.names.map((name) => {
+                          const tagIndex = skillTagIndex++;
+                          return (
+                            <li
+                              key={name}
+                              className={`bento-skill-tag bento-skill-tag--${group.id}`}
+                              style={{ '--skill-i': tagIndex } as CSSProperties}
+                            >
+                              {name}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </article>
 
               <article
