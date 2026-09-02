@@ -231,31 +231,6 @@
   color: color-mix(in oklch, #f07178 55%, var(--color-muted));
 }
 
-.api-db-example {
-  margin: 0;
-  display: grid;
-  gap: 0.12rem;
-  color: var(--color-faint);
-  font-size: 0.625rem;
-  line-height: 1.35;
-  letter-spacing: 0.01em;
-}
-
-.api-db-example-method {
-  color: var(--color-muted);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-}
-
-.api-db-example-url {
-  word-break: break-all;
-}
-
-.api-db-example-ops {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  opacity: 0.9;
-}
-
 @media (hover: hover) {
   .api-db-trigger:hover {
     color: var(--color-text);

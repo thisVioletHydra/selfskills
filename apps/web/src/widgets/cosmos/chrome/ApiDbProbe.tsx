@@ -1,5 +1,4 @@
 import { fetchProfile } from '#web/shared/api/profile-api';
-import { graphqlUrl } from '#web/shared/api/graphql-url';
 import { pingBackend } from '#web/shared/api/ping-api';
 import { useLocale } from '#web/shared/i18n/locale-context';
 import { useEffect, useId, useRef, useState } from 'react';
@@ -192,12 +191,6 @@ export function ApiDbProbe() {
               </>
             )}
           </div>
-
-          <p className="api-db-example">
-            <span className="api-db-example-method">POST</span>
-            <span className="api-db-example-url">{graphqlUrl()}</span>
-            <span className="api-db-example-ops">{'{ __typename } / profile'}</span>
-          </p>
         </div>
       ) : null}
     </div>
