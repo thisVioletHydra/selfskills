@@ -21,7 +21,7 @@ async function bootstrap() {
 
   const prisma = app.get(PrismaService);
 
-  // Uptime / status chips — Nest alive + Neon probe
+  // Uptime / status chips — Nest alive + DB probe
   const http = app.getHttpAdapter().getInstance();
   http.get('/health', async () => {
     let db: 'up' | 'down' = 'down';

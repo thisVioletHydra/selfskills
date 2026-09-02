@@ -1,6 +1,6 @@
 # infra
 
-Локальный Postgres (`pnpm db`). Prod сейчас **не здесь**: API на Railway, БД на Neon — см. корневой README и `.cursor/rules/hosting.mdc`.
+Локальный Postgres (`pnpm db`). Prod сейчас **не здесь**: API + Postgres на Railway — см. корневой README и `.cursor/rules/hosting.mdc`.
 
 ## Локально (Colima / Docker)
 

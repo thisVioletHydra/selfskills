@@ -1,5 +1,5 @@
 # Required GitHub Actions secrets (Settings → Secrets and variables → Actions):
-#   DATABASE_URL — Neon unpooled prod connection string (без -pooler)
+#   DATABASE_URL — Railway Postgres public TCP URL (proxy.rlwy.net), без кавычек
 #
 # Не коммитить секреты в репозиторий.
 
