@@ -58,7 +58,6 @@
 @scope (.site-footer) {
   :scope {
     position: relative;
-    margin-block-start: 3.5rem;
     padding-block-start: var(--space-7);
     padding-block-end: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
     padding-inline: var(--space-section-x);
