@@ -129,6 +129,22 @@ export function ApiDbProbe() {
 
       {open ? (
         <div className="api-db-panel" id={panelId} role="region" aria-label={t('apiDbAria')}>
+          <div className={`api-db-pocket is-${result.status}`} aria-live="polite">
+            {result.status === 'idle' ? (
+              <p className="api-db-pocket-idle">{t('apiDbIdle')}</p>
+            ) : (
+              <>
+                <div className="api-db-pocket-head">
+                  <p className="api-db-pocket-title">{kindTitle}</p>
+                  {statusLabel !== null ? (
+                    <span className={`api-db-badge is-${result.status}`}>{statusLabel}</span>
+                  ) : null}
+                </div>
+                <pre className="api-db-pocket-body">{result.body}</pre>
+              </>
+            )}
+          </div>
+
           <div className="api-db-actions">
             <button
               type="button"
@@ -150,22 +166,6 @@ export function ApiDbProbe() {
             >
               {t('apiDbTestDb')}
             </button>
-          </div>
-
-          <div className={`api-db-pocket is-${result.status}`} aria-live="polite">
-            {result.status === 'idle' ? (
-              <p className="api-db-pocket-idle">{t('apiDbIdle')}</p>
-            ) : (
-              <>
-                <div className="api-db-pocket-head">
-                  <p className="api-db-pocket-title">{kindTitle}</p>
-                  {statusLabel !== null ? (
-                    <span className={`api-db-badge is-${result.status}`}>{statusLabel}</span>
-                  ) : null}
-                </div>
-                <pre className="api-db-pocket-body">{result.body}</pre>
-              </>
-            )}
           </div>
         </div>
       ) : null}

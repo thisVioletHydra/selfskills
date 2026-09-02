@@ -57,22 +57,23 @@
 }
 
 .api-db-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
 }
 
 .api-db-action {
   margin: 0;
-  padding: 0.32rem 0.62rem;
+  padding: 0.48rem 0.7rem;
   border: 1px solid var(--color-glass-border);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--color-muted);
+  border-radius: 0.45rem;
+  background: color-mix(in oklch, var(--color-bg-panel) 55%, transparent);
+  color: var(--color-text);
   font: inherit;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition:
     color var(--duration-fast) var(--ease-out),
@@ -82,13 +83,13 @@
 
 .api-db-action.is-active {
   color: var(--color-text);
-  border-color: color-mix(in oklch, var(--color-cold-base) 28%, var(--color-line));
-  background: color-mix(in oklch, var(--color-bg-panel) 45%, transparent);
+  border-color: color-mix(in oklch, var(--color-cold-base) 32%, var(--color-line));
+  background: color-mix(in oklch, var(--color-bg-panel) 78%, transparent);
 }
 
 .api-db-action:hover:not(:disabled) {
-  border-color: color-mix(in oklch, var(--color-cold-base) 24%, var(--color-line));
-  color: var(--color-text);
+  border-color: color-mix(in oklch, var(--color-cold-base) 28%, var(--color-line));
+  background: color-mix(in oklch, var(--color-bg-panel) 88%, transparent);
 }
 
 .api-db-action:disabled {
