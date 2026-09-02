@@ -109,20 +109,17 @@ cp apps/api/.env.example apps/api/.env
 GitHub Pages (web)  →  Railway (Nest API)  →  Railway Postgres
 ```
 
-| Слой | Где |
-|------|-----|
-| Frontend | GitHub Pages — авто на push `main`, `.github/workflows/pages.yml` |
-| Backend | **Railway** — сервис `selfskills-api`, URL `https://selfskills-api-production.up.railway.app` |
-| DB | **Railway Postgres** — private URL у API; public TCP proxy для Seed DB / локального migrate |
+| Слой | Где | Когда |
+|------|-----|--------|
+| Frontend | GitHub Pages | авто на push `main`, если менялся `apps/web/**` (и lockfile) |
+| Backend | Railway `selfskills-api` | авто на push `main`, если менялся API/Dockerfile/`railway.toml`/lockfile → `railway up` |
+| Seed | Prisma → Railway Postgres | авто на push `main`, если менялись seed/migrations/schema; сначала `migrate deploy`, потом seed |
 
-**Политика:** `git push` деплоит только фронт. API и seed — вручную через Actions → Run workflow:
+`workflow_dispatch` на всех трёх workflows — аварийный ручной запуск, не основной путь.
 
-- **Deploy API** — `.github/workflows/deploy-api.yml` (Railway Automatic Deploys **выключены**)
-- **Seed DB** — `.github/workflows/seed-db.yml`
+Secrets: `RAILWAY_TOKEN`, `DATABASE_URL` (Railway public TCP), `VITE_GRAPHQL_URL`
 
-Secrets: `RAILWAY_TOKEN`, `DATABASE_URL` (Railway public), `VITE_GRAPHQL_URL`
-
-Dockerfile API: `apps/api/Dockerfile` (context = корень монорепы).  
+Dockerfile API: `apps/api/Dockerfile` (context = корень монорепы). На старте контейнера: `prisma migrate deploy` + Nest.  
 `infra/docker-compose.prod.yml` / `infra/VPS.md` — запасной сценарий, **сейчас не используется**.
 
 ## Стек

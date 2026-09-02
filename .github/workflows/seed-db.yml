@@ -1,5 +1,5 @@
-# Required GitHub Actions secrets (Settings → Secrets and variables → Actions):
-#   DATABASE_URL — Postgres public TCP URL for seed from Actions (без кавычек)
+# Required GitHub Actions secrets:
+#   DATABASE_URL — Railway Postgres public TCP URL (для Actions; без кавычек)
 #
 # Не коммитить секреты в репозиторий.
 
@@ -13,6 +13,8 @@ on:
     paths:
       - 'apps/api/prisma/seed.ts'
       - 'apps/api/prisma/seed-data/**'
+      - 'apps/api/prisma/migrations/**'
+      - 'apps/api/prisma/schema.prisma'
       - '.github/workflows/seed-db.yml'
 
 concurrency:
@@ -35,6 +37,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm --filter api exec prisma generate
+
+      # Migrate до seed — чтобы не ловить race, если схема и контент уехали в одном push
+      - run: pnpm --filter api exec prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - run: pnpm --filter api run prisma:seed
         env:

@@ -1,14 +1,46 @@
+# Required GitHub Actions secrets:
+#   RAILWAY_TOKEN — Railway project token (project + environment)
+#
+# Не коммитить секреты в репозиторий.
+# Railway Automatic Deploys могут быть OFF — деплой идёт отсюда через `railway up`.
+
 name: Deploy API
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/src/**'
+      - 'apps/api/prisma/migrations/**'
+      - 'apps/api/prisma/schema.prisma'
+      - 'apps/api/package.json'
+      - 'apps/api/Dockerfile'
+      - 'apps/api/tsconfig.json'
+      - 'apps/api/tsconfig.build.json'
+      - 'apps/api/nest-cli.json'
+      - 'railway.toml'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/deploy-api.yml'
+
+concurrency:
+  group: deploy-api-main
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm i -g @railway/cli
-      - run: railway redeploy --service selfskills-api -y
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      # `redeploy` только перезапускает старый образ. `up` заливает текущий commit и билдит.
+      - name: Deploy API to Railway
+        run: railway up --service selfskills-api --detach -y
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
