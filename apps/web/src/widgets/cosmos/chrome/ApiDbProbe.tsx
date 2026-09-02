@@ -11,20 +11,14 @@ type ProbeStatus = 'idle' | 'loading' | 'ok' | 'error';
 type ProbeResult = {
   status: ProbeStatus;
   kind: ProbeKind | null;
-  ms: number | null;
   body: string;
 };
 
 const IDLE_RESULT: ProbeResult = {
   status: 'idle',
   kind: null,
-  ms: null,
   body: '',
 };
-
-function formatMs(ms: number) {
-  return `${ms}\u00A0ms`;
-}
 
 export function ApiDbProbe() {
   const { t, locale } = useLocale();
@@ -63,16 +57,13 @@ export function ApiDbProbe() {
   }, [open]);
 
   const runApi = async () => {
-    setResult({ status: 'loading', kind: 'api', ms: null, body: t('apiDbLoading') });
-    const started = performance.now();
+    setResult({ status: 'loading', kind: 'api', body: t('apiDbLoading') });
     const ok = await pingBackend();
-    const ms = Math.round(performance.now() - started);
 
     if (ok) {
       setResult({
         status: 'ok',
         kind: 'api',
-        ms,
         body: JSON.stringify({ __typename: 'Query' }, null, 2),
       });
       return;
@@ -81,31 +72,25 @@ export function ApiDbProbe() {
     setResult({
       status: 'error',
       kind: 'api',
-      ms,
       body: t('apiDbDown'),
     });
   };
 
   const runDb = async () => {
-    setResult({ status: 'loading', kind: 'db', ms: null, body: t('apiDbLoading') });
-    const started = performance.now();
+    setResult({ status: 'loading', kind: 'db', body: t('apiDbLoading') });
 
     try {
       const profile = await fetchProfile(locale);
-      const ms = Math.round(performance.now() - started);
       setResult({
         status: 'ok',
         kind: 'db',
-        ms,
         body: JSON.stringify({ name: profile.name, role: profile.role }, null, 2),
       });
     } catch (caught: unknown) {
-      const ms = Math.round(performance.now() - started);
       const message = caught instanceof Error ? caught.message : t('apiDbDown');
       setResult({
         status: 'error',
         kind: 'db',
-        ms,
         body: message,
       });
     }
@@ -130,7 +115,7 @@ export function ApiDbProbe() {
     <div className="api-db-probe" ref={rootRef}>
       <button
         type="button"
-        className={`api-db-trigger${result.status === 'ok' ? ' is-ok' : ''}${result.status === 'error' ? ' is-error' : ''}`}
+        className="api-db-trigger"
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={t('apiDbAria')}
@@ -139,11 +124,7 @@ export function ApiDbProbe() {
           setOpen((current) => !current);
         }}
       >
-        <span className="api-db-trigger-lamp" aria-hidden="true" />
         <span className="label">{t('apiDbButton')}</span>
-        {result.ms !== null ? (
-          <span className="api-db-trigger-ping">{formatMs(result.ms)}</span>
-        ) : null}
       </button>
 
       {open ? (
@@ -178,14 +159,9 @@ export function ApiDbProbe() {
               <>
                 <div className="api-db-pocket-head">
                   <p className="api-db-pocket-title">{kindTitle}</p>
-                  <div className="api-db-pocket-stats">
-                    {statusLabel !== null ? (
-                      <span className={`api-db-badge is-${result.status}`}>{statusLabel}</span>
-                    ) : null}
-                    {result.ms !== null ? (
-                      <span className="api-db-latency">{formatMs(result.ms)}</span>
-                    ) : null}
-                  </div>
+                  {statusLabel !== null ? (
+                    <span className={`api-db-badge is-${result.status}`}>{statusLabel}</span>
+                  ) : null}
                 </div>
                 <pre className="api-db-pocket-body">{result.body}</pre>
               </>

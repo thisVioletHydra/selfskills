@@ -8,9 +8,8 @@
 .api-db-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
   margin: 0;
-  padding: 0.38rem 0.72rem 0.38rem 0.62rem;
+  padding: 0.38rem 0.72rem;
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-pill);
   background: var(--color-glass);
@@ -35,42 +34,8 @@
   outline-offset: 3px;
 }
 
-.api-db-trigger-lamp {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--color-muted);
-  flex-shrink: 0;
-}
-
-.api-db-trigger.is-ok .api-db-trigger-lamp {
-  background: #3ecf8e;
-}
-
-.api-db-trigger.is-error .api-db-trigger-lamp {
-  background: #f07178;
-}
-
 .api-db-trigger .label {
   opacity: 0.95;
-}
-
-.api-db-trigger-ping {
-  margin-inline-start: 0.1rem;
-  padding-inline-start: 0.45rem;
-  border-inline-start: 1px solid color-mix(in oklch, var(--color-text) 14%, transparent);
-  color: var(--color-faint);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.api-db-trigger.is-ok .api-db-trigger-ping {
-  color: color-mix(in oklch, #3ecf8e 72%, var(--color-muted));
-}
-
-.api-db-trigger.is-error .api-db-trigger-ping {
-  color: color-mix(in oklch, #f07178 70%, var(--color-muted));
 }
 
 .api-db-panel {
@@ -157,7 +122,7 @@
 
 .api-db-pocket-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.55rem;
 }
@@ -170,13 +135,6 @@
   line-height: 1.25;
 }
 
-.api-db-pocket-stats {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-shrink: 0;
-}
-
 .api-db-badge {
   display: inline-flex;
   align-items: center;
@@ -187,28 +145,23 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.2;
+  color: var(--color-muted);
+  background: color-mix(in oklch, var(--color-text) 8%, transparent);
 }
 
 .api-db-badge.is-ok {
-  color: #3ecf8e;
-  background: color-mix(in oklch, #3ecf8e 16%, transparent);
+  color: var(--color-text);
+  background: color-mix(in oklch, var(--color-text) 10%, transparent);
 }
 
 .api-db-badge.is-error {
   color: #f07178;
-  background: color-mix(in oklch, #f07178 16%, transparent);
+  background: color-mix(in oklch, #f07178 14%, transparent);
 }
 
 .api-db-badge.is-loading {
-  color: #e6c35c;
-  background: color-mix(in oklch, #e6c35c 14%, transparent);
-}
-
-.api-db-latency {
   color: var(--color-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  background: color-mix(in oklch, var(--color-text) 8%, transparent);
 }
 
 .api-db-pocket-body {
@@ -221,10 +174,6 @@
   line-height: 1.4;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.api-db-pocket.is-ok .api-db-pocket-body {
-  color: color-mix(in oklch, var(--color-accent) 55%, var(--color-muted));
 }
 
 .api-db-pocket.is-error .api-db-pocket-body {
