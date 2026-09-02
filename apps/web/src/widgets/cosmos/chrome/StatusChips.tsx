@@ -75,14 +75,6 @@ export function StatusChips() {
   }, [open]);
 
   const lamp = overallLamp(health);
-  const apiLabel =
-    health.api === 'up'
-      ? t('statusLive')
-      : health.api === 'down'
-        ? t('statusDown')
-        : t('statusUnknown');
-  const dbLabel =
-    health.db === 'up' ? t('statusLive') : health.db === 'down' ? t('statusDown') : t('statusUnknown');
   const avgPing = health.latencyAvgMs;
   const lastPing = health.latencyMs;
 
@@ -119,7 +111,6 @@ export function StatusChips() {
                 {' · '}
                 GraphQL
               </p>
-              <p className="status-popover-meta">Railway · {apiLabel}</p>
             </div>
           </div>
           <div className="status-popover-row">
@@ -130,7 +121,6 @@ export function StatusChips() {
                 {' · '}
                 Postgres
               </p>
-              <p className="status-popover-meta">Railway · {dbLabel}</p>
             </div>
           </div>
           {lastPing !== null && avgPing !== null ? (
