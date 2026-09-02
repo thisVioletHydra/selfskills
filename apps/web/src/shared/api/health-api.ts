@@ -6,17 +6,28 @@ export type HealthApiStatus = 'up' | 'down' | 'unknown';
 export type HealthSnapshot = {
   api: HealthApiStatus;
   db: HealthDbStatus;
+  /** Last /health round-trip in ms */
+  latencyMs: number | null;
+  /** Rolling average of recent successful/failed probes */
+  latencyAvgMs: number | null;
 };
 
 const HEALTH_TIMEOUT_MS = 30_000;
 const HEALTH_POLL_MS = 35_000;
 const HEALTH_FAST_POLL_MS = 4_000;
+const LATENCY_WINDOW = 8;
 
-const INITIAL_SNAPSHOT: HealthSnapshot = { api: 'unknown', db: 'unknown' };
+const INITIAL_SNAPSHOT: HealthSnapshot = {
+  api: 'unknown',
+  db: 'unknown',
+  latencyMs: null,
+  latencyAvgMs: null,
+};
 
 type HealthListener = (snapshot: HealthSnapshot) => void;
 
 const listeners = new Set<HealthListener>();
+const latencySamples: number[] = [];
 let snapshot: HealthSnapshot = INITIAL_SNAPSHOT;
 let pollTimer = 0;
 let pollInFlight = false;
@@ -36,20 +47,34 @@ export function healthUrl(): string {
   }
 }
 
+function pushLatency(ms: number): number {
+  latencySamples.push(ms);
+
+  if (latencySamples.length > LATENCY_WINDOW) {
+    latencySamples.shift();
+  }
+
+  const sum = latencySamples.reduce((acc, value) => acc + value, 0);
+  return Math.round(sum / latencySamples.length);
+}
+
 export async function fetchHealth(): Promise<HealthSnapshot> {
   const controller = new AbortController();
   const timer = globalThis.setTimeout(() => {
     controller.abort();
   }, HEALTH_TIMEOUT_MS);
+  const started = performance.now();
 
   try {
     const res = await fetch(healthUrl(), {
       method: 'GET',
       signal: controller.signal,
     });
+    const latencyMs = Math.round(performance.now() - started);
+    const latencyAvgMs = pushLatency(latencyMs);
 
     if (!res.ok) {
-      return { api: 'down', db: 'unknown' };
+      return { api: 'down', db: 'unknown', latencyMs, latencyAvgMs };
     }
 
     const json = (await res.json()) as { ok?: boolean; db?: string };
@@ -58,9 +83,14 @@ export async function fetchHealth(): Promise<HealthSnapshot> {
     return {
       api: json.ok === true ? 'up' : 'down',
       db,
+      latencyMs,
+      latencyAvgMs,
     };
   } catch {
-    return { api: 'down', db: 'unknown' };
+    const latencyMs = Math.round(performance.now() - started);
+    const latencyAvgMs = pushLatency(latencyMs);
+
+    return { api: 'down', db: 'unknown', latencyMs, latencyAvgMs };
   } finally {
     globalThis.clearTimeout(timer);
   }

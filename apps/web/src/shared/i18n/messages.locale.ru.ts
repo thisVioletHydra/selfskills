@@ -64,4 +64,7 @@ export const messagesLocale = {
   statusLive: 'live',
   statusDown: 'down',
   statusUnknown: '…',
+  statusPing: 'Пинг',
+  statusPingAvg: 'Средний',
+  statusPingLast: 'Последний',
 } as const;

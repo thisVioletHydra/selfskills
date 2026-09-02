@@ -34,6 +34,10 @@ function rowState(status: 'up' | 'down' | 'unknown') {
   return 'is-unknown';
 }
 
+function formatMs(ms: number) {
+  return `${ms}\u00A0ms`;
+}
+
 export function StatusChips() {
   const { t } = useLocale();
   const panelId = useId();
@@ -79,6 +83,8 @@ export function StatusChips() {
         : t('statusUnknown');
   const dbLabel =
     health.db === 'up' ? t('statusLive') : health.db === 'down' ? t('statusDown') : t('statusUnknown');
+  const avgPing = health.latencyAvgMs;
+  const lastPing = health.latencyMs;
 
   return (
     <div className="status-chip" ref={rootRef}>
@@ -93,6 +99,9 @@ export function StatusChips() {
       >
         <span className="status-lamp" aria-hidden="true" />
         <span className="status-chip-label">{t('statusLabel')}</span>
+        {avgPing !== null ? (
+          <span className="status-chip-ping">{formatMs(avgPing)}</span>
+        ) : null}
       </button>
 
       {open ? (
@@ -113,9 +122,21 @@ export function StatusChips() {
             <span className={`status-popover-lamp ${rowState(health.db)}`} aria-hidden="true" />
             <div className="status-popover-copy">
               <p className="status-popover-title">{t('statusDbCard')}</p>
-              <p className="status-popover-meta">Neon · Postgres · {dbLabel}</p>
+              <p className="status-popover-meta">Railway · Postgres · {dbLabel}</p>
             </div>
           </div>
+          {lastPing !== null && avgPing !== null ? (
+            <div className="status-popover-metrics" aria-label={t('statusPing')}>
+              <div className="status-popover-metric">
+                <span className="status-popover-metric-label">{t('statusPingAvg')}</span>
+                <span className="status-popover-metric-value">{formatMs(avgPing)}</span>
+              </div>
+              <div className="status-popover-metric">
+                <span className="status-popover-metric-label">{t('statusPingLast')}</span>
+                <span className="status-popover-metric-value">{formatMs(lastPing)}</span>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
