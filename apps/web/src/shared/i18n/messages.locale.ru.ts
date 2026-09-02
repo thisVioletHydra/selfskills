@@ -39,6 +39,8 @@ export const messagesLocale = {
   apiDbIdle: 'Выберите тест, чтобы увидеть ответ',
   apiDbLoading: 'Проверяем…',
   apiDbDown: 'Нет ответа',
+  apiDbOk: 'ok',
+  apiDbFail: 'fail',
   orbitPause: 'Поставить орбиту на паузу',
   orbitPlay: 'Запустить орбиту',
   planetTapTitle: 'Тапни планетку · швырни планетку',

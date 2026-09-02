@@ -8,8 +8,9 @@
 .api-db-trigger {
   display: inline-flex;
   align-items: center;
+  gap: 0.4rem;
   margin: 0;
-  padding: 0.38rem 0.72rem;
+  padding: 0.38rem 0.72rem 0.38rem 0.62rem;
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-pill);
   background: var(--color-glass);
@@ -34,8 +35,42 @@
   outline-offset: 3px;
 }
 
+.api-db-trigger-lamp {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.api-db-trigger.is-ok .api-db-trigger-lamp {
+  background: #3ecf8e;
+}
+
+.api-db-trigger.is-error .api-db-trigger-lamp {
+  background: #f07178;
+}
+
 .api-db-trigger .label {
   opacity: 0.95;
+}
+
+.api-db-trigger-ping {
+  margin-inline-start: 0.1rem;
+  padding-inline-start: 0.45rem;
+  border-inline-start: 1px solid color-mix(in oklch, var(--color-text) 14%, transparent);
+  color: var(--color-faint);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.api-db-trigger.is-ok .api-db-trigger-ping {
+  color: color-mix(in oklch, #3ecf8e 72%, var(--color-muted));
+}
+
+.api-db-trigger.is-error .api-db-trigger-ping {
+  color: color-mix(in oklch, #f07178 70%, var(--color-muted));
 }
 
 .api-db-panel {
@@ -43,15 +78,17 @@
   inset-block-end: calc(100% + 0.45rem);
   inset-inline-end: 0;
   z-index: 10;
-  width: min(16.5rem, calc(100vw - 2rem));
-  padding: 0.55rem;
+  width: min(18.5rem, calc(100vw - 2rem));
+  padding: 0.7rem 0.8rem;
   overflow: hidden;
   border: 1px solid var(--color-glass-border);
-  border-radius: 0.65rem;
-  background-color: color-mix(in oklch, var(--color-bg-lift) 55%, transparent);
+  border-radius: 0.75rem;
+  background-color: color-mix(in oklch, var(--color-bg-lift) 62%, transparent);
   backdrop-filter: blur(16px) saturate(1.15);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   box-shadow: 0 10px 28px rgb(0 0 0 / 0.28);
+  display: grid;
+  gap: 0.6rem;
 }
 
 .api-db-actions {
@@ -62,19 +99,26 @@
 
 .api-db-action {
   margin: 0;
-  padding: 0.28rem 0.55rem;
+  padding: 0.32rem 0.62rem;
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--color-text);
+  color: var(--color-muted);
   font: inherit;
   font-size: 0.75rem;
+  font-weight: 500;
   line-height: 1.2;
   cursor: pointer;
   transition:
     color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out);
+}
+
+.api-db-action.is-active {
+  color: var(--color-text);
+  border-color: color-mix(in oklch, var(--color-cold-base) 28%, var(--color-line));
+  background: color-mix(in oklch, var(--color-bg-panel) 45%, transparent);
 }
 
 .api-db-action:hover:not(:disabled) {
@@ -93,37 +137,123 @@
 }
 
 .api-db-pocket {
-  margin: 0.45rem 0 0;
-  padding: 0.4rem 0.45rem;
-  max-height: 4.5rem;
-  overflow: auto;
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  min-height: 4.25rem;
   border: 1px solid color-mix(in oklch, var(--color-glass-border) 80%, transparent);
-  border-radius: 0.4rem;
-  background: color-mix(in oklch, var(--color-bg) 70%, transparent);
+  border-radius: 0.55rem;
+  background: color-mix(in oklch, var(--color-bg) 72%, transparent);
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+}
+
+.api-db-pocket-idle {
+  margin: 0;
+  color: var(--color-faint);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.api-db-pocket-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.api-db-pocket-title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.api-db-pocket-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.api-db-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.api-db-badge.is-ok {
+  color: #3ecf8e;
+  background: color-mix(in oklch, #3ecf8e 16%, transparent);
+}
+
+.api-db-badge.is-error {
+  color: #f07178;
+  background: color-mix(in oklch, #f07178 16%, transparent);
+}
+
+.api-db-badge.is-loading {
+  color: #e6c35c;
+  background: color-mix(in oklch, #e6c35c 14%, transparent);
+}
+
+.api-db-latency {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.api-db-pocket-body {
+  margin: 0;
+  max-height: 5.5rem;
+  overflow: auto;
   color: var(--color-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.625rem;
-  line-height: 1.35;
+  font-size: 0.6875rem;
+  line-height: 1.4;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.api-db-pocket.is-ok {
-  color: color-mix(in oklch, var(--color-accent) 70%, var(--color-muted));
+.api-db-pocket.is-ok .api-db-pocket-body {
+  color: color-mix(in oklch, var(--color-accent) 55%, var(--color-muted));
 }
 
-.api-db-pocket.is-error {
-  color: color-mix(in oklch, var(--color-accent) 40%, oklch(0.72 0.16 25));
+.api-db-pocket.is-error .api-db-pocket-body {
+  color: color-mix(in oklch, #f07178 55%, var(--color-muted));
 }
 
 .api-db-example {
-  margin: 0.35rem 0 0;
-  color: var(--color-muted);
+  margin: 0;
+  display: grid;
+  gap: 0.12rem;
+  color: var(--color-faint);
   font-size: 0.625rem;
-  line-height: 1.3;
+  line-height: 1.35;
   letter-spacing: 0.01em;
-  opacity: 0.72;
+}
+
+.api-db-example-method {
+  color: var(--color-muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.api-db-example-url {
   word-break: break-all;
+}
+
+.api-db-example-ops {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  opacity: 0.9;
 }
 
 @media (hover: hover) {

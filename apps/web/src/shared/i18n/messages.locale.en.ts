@@ -39,6 +39,8 @@ export const messagesLocale = {
   apiDbIdle: 'Choose a test to see the response',
   apiDbLoading: 'Checking…',
   apiDbDown: 'No response',
+  apiDbOk: 'ok',
+  apiDbFail: 'fail',
   orbitPause: 'Pause orbit',
   orbitPlay: 'Resume orbit',
   planetTapTitle: 'Tap a planet · fling a planet',

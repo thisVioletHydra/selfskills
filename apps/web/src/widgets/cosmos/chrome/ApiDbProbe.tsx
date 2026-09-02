@@ -6,14 +6,26 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 import '#web/widgets/cosmos/chrome/api-db-probe.css';
 
+type ProbeKind = 'api' | 'db';
 type ProbeStatus = 'idle' | 'loading' | 'ok' | 'error';
 
 type ProbeResult = {
   status: ProbeStatus;
-  text: string;
+  kind: ProbeKind | null;
+  ms: number | null;
+  body: string;
 };
 
-const IDLE_RESULT: ProbeResult = { status: 'idle', text: '' };
+const IDLE_RESULT: ProbeResult = {
+  status: 'idle',
+  kind: null,
+  ms: null,
+  body: '',
+};
+
+function formatMs(ms: number) {
+  return `${ms}\u00A0ms`;
+}
 
 export function ApiDbProbe() {
   const { t, locale } = useLocale();
@@ -52,7 +64,7 @@ export function ApiDbProbe() {
   }, [open]);
 
   const runApi = async () => {
-    setResult({ status: 'loading', text: t('apiDbLoading') });
+    setResult({ status: 'loading', kind: 'api', ms: null, body: t('apiDbLoading') });
     const started = performance.now();
     const ok = await pingBackend();
     const ms = Math.round(performance.now() - started);
@@ -60,19 +72,23 @@ export function ApiDbProbe() {
     if (ok) {
       setResult({
         status: 'ok',
-        text: `ok · ${ms}ms · { "__typename": "Query" }`,
+        kind: 'api',
+        ms,
+        body: JSON.stringify({ __typename: 'Query' }, null, 2),
       });
       return;
     }
 
     setResult({
       status: 'error',
-      text: `fail · ${ms}ms · ${t('apiDbDown')}`,
+      kind: 'api',
+      ms,
+      body: t('apiDbDown'),
     });
   };
 
   const runDb = async () => {
-    setResult({ status: 'loading', text: t('apiDbLoading') });
+    setResult({ status: 'loading', kind: 'db', ms: null, body: t('apiDbLoading') });
     const started = performance.now();
 
     try {
@@ -80,23 +96,42 @@ export function ApiDbProbe() {
       const ms = Math.round(performance.now() - started);
       setResult({
         status: 'ok',
-        text: `ok · ${ms}ms · ${JSON.stringify({ name: profile.name, role: profile.role })}`,
+        kind: 'db',
+        ms,
+        body: JSON.stringify({ name: profile.name, role: profile.role }, null, 2),
       });
     } catch (caught: unknown) {
       const ms = Math.round(performance.now() - started);
       const message = caught instanceof Error ? caught.message : t('apiDbDown');
       setResult({
         status: 'error',
-        text: `fail · ${ms}ms · ${message}`,
+        kind: 'db',
+        ms,
+        body: message,
       });
     }
   };
+
+  const kindTitle =
+    result.kind === 'api'
+      ? `${t('statusApiCard')} · GraphQL`
+      : result.kind === 'db'
+        ? `${t('statusDbCard')} · Postgres`
+        : null;
+  const statusLabel =
+    result.status === 'ok'
+      ? t('apiDbOk')
+      : result.status === 'error'
+        ? t('apiDbFail')
+        : result.status === 'loading'
+          ? t('apiDbLoading')
+          : null;
 
   return (
     <div className="api-db-probe" ref={rootRef}>
       <button
         type="button"
-        className="api-db-trigger"
+        className={`api-db-trigger${result.status === 'ok' ? ' is-ok' : ''}${result.status === 'error' ? ' is-error' : ''}`}
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={t('apiDbAria')}
@@ -105,7 +140,11 @@ export function ApiDbProbe() {
           setOpen((current) => !current);
         }}
       >
+        <span className="api-db-trigger-lamp" aria-hidden="true" />
         <span className="label">{t('apiDbButton')}</span>
+        {result.ms !== null ? (
+          <span className="api-db-trigger-ping">{formatMs(result.ms)}</span>
+        ) : null}
       </button>
 
       {open ? (
@@ -113,7 +152,7 @@ export function ApiDbProbe() {
           <div className="api-db-actions">
             <button
               type="button"
-              className="api-db-action"
+              className={`api-db-action${result.kind === 'api' ? ' is-active' : ''}`}
               disabled={result.status === 'loading'}
               onClick={() => {
                 void runApi();
@@ -123,7 +162,7 @@ export function ApiDbProbe() {
             </button>
             <button
               type="button"
-              className="api-db-action"
+              className={`api-db-action${result.kind === 'db' ? ' is-active' : ''}`}
               disabled={result.status === 'loading'}
               onClick={() => {
                 void runDb();
@@ -133,15 +172,31 @@ export function ApiDbProbe() {
             </button>
           </div>
 
-          <pre
-            className={`api-db-pocket is-${result.status}`}
-            aria-live="polite"
-          >
-            {result.text === '' ? t('apiDbIdle') : result.text}
-          </pre>
+          <div className={`api-db-pocket is-${result.status}`} aria-live="polite">
+            {result.status === 'idle' ? (
+              <p className="api-db-pocket-idle">{t('apiDbIdle')}</p>
+            ) : (
+              <>
+                <div className="api-db-pocket-head">
+                  <p className="api-db-pocket-title">{kindTitle}</p>
+                  <div className="api-db-pocket-stats">
+                    {statusLabel !== null ? (
+                      <span className={`api-db-badge is-${result.status}`}>{statusLabel}</span>
+                    ) : null}
+                    {result.ms !== null ? (
+                      <span className="api-db-latency">{formatMs(result.ms)}</span>
+                    ) : null}
+                  </div>
+                </div>
+                <pre className="api-db-pocket-body">{result.body}</pre>
+              </>
+            )}
+          </div>
 
           <p className="api-db-example">
-            {`POST ${graphqlUrl()} · { __typename } / profile`}
+            <span className="api-db-example-method">POST</span>
+            <span className="api-db-example-url">{graphqlUrl()}</span>
+            <span className="api-db-example-ops">{'{ __typename } / profile'}</span>
           </p>
         </div>
       ) : null}
